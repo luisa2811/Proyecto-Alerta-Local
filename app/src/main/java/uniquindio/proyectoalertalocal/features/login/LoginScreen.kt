@@ -30,12 +30,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +52,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.ui.theme.ProyectoAlertaLocalTheme
 
 private val AzulOscuro = Color(0xFF1E3043)
@@ -59,13 +63,55 @@ private val BordeCampo = Color(0xFFE4E1DC)
 private val FondoSelector = Color(0xFFF0EDE8)
 
 @Composable
-fun PantallaInicioSesion() {
-    var correo by remember { mutableStateOf("") }
-    var contrasena by remember { mutableStateOf("") }
-    var rolSeleccionado by remember { mutableStateOf("Residente") }
+fun PantallaInicioSesion(
+    modeloVista: InicioSesionViewModel = viewModel()
+) {
+    val estado = modeloVista.estado.collectAsState().value
+    val estadoSnackbar = remember { SnackbarHostState() }
 
+    LaunchedEffect(estado.mensajeSnackbar) {
+        estado.mensajeSnackbar?.let { mensaje ->
+            estadoSnackbar.showSnackbar(mensaje)
+            modeloVista.limpiarMensajeSnackbar()
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = FondoPantalla,
+        snackbarHost = {
+            SnackbarHost(hostState = estadoSnackbar) { datos ->
+                Snackbar(
+                    containerColor = AzulOscuro,
+                    contentColor = Color.White
+                ) {
+                    Text(text = datos.visuals.message)
+                }
+            }
+        }
+    ) { espacioInterior ->
+        ContenidoInicioSesion(
+            estado = estado,
+            alCambiarCorreo = modeloVista::cambiarCorreo,
+            alCambiarContrasena = modeloVista::cambiarContrasena,
+            alCambiarRol = modeloVista::cambiarRol,
+            alIntentarInicioSesion = modeloVista::intentarInicioSesion,
+            modificador = Modifier.padding(espacioInterior)
+        )
+    }
+}
+
+@Composable
+private fun ContenidoInicioSesion(
+    estado: InicioSesionUiState,
+    alCambiarCorreo: (String) -> Unit,
+    alCambiarContrasena: (String) -> Unit,
+    alCambiarRol: (String) -> Unit,
+    alIntentarInicioSesion: () -> Unit,
+    modificador: Modifier = Modifier
+) {
     Column(
-        modifier = Modifier
+        modifier = modificador
             .fillMaxSize()
             .background(FondoPantalla)
             .statusBarsPadding()
@@ -91,15 +137,15 @@ fun PantallaInicioSesion() {
 
         Spacer(modifier = Modifier.height(38.dp))
         SelectorDeRol(
-            rolSeleccionado = rolSeleccionado,
-            alSeleccionarRol = { rolSeleccionado = it }
+            rolSeleccionado = estado.rolSeleccionado,
+            alSeleccionarRol = alCambiarRol
         )
 
         Spacer(modifier = Modifier.height(20.dp))
         CampoDeFormulario(
             etiqueta = "Correo electrónico",
-            valor = correo,
-            alCambiar = { correo = it },
+            valor = estado.correo,
+            alCambiar = alCambiarCorreo,
             indicacion = "nombre@correo.com",
             tipoTeclado = KeyboardType.Email
         )
@@ -107,8 +153,8 @@ fun PantallaInicioSesion() {
         Spacer(modifier = Modifier.height(16.dp))
         CampoDeFormulario(
             etiqueta = "Contraseña",
-            valor = contrasena,
-            alCambiar = { contrasena = it },
+            valor = estado.contrasena,
+            alCambiar = alCambiarContrasena,
             indicacion = "password123",
             tipoTeclado = KeyboardType.Password,
             ocultarTexto = true
@@ -124,7 +170,7 @@ fun PantallaInicioSesion() {
         )
 
         Button(
-            onClick = {},
+            onClick = alIntentarInicioSesion,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 26.dp)
@@ -345,6 +391,12 @@ private fun SeparadorDecorativo(modifier: Modifier = Modifier) {
 @Composable
 private fun VistaPreviaInicioSesion() {
     ProyectoAlertaLocalTheme {
-        PantallaInicioSesion()
+        ContenidoInicioSesion(
+            estado = InicioSesionUiState(),
+            alCambiarCorreo = {},
+            alCambiarContrasena = {},
+            alCambiarRol = {},
+            alIntentarInicioSesion = {}
+        )
     }
 }
