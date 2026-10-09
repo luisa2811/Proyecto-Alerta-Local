@@ -1,6 +1,7 @@
 package uniquindio.proyectoalertalocal.features.login
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,8 +23,10 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.Button
@@ -53,6 +56,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.ui.theme.ProyectoAlertaLocalTheme
 
 private val AzulOscuro = Color(0xFF1E3043)
@@ -120,7 +124,7 @@ private fun ContenidoInicioSesion(
             .padding(top = 48.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        IconoUbicacion()
+        LogoAlertaLocal()
         Spacer(modifier = Modifier.height(18.dp))
         Text(
             text = "Alerta Local",
@@ -208,22 +212,28 @@ private fun ContenidoInicioSesion(
 }
 
 @Composable
-private fun IconoUbicacion() {
+private fun LogoAlertaLocal() {
     Box(
         modifier = Modifier
-            .size(56.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(AzulOscuro),
+            .size(80.dp)
+            .shadow(12.dp, RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color.White),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = Icons.Outlined.LocationOn,
-            contentDescription = "Ubicación",
-            modifier = Modifier.size(26.dp),
-            tint = Color.White
+        Image(
+            painter = painterResource(id = R.drawable.logo_alerta_local),
+            contentDescription = "Logo de Alerta Local",
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            contentScale = ContentScale.Fit
+
         )
     }
 }
+
+
 
 @Composable
 private fun SelectorDeRol(
