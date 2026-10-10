@@ -68,6 +68,9 @@ private val FondoSelector = Color(0xFFF0EDE8)
 
 @Composable
 fun PantallaInicioSesion(
+    onForgotPasswordClick: (String) -> Unit = {},
+    onRegisterClick: () -> Unit = {},
+    onLoginSuccess: () -> Unit = {},
     modeloVista: InicioSesionViewModel = viewModel()
 ) {
     val estado = modeloVista.estado.collectAsState().value
@@ -99,7 +102,9 @@ fun PantallaInicioSesion(
             alCambiarCorreo = modeloVista::cambiarCorreo,
             alCambiarContrasena = modeloVista::cambiarContrasena,
             alCambiarRol = modeloVista::cambiarRol,
-            alIntentarInicioSesion = modeloVista::intentarInicioSesion,
+            alIntentarInicioSesion = onLoginSuccess,
+            alOlvidarContrasena = { onForgotPasswordClick(estado.correo) },
+            alCrearCuenta = onRegisterClick,
             modificador = Modifier.padding(espacioInterior)
         )
     }
@@ -112,6 +117,8 @@ private fun ContenidoInicioSesion(
     alCambiarContrasena: (String) -> Unit,
     alCambiarRol: (String) -> Unit,
     alIntentarInicioSesion: () -> Unit,
+    alOlvidarContrasena: () -> Unit,
+    alCrearCuenta: () -> Unit,
     modificador: Modifier = Modifier
 ) {
     Column(
@@ -168,7 +175,8 @@ private fun ContenidoInicioSesion(
             text = "¿Olvidaste tu contraseña?",
             modifier = Modifier
                 .align(Alignment.End)
-                .padding(top = 22.dp),
+                .padding(top = 22.dp)
+                .clickable(onClick = alOlvidarContrasena),
             color = AzulOscuro,
             fontSize = 12.sp
         )
@@ -205,7 +213,9 @@ private fun ContenidoInicioSesion(
         }
         Text(
             text = textoRegistro,
-            modifier = Modifier.padding(top = 24.dp),
+            modifier = Modifier
+                .padding(top = 24.dp)
+                .clickable(onClick = alCrearCuenta),
             fontSize = 13.sp
         )
     }
@@ -406,7 +416,9 @@ private fun VistaPreviaInicioSesion() {
             alCambiarCorreo = {},
             alCambiarContrasena = {},
             alCambiarRol = {},
-            alIntentarInicioSesion = {}
+            alIntentarInicioSesion = {},
+            alOlvidarContrasena = {},
+            alCrearCuenta = {}
         )
     }
 }
