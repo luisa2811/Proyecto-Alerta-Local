@@ -7,4 +7,8 @@ object DashboardRoutes {
     const val MIS_REPORTES = "dashboard_mis_reportes"
     const val PERFIL = "dashboard_perfil"
     const val NOTIFICACIONES = "dashboard_notificaciones"
+    const val DETALLE_PUBLICACION = "dashboard_detalle_publicacion/{publicationId}"
+
+    fun detallePublicacion(publicationId: String): String =
+        "dashboard_detalle_publicacion/$publicationId"
 }
