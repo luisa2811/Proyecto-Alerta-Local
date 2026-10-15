@@ -9,8 +9,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.features.dashboard.component.BottomNavigationBar
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardNavigation
@@ -20,18 +20,18 @@ import uniquindio.proyectoalertalocal.features.dashboard.navigation.destinosDash
 private val AzulOscuro = Color(0xFF1E3043)
 
 @Composable
-fun MainScreen() {
+fun MainScreen(alCerrarSesion: () -> Unit) {
     val controlador = rememberNavController()
-    val entradaActual by controlador.currentBackStackEntryAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val alcanceCorrutinas = rememberCoroutineScope()
+    val entradaActual by controlador.currentBackStackEntryAsState()
+    val rutaActual = entradaActual?.destination?.route
 
     Scaffold(
         bottomBar = {
-            if (entradaActual?.destination?.route !in setOf(
-                    DashboardRoutes.PERFIL,
-                    DashboardRoutes.EDITAR_PERFIL
-                )
+            if (
+                rutaActual != DashboardRoutes.CREAR &&
+                rutaActual != DashboardRoutes.DETALLE_PUBLICACION
             ) {
                 BottomNavigationBar(
                     destinos = destinosDashboard,
@@ -53,6 +53,7 @@ fun MainScreen() {
         DashboardNavigation(
             controlador = controlador,
             espacioInterior = espacioInterior,
+            alCerrarSesion = alCerrarSesion,
             alMostrarMensaje = { mensaje ->
                 alcanceCorrutinas.launch {
                     snackbarHostState.showSnackbar(mensaje)

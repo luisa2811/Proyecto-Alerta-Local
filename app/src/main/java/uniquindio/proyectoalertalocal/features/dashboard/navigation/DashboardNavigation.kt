@@ -18,13 +18,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import uniquindio.proyectoalertalocal.features.home.HomeScreen
-import uniquindio.proyectoalertalocal.features.profile.EditProfileScreen
-import uniquindio.proyectoalertalocal.features.profile.ProfileDashboardScreen
+import uniquindio.proyectoalertalocal.features.report.create.CreateReportScreen
+import uniquindio.proyectoalertalocal.features.report.detail.ReportDetailScreen
+import uniquindio.proyectoalertalocal.features.report.list.FeedScreen
 
 @Composable
 fun DashboardNavigation(
     controlador: NavHostController,
     espacioInterior: PaddingValues,
+    alCerrarSesion: () -> Unit,
     alMostrarMensaje: (String) -> Unit
 ) {
     NavHost(
@@ -44,17 +46,27 @@ fun DashboardNavigation(
             )
         }
         composable(DashboardRoutes.ALERTAS) {
-            PantallaProvisional(
-                titulo = "Alertas",
-                descripcion = "El módulo de alertas está pendiente de implementación."
+            FeedScreen(
+                onOpenPublication = { id ->
+                    controlador.navigate(DashboardRoutes.detallePublicacion(id))
+                },
+                onOpenNotifications = {
+                    controlador.navigate(DashboardRoutes.NOTIFICACIONES)
+                },
+                onShowMessage = alMostrarMensaje
             )
         }
         composable(DashboardRoutes.CREAR) {
-            PantallaProvisional(
-                titulo = "Crear reporte",
-                descripcion = "Este formulario se implementará en la siguiente etapa.",
-                accion = "Volver al inicio",
-                alEjecutarAccion = { controlador.navigate(DashboardRoutes.INICIO) }
+            CreateReportScreen(
+                onBack = { controlador.popBackStack() },
+                onSubmit = {
+                    alMostrarMensaje("Formulario de demostración: el reporte no se publicó.")
+                    controlador.navigate(DashboardRoutes.ALERTAS) {
+                        popUpTo(DashboardRoutes.INICIO)
+                        launchSingleTop = true
+                    }
+                },
+                onShowMessage = alMostrarMensaje
             )
         }
         composable(DashboardRoutes.MIS_REPORTES) {
@@ -64,16 +76,11 @@ fun DashboardNavigation(
             )
         }
         composable(DashboardRoutes.PERFIL) {
-            ProfileDashboardScreen(
-                onBack = { controlador.popBackStack() },
-                onEditProfile = {
-                    controlador.navigate(DashboardRoutes.EDITAR_PERFIL)
-                }
-            )
-        }
-        composable(DashboardRoutes.EDITAR_PERFIL) {
-            EditProfileScreen(
-                onBack = { controlador.popBackStack() }
+            PantallaProvisional(
+                titulo = "Perfil",
+                descripcion = "Perfil de demostración. No hay una cuenta conectada.",
+                accion = "Volver al inicio de sesión",
+                alEjecutarAccion = alCerrarSesion
             )
         }
         composable(DashboardRoutes.NOTIFICACIONES) {
@@ -82,6 +89,15 @@ fun DashboardNavigation(
                 descripcion = "No hay notificaciones conectadas. Esta pantalla es demostrativa.",
                 accion = "Volver al inicio",
                 alEjecutarAccion = { controlador.popBackStack() }
+            )
+        }
+        composable(DashboardRoutes.DETALLE_PUBLICACION) { entrada ->
+            val publicationId =
+                entrada.arguments?.getString("publicationId").orEmpty()
+            ReportDetailScreen(
+                publicationId = publicationId,
+                onBack = { controlador.popBackStack() },
+                onShowMessage = alMostrarMensaje
             )
         }
     }
