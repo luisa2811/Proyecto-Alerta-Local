@@ -6,5 +6,6 @@ object DashboardRoutes {
     const val CREAR = "dashboard_crear"
     const val MIS_REPORTES = "dashboard_mis_reportes"
     const val PERFIL = "dashboard_perfil"
+    const val EDITAR_PERFIL = "dashboard_editar_perfil"
     const val NOTIFICACIONES = "dashboard_notificaciones"
 }

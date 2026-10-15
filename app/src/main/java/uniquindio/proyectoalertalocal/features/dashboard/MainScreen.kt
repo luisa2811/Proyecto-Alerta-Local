@@ -7,27 +7,37 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.features.dashboard.component.BottomNavigationBar
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardNavigation
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardRoutes
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.destinosDashboard
 
 private val AzulOscuro = Color(0xFF1E3043)
 
 @Composable
-fun MainScreen(alCerrarSesion: () -> Unit) {
+fun MainScreen() {
     val controlador = rememberNavController()
+    val entradaActual by controlador.currentBackStackEntryAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val alcanceCorrutinas = rememberCoroutineScope()
 
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(
-                destinos = destinosDashboard,
-                controlador = controlador
-            )
+            if (entradaActual?.destination?.route !in setOf(
+                    DashboardRoutes.PERFIL,
+                    DashboardRoutes.EDITAR_PERFIL
+                )
+            ) {
+                BottomNavigationBar(
+                    destinos = destinosDashboard,
+                    controlador = controlador
+                )
+            }
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { datos ->
@@ -43,7 +53,6 @@ fun MainScreen(alCerrarSesion: () -> Unit) {
         DashboardNavigation(
             controlador = controlador,
             espacioInterior = espacioInterior,
-            alCerrarSesion = alCerrarSesion,
             alMostrarMensaje = { mensaje ->
                 alcanceCorrutinas.launch {
                     snackbarHostState.showSnackbar(mensaje)

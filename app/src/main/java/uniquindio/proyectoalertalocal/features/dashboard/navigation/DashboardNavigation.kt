@@ -18,12 +18,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import uniquindio.proyectoalertalocal.features.home.HomeScreen
+import uniquindio.proyectoalertalocal.features.profile.EditProfileScreen
+import uniquindio.proyectoalertalocal.features.profile.ProfileDashboardScreen
 
 @Composable
 fun DashboardNavigation(
     controlador: NavHostController,
     espacioInterior: PaddingValues,
-    alCerrarSesion: () -> Unit,
     alMostrarMensaje: (String) -> Unit
 ) {
     NavHost(
@@ -63,11 +64,16 @@ fun DashboardNavigation(
             )
         }
         composable(DashboardRoutes.PERFIL) {
-            PantallaProvisional(
-                titulo = "Perfil",
-                descripcion = "Perfil de demostración. No hay una cuenta conectada.",
-                accion = "Volver al inicio de sesión",
-                alEjecutarAccion = alCerrarSesion
+            ProfileDashboardScreen(
+                onBack = { controlador.popBackStack() },
+                onEditProfile = {
+                    controlador.navigate(DashboardRoutes.EDITAR_PERFIL)
+                }
+            )
+        }
+        composable(DashboardRoutes.EDITAR_PERFIL) {
+            EditProfileScreen(
+                onBack = { controlador.popBackStack() }
             )
         }
         composable(DashboardRoutes.NOTIFICACIONES) {

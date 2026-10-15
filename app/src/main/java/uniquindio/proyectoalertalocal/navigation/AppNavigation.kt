@@ -25,13 +25,7 @@ fun AppNavigation() {
         startDestination = RutasAplicacion.INICIO_SESION
     ) {
         composable(RutasAplicacion.INICIO) {
-            MainScreen(
-                alCerrarSesion = {
-                    controlador.navigate(RutasAplicacion.INICIO_SESION) {
-                        popUpTo(RutasAplicacion.INICIO) { inclusive = true }
-                    }
-                }
-            )
+            MainScreen()
         }
         composable(RutasAplicacion.INICIO_SESION) {
             PantallaInicioSesion(
