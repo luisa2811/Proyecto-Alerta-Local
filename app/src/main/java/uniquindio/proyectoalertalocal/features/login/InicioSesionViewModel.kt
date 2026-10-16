@@ -19,6 +19,10 @@ class InicioSesionViewModel : ViewModel() {
         _estado.update { it.copy(contrasena = contrasena) }
     }
 
+    fun cambiarCodigoModerador(codigo: String) {
+        _estado.update { it.copy(codigoModerador = codigo) }
+    }
+
     fun cambiarRol(rol: String) {
         _estado.update { it.copy(rolSeleccionado = rol) }
     }

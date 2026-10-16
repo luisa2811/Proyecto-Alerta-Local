@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.Button
@@ -70,7 +71,7 @@ private val FondoSelector = Color(0xFFF0EDE8)
 fun PantallaInicioSesion(
     onForgotPasswordClick: (String) -> Unit = {},
     onRegisterClick: () -> Unit = {},
-    onLoginSuccess: () -> Unit = {},
+    onLoginSuccess: (String) -> Unit = {},
     modeloVista: InicioSesionViewModel = viewModel()
 ) {
     val estado = modeloVista.estado.collectAsState().value
@@ -101,8 +102,9 @@ fun PantallaInicioSesion(
             estado = estado,
             alCambiarCorreo = modeloVista::cambiarCorreo,
             alCambiarContrasena = modeloVista::cambiarContrasena,
+            alCambiarCodigoModerador = modeloVista::cambiarCodigoModerador,
             alCambiarRol = modeloVista::cambiarRol,
-            alIntentarInicioSesion = onLoginSuccess,
+            alIntentarInicioSesion = { onLoginSuccess(estado.rolSeleccionado) },
             alOlvidarContrasena = { onForgotPasswordClick(estado.correo) },
             alCrearCuenta = onRegisterClick,
             modificador = Modifier.padding(espacioInterior)
@@ -115,6 +117,7 @@ private fun ContenidoInicioSesion(
     estado: InicioSesionUiState,
     alCambiarCorreo: (String) -> Unit,
     alCambiarContrasena: (String) -> Unit,
+    alCambiarCodigoModerador: (String) -> Unit,
     alCambiarRol: (String) -> Unit,
     alIntentarInicioSesion: () -> Unit,
     alOlvidarContrasena: () -> Unit,
@@ -171,6 +174,37 @@ private fun ContenidoInicioSesion(
             ocultarTexto = true
         )
 
+        if (estado.rolSeleccionado == "Moderador") {
+            Spacer(modifier = Modifier.height(16.dp))
+            CampoDeFormulario(
+                etiqueta = "Código de credencial de moderador",
+                valor = estado.codigoModerador,
+                alCambiar = alCambiarCodigoModerador,
+                indicacion = "Ej: MOD-8824-B",
+                tipoTeclado = KeyboardType.Ascii,
+                requerido = true
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Lock,
+                    contentDescription = null,
+                    modifier = Modifier.size(13.dp),
+                    tint = TextoSecundario
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Acceso restringido con auditoría pericial y cívica",
+                    color = TextoSecundario,
+                    fontSize = 11.sp
+                )
+            }
+        }
+
         Text(
             text = "¿Olvidaste tu contraseña?",
             modifier = Modifier
@@ -193,31 +227,40 @@ private fun ContenidoInicioSesion(
                 contentColor = Color.White
             )
         ) {
-            Text(text = "Iniciar sesión", fontSize = 14.sp)
+            Text(
+                text = if (estado.rolSeleccionado == "Moderador") {
+                    "Acceder como moderador"
+                } else {
+                    "Iniciar sesión"
+                },
+                fontSize = 14.sp
+            )
         }
 
-        SeparadorDecorativo(modifier = Modifier.padding(top = 25.dp))
+        if (estado.rolSeleccionado == "Residente") {
+            SeparadorDecorativo(modifier = Modifier.padding(top = 25.dp))
 
-        val textoRegistro = buildAnnotatedString {
-            withStyle(SpanStyle(color = AzulOscuro)) {
-                append("¿Eres nuevo? ")
+            val textoRegistro = buildAnnotatedString {
+                withStyle(SpanStyle(color = AzulOscuro)) {
+                    append("¿Eres nuevo? ")
+                }
+                withStyle(
+                    SpanStyle(
+                        color = Naranja,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                ) {
+                    append("Crear una cuenta")
+                }
             }
-            withStyle(
-                SpanStyle(
-                    color = Naranja,
-                    fontWeight = FontWeight.SemiBold
-                )
-            ) {
-                append("Crear una cuenta")
-            }
+            Text(
+                text = textoRegistro,
+                modifier = Modifier
+                    .padding(top = 24.dp)
+                    .clickable(onClick = alCrearCuenta),
+                fontSize = 13.sp
+            )
         }
-        Text(
-            text = textoRegistro,
-            modifier = Modifier
-                .padding(top = 24.dp)
-                .clickable(onClick = alCrearCuenta),
-            fontSize = 13.sp
-        )
     }
 }
 
@@ -242,9 +285,6 @@ private fun LogoAlertaLocal() {
         )
     }
 }
-
-
-
 @Composable
 private fun SelectorDeRol(
     rolSeleccionado: String,
@@ -281,11 +321,7 @@ private fun OpcionDeRol(
     alSeleccionar: () -> Unit,
     modificador: Modifier = Modifier
 ) {
-    val colorIcono = when {
-        nombre == "Moderador" -> Naranja
-        seleccionado -> Color.White
-        else -> AzulOscuro
-    }
+    val colorIcono = if (seleccionado) Color.White else AzulOscuro
 
     Row(
         modifier = modificador
@@ -323,15 +359,37 @@ private fun CampoDeFormulario(
     alCambiar: (String) -> Unit,
     indicacion: String,
     tipoTeclado: KeyboardType,
-    ocultarTexto: Boolean = false
+    ocultarTexto: Boolean = false,
+    requerido: Boolean = false
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = etiqueta,
-            modifier = Modifier.padding(start = 2.dp),
-            color = AzulOscuro,
-            fontSize = 12.sp
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = etiqueta,
+                modifier = Modifier.padding(start = 2.dp),
+                color = AzulOscuro,
+                fontSize = 12.sp
+            )
+            if (requerido) {
+                Text(
+                    text = "Requerido",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(Color(0xFFFFF0EB))
+                        .border(
+                            BorderStroke(1.dp, Color(0xFFFFD9CC)),
+                            RoundedCornerShape(50)
+                        )
+                        .padding(horizontal = 9.dp, vertical = 3.dp),
+                    color = Naranja,
+                    fontSize = 10.sp
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(7.dp))
         Row(
             modifier = Modifier
@@ -415,6 +473,7 @@ private fun VistaPreviaInicioSesion() {
             estado = InicioSesionUiState(),
             alCambiarCorreo = {},
             alCambiarContrasena = {},
+            alCambiarCodigoModerador = {},
             alCambiarRol = {},
             alIntentarInicioSesion = {},
             alOlvidarContrasena = {},

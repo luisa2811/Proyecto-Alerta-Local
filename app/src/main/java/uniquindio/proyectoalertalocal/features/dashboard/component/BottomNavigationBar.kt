@@ -2,7 +2,6 @@ package uniquindio.proyectoalertalocal.features.dashboard.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -54,8 +53,7 @@ fun BottomNavigationBar(
                     if (destino.accionCentral) {
                         Box(
                             modifier = Modifier
-                                .offset(y = (-12).dp)
-                                .size(54.dp)
+                                .size(48.dp)
                                 .shadow(6.dp, CircleShape)
                                 .background(Naranja, CircleShape),
                             contentAlignment = Alignment.Center
@@ -64,7 +62,7 @@ fun BottomNavigationBar(
                                 imageVector = destino.icono,
                                 contentDescription = "Crear reporte",
                                 tint = Color.White,
-                                modifier = Modifier.size(30.dp)
+                                modifier = Modifier.size(26.dp)
                             )
                         }
                     } else {
