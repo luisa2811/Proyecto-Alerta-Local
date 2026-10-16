@@ -1,6 +1,8 @@
 package uniquindio.proyectoalertalocal.features.dashboard.navigation
 
 object DashboardRoutes {
+    const val MODERACION = "dashboard_moderacion"
+    const val DETALLE_MODERACION = "dashboard_moderacion_detalle/{reportId}"
     const val INICIO = "dashboard_inicio"
     const val ALERTAS = "dashboard_alertas"
     const val CREAR = "dashboard_crear"
@@ -12,4 +14,7 @@ object DashboardRoutes {
 
     fun detallePublicacion(publicationId: String): String =
         "dashboard_detalle_publicacion/$publicationId"
+
+    fun detalleModeracion(reportId: String): String =
+        "dashboard_moderacion_detalle/$reportId"
 }

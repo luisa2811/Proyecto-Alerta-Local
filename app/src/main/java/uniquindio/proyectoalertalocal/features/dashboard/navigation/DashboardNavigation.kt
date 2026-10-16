@@ -18,6 +18,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import uniquindio.proyectoalertalocal.features.home.HomeScreen
+import uniquindio.proyectoalertalocal.features.moderator.ModeratorDashboardScreen
+import uniquindio.proyectoalertalocal.features.moderator.ModeratorReportDetailScreen
 import uniquindio.proyectoalertalocal.features.report.create.CreateReportScreen
 import uniquindio.proyectoalertalocal.features.report.detail.ReportDetailScreen
 import uniquindio.proyectoalertalocal.features.report.list.FeedScreen
@@ -26,16 +28,33 @@ import uniquindio.proyectoalertalocal.features.report.list.FeedScreen
 fun DashboardNavigation(
     controlador: NavHostController,
     espacioInterior: PaddingValues,
+    esModerador: Boolean,
     alCerrarSesion: () -> Unit,
     alMostrarMensaje: (String) -> Unit
 ) {
     NavHost(
         navController = controlador,
-        startDestination = DashboardRoutes.INICIO,
+        startDestination = if (esModerador) DashboardRoutes.MODERACION else DashboardRoutes.INICIO,
         modifier = Modifier
             .fillMaxSize()
             .padding(espacioInterior)
     ) {
+        composable(DashboardRoutes.MODERACION) {
+            ModeratorDashboardScreen(
+                onBack = alCerrarSesion,
+                onShowMessage = alMostrarMensaje,
+                onOpenDetail = { reportId ->
+                    controlador.navigate(DashboardRoutes.detalleModeracion(reportId))
+                }
+            )
+        }
+        composable(DashboardRoutes.DETALLE_MODERACION) { entrada ->
+            val reportId = entrada.arguments?.getString("reportId").orEmpty()
+            ModeratorReportDetailScreen(
+                reportId = reportId,
+                onBack = { controlador.popBackStack() }
+            )
+        }
         composable(DashboardRoutes.INICIO) {
             HomeScreen(
                 onCreateReport = { controlador.navigate(DashboardRoutes.CREAR) },

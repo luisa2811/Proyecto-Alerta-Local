@@ -20,7 +20,10 @@ import uniquindio.proyectoalertalocal.features.dashboard.navigation.destinosDash
 private val AzulOscuro = Color(0xFF1E3043)
 
 @Composable
-fun MainScreen(alCerrarSesion: () -> Unit) {
+fun MainScreen(
+    esModerador: Boolean = false,
+    alCerrarSesion: () -> Unit
+) {
     val controlador = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val alcanceCorrutinas = rememberCoroutineScope()
@@ -29,10 +32,10 @@ fun MainScreen(alCerrarSesion: () -> Unit) {
 
     Scaffold(
         bottomBar = {
-            if (
+            if (!esModerador && (
                 rutaActual != DashboardRoutes.CREAR &&
                 rutaActual != DashboardRoutes.DETALLE_PUBLICACION
-            ) {
+            )) {
                 BottomNavigationBar(
                     destinos = destinosDashboard,
                     controlador = controlador
@@ -53,6 +56,7 @@ fun MainScreen(alCerrarSesion: () -> Unit) {
         DashboardNavigation(
             controlador = controlador,
             espacioInterior = espacioInterior,
+            esModerador = esModerador,
             alCerrarSesion = alCerrarSesion,
             alMostrarMensaje = { mensaje ->
                 alcanceCorrutinas.launch {
