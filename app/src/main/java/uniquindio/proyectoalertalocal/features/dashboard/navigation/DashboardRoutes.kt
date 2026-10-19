@@ -1,20 +1,36 @@
 package uniquindio.proyectoalertalocal.features.dashboard.navigation
 
-object DashboardRoutes {
-    const val MODERACION = "dashboard_moderacion"
-    const val DETALLE_MODERACION = "dashboard_moderacion_detalle/{reportId}"
-    const val INICIO = "dashboard_inicio"
-    const val ALERTAS = "dashboard_alertas"
-    const val CREAR = "dashboard_crear"
-    const val MIS_REPORTES = "dashboard_mis_reportes"
-    const val PERFIL = "dashboard_perfil"
-    const val EDITAR_PERFIL = "dashboard_editar_perfil"
-    const val NOTIFICACIONES = "dashboard_notificaciones"
-    const val DETALLE_PUBLICACION = "dashboard_detalle_publicacion/{publicationId}"
+import kotlinx.serialization.Serializable
 
-    fun detallePublicacion(publicationId: String): String =
-        "dashboard_detalle_publicacion/$publicationId"
+@Serializable
+sealed interface DashboardRoute
 
-    fun detalleModeracion(reportId: String): String =
-        "dashboard_moderacion_detalle/$reportId"
-}
+@Serializable
+data object ModeratorDashboardRoute : DashboardRoute
+
+@Serializable
+data class ModeratorReportDetailRoute(val reportId: String) : DashboardRoute
+
+@Serializable
+data object DashboardHomeRoute : DashboardRoute
+
+@Serializable
+data object AlertsRoute : DashboardRoute
+
+@Serializable
+data object CreateReportRoute : DashboardRoute
+
+@Serializable
+data object MyReportsRoute : DashboardRoute
+
+@Serializable
+data object ProfileRoute : DashboardRoute
+
+@Serializable
+data object EditProfileRoute : DashboardRoute
+
+@Serializable
+data object NotificationsRoute : DashboardRoute
+
+@Serializable
+data class PublicationDetailRoute(val publicationId: String) : DashboardRoute

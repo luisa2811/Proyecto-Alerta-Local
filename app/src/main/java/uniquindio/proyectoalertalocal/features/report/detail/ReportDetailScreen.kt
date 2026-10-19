@@ -36,11 +36,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,9 +48,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
-import uniquindio.proyectoalertalocal.features.report.PublicacionUiModel
-import uniquindio.proyectoalertalocal.features.report.publicacionesDemostrativas
 
 private val AzulOscuro = Color(0xFF1E3043)
 private val Naranja = Color(0xFFE65B2F)
@@ -65,13 +61,15 @@ fun ReportDetailScreen(
     publicationId: String,
     onBack: () -> Unit,
     onShowMessage: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    modeloVista: ReportDetailViewModel = viewModel()
 ) {
-    val publicacion = publicacionesDemostrativas.firstOrNull { it.id == publicationId }
-        ?: publicacionesDemostrativas.first()
-    var votos by remember(publicationId) { mutableIntStateOf(publicacion.votosImportante) }
-    var importante by remember(publicationId) { mutableStateOf(false) }
-    var comentario by remember { mutableStateOf("") }
+    val estado = modeloVista.uiState.collectAsState().value
+    val publicacion = estado.publicacion
+
+    LaunchedEffect(publicationId) {
+        modeloVista.cargarPublicacion(publicationId)
+    }
 
     Column(
         modifier = modifier
@@ -260,8 +258,7 @@ fun ReportDetailScreen(
             ) {
                 OutlinedButton(
                     onClick = {
-                        importante = !importante
-                        votos += if (importante) 1 else -1
+                        modeloVista.alternarImportancia()
                     },
                     modifier = Modifier
                         .weight(1f)
@@ -277,7 +274,7 @@ fun ReportDetailScreen(
                         modifier = Modifier.size(17.dp)
                     )
                     Text(
-                        text = "Es importante · $votos",
+                        text = "Es importante · ${estado.votosImportante}",
                         modifier = Modifier.padding(start = 5.dp),
                         fontSize = 11.sp
                     )
@@ -330,8 +327,8 @@ fun ReportDetailScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             BasicTextField(
-                value = comentario,
-                onValueChange = { comentario = it },
+                value = estado.comentario,
+                onValueChange = modeloVista::cambiarComentario,
                 modifier = Modifier
                     .weight(1f)
                     .height(40.dp)
@@ -345,7 +342,7 @@ fun ReportDetailScreen(
                 ),
                 decorationBox = { campo ->
                     Box {
-                        if (comentario.isEmpty()) {
+                        if (estado.comentario.isEmpty()) {
                             Text(
                                 text = "Añade información adicional...",
                                 color = Color(0xFFA0A3A5),
@@ -361,8 +358,7 @@ fun ReportDetailScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .clickable {
-                        if (comentario.isNotBlank()) {
-                            comentario = ""
+                        if (modeloVista.enviarComentario()) {
                             onShowMessage("Comentario de demostración; no se envió.")
                         } else {
                             onShowMessage("Escribe un comentario para continuar.")

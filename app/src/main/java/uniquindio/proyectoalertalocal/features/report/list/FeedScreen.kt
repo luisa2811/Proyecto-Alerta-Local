@@ -22,15 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Pets
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -39,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,10 +46,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.features.report.CategoriaPublicacion
 import uniquindio.proyectoalertalocal.features.report.PublicacionUiModel
-import uniquindio.proyectoalertalocal.features.report.publicacionesDemostrativas
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 
@@ -67,15 +62,10 @@ fun FeedScreen(
     onOpenPublication: (String) -> Unit,
     onOpenNotifications: () -> Unit,
     onShowMessage: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    modeloVista: FeedViewModel = viewModel()
 ) {
-    var categoriaSeleccionada by remember { mutableStateOf<CategoriaPublicacion?>(null) }
-    var proximidad by remember { mutableStateOf("Cerca de mí") }
-    val publicaciones = remember(categoriaSeleccionada) {
-        categoriaSeleccionada?.let { categoria ->
-            publicacionesDemostrativas.filter { it.categoria == categoria }
-        } ?: publicacionesDemostrativas
-    }
+    val estado = modeloVista.uiState.collectAsState().value
 
     Column(
         modifier = modifier
@@ -87,12 +77,12 @@ fun FeedScreen(
             onShowMessage = onShowMessage
         )
         FiltrosFeed(
-            categoriaSeleccionada = categoriaSeleccionada,
-            onSelectCategory = { categoriaSeleccionada = it }
+            categoriaSeleccionada = estado.categoriaSeleccionada,
+            onSelectCategory = modeloVista::seleccionarCategoria
         )
         ControlesFeed(
-            proximidad = proximidad,
-            onSelectProximity = { proximidad = it }
+            proximidad = estado.proximidad,
+            onSelectProximity = modeloVista::seleccionarProximidad
         )
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -104,7 +94,7 @@ fun FeedScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(publicaciones, key = { it.id }) { publicacion ->
+            items(estado.publicacionesFiltradas, key = { it.id }) { publicacion ->
                 TarjetaPublicacion(
                     publicacion = publicacion,
                     onClick = { onOpenPublication(publicacion.id) }
@@ -297,86 +287,119 @@ private fun TarjetaPublicacion(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(17.dp),
+        shape = RoundedCornerShape(16.dp),
         color = Color.White,
         shadowElevation = 2.dp
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(13.dp))
-                    .background(publicacion.categoria.color.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
+        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = iconoCategoria(publicacion.categoria),
-                    contentDescription = publicacion.categoria.etiqueta,
-                    tint = publicacion.categoria.color,
-                    modifier = Modifier.size(24.dp)
+                EtiquetaFeed(
+                    texto = publicacion.categoria.etiqueta,
+                    fondo = publicacion.categoria.color.copy(alpha = 0.12f),
+                    textoColor = publicacion.categoria.color
                 )
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 12.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    EtiquetaFeed(
-                        texto = publicacion.categoria.etiqueta,
-                        fondo = publicacion.categoria.color.copy(alpha = 0.12f),
-                        textoColor = publicacion.categoria.color
-                    )
-                    EtiquetaFeed(
-                        texto = publicacion.estado,
-                        fondo = colorEstado(publicacion.estado).copy(alpha = 0.13f),
-                        textoColor = colorEstado(publicacion.estado)
-                    )
-                }
-                Text(
-                    text = publicacion.titulo,
-                    modifier = Modifier.padding(top = 4.dp),
-                    color = Color(0xFF202326),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                EtiquetaFeed(
+                    texto = publicacion.estado,
+                    fondo = colorEstado(publicacion.estado).copy(alpha = 0.13f),
+                    textoColor = colorEstado(publicacion.estado),
+                    modifier = Modifier.padding(start = 6.dp)
                 )
+                Spacer(Modifier.weight(1f))
                 Text(
                     text = "${publicacion.distancia} · ${publicacion.antiguedad}",
-                    modifier = Modifier.padding(top = 3.dp),
                     color = GrisSecundario,
-                    fontSize = 11.sp
+                    fontSize = 10.sp
                 )
-                Row(
-                    modifier = Modifier.padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            }
+            Text(
+                text = publicacion.titulo,
+                modifier = Modifier.padding(top = 8.dp),
+                color = Color(0xFF202326),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = publicacion.descripcion,
+                modifier = Modifier.padding(top = 4.dp),
+                color = Color(0xFF777D82),
+                fontSize = 12.sp,
+                lineHeight = 17.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 9.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ContadorPublicacion(
+                    icono = Icons.Filled.ThumbUp,
+                    cantidad = publicacion.votosImportante,
+                    descripcion = "Me gusta"
+                )
+                ContadorPublicacion(
+                    icono = Icons.Filled.ChatBubbleOutline,
+                    cantidad = publicacion.cantidadComentarios,
+                    descripcion = "Comentarios"
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    modifier = Modifier.size(27.dp),
+                    shape = CircleShape,
+                    color = AzulOscuro
                 ) {
-                    IconoContador(
-                        icono = Icons.Filled.StarBorder,
-                        cantidad = publicacion.votosImportante,
-                        descripcion = "Importante"
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = publicacion.inicialesReportante,
+                            color = Color.White,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                ) {
+                    Text(
+                        text = publicacion.nombreReportante,
+                        color = Color(0xFF3F4346),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium
                     )
-                    IconoContador(
-                        icono = Icons.Filled.ChatBubbleOutline,
-                        cantidad = publicacion.cantidadComentarios,
-                        descripcion = "Comentarios"
+                    Text(
+                        text = "Residente",
+                        color = GrisSecundario,
+                        fontSize = 10.sp
                     )
                 }
+                Text(
+                    text = publicacion.ubicacion,
+                    modifier = Modifier.weight(1f),
+                    color = GrisSecundario,
+                    fontSize = 10.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
 }
 
 @Composable
-private fun IconoContador(
+private fun ContadorPublicacion(
     icono: androidx.compose.ui.graphics.vector.ImageVector,
     cantidad: Int,
     descripcion: String
@@ -395,14 +418,25 @@ private fun IconoContador(
             fontSize = 10.sp,
             fontWeight = FontWeight.Medium
         )
+        Text(
+            text = descripcion,
+            modifier = Modifier.padding(start = 4.dp),
+            color = GrisSecundario,
+            fontSize = 10.sp
+        )
     }
 }
 
 @Composable
-private fun EtiquetaFeed(texto: String, fondo: Color, textoColor: Color) {
+private fun EtiquetaFeed(
+    texto: String,
+    fondo: Color,
+    textoColor: Color,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = texto,
-        modifier = Modifier
+        modifier = modifier
             .clip(CircleShape)
             .background(fondo)
             .padding(horizontal = 7.dp, vertical = 3.dp),
@@ -410,14 +444,6 @@ private fun EtiquetaFeed(texto: String, fondo: Color, textoColor: Color) {
         fontSize = 9.sp,
         fontWeight = FontWeight.SemiBold
     )
-}
-
-private fun iconoCategoria(categoria: CategoriaPublicacion) = when (categoria) {
-    CategoriaPublicacion.SEGURIDAD -> Icons.Filled.Warning
-    CategoriaPublicacion.EMERGENCIAS -> Icons.Filled.LocalHospital
-    CategoriaPublicacion.INFRAESTRUCTURA -> Icons.Filled.Build
-    CategoriaPublicacion.MASCOTAS -> Icons.Filled.Pets
-    CategoriaPublicacion.COMUNIDAD -> Icons.Filled.Groups
 }
 
 private fun colorEstado(estado: String): Color = when (estado) {

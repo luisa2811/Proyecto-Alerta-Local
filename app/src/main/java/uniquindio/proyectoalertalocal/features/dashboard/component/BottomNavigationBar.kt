@@ -19,7 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardDestination
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardRoutes
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.AlertsRoute
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.CreateReportRoute
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardHomeRoute
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.MyReportsRoute
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.ProfileRoute
 
 private val AzulOscuro = Color(0xFF1E3043)
 private val Naranja = Color(0xFFF45B35)
@@ -38,15 +42,39 @@ fun BottomNavigationBar(
         tonalElevation = 8.dp
     ) {
         destinos.forEach { destino ->
-            val seleccionado = rutaActual == destino.ruta
+            val nombreRuta = destino.ruta::class.qualifiedName.orEmpty()
+            val seleccionado = rutaActual?.startsWith(nombreRuta) == true
 
             NavigationBarItem(
                 selected = seleccionado,
                 onClick = {
-                    controlador.navigate(destino.ruta) {
-                        popUpTo(DashboardRoutes.INICIO) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+                    when (destino.ruta) {
+                        DashboardHomeRoute -> controlador.navigate(DashboardHomeRoute) {
+                            popUpTo<DashboardHomeRoute> { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                        AlertsRoute -> controlador.navigate(AlertsRoute) {
+                            popUpTo<DashboardHomeRoute> { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                        CreateReportRoute -> controlador.navigate(CreateReportRoute) {
+                            popUpTo<DashboardHomeRoute> { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                        MyReportsRoute -> controlador.navigate(MyReportsRoute) {
+                            popUpTo<DashboardHomeRoute> { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                        ProfileRoute -> controlador.navigate(ProfileRoute) {
+                            popUpTo<DashboardHomeRoute> { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                        else -> Unit
                     }
                 },
                 icon = {

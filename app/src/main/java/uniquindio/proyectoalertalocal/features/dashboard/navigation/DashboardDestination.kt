@@ -9,16 +9,16 @@ import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.ui.graphics.vector.ImageVector
 
 data class DashboardDestination(
-    val ruta: String,
+    val ruta: DashboardRoute,
     val etiqueta: String,
     val icono: ImageVector,
     val accionCentral: Boolean = false
 )
 
 val destinosDashboard = listOf(
-    DashboardDestination(DashboardRoutes.INICIO, "Inicio", Icons.Filled.Home),
-    DashboardDestination(DashboardRoutes.ALERTAS, "Alertas", Icons.Filled.Notifications),
-    DashboardDestination(DashboardRoutes.CREAR, "Crear", Icons.Filled.Add, accionCentral = true),
-    DashboardDestination(DashboardRoutes.MIS_REPORTES, "Mis reportes", Icons.AutoMirrored.Filled.ListAlt),
-    DashboardDestination(DashboardRoutes.PERFIL, "Perfil", Icons.Filled.AccountCircle)
+    DashboardDestination(DashboardHomeRoute, "Inicio", Icons.Filled.Home),
+    DashboardDestination(AlertsRoute, "Alertas", Icons.Filled.Notifications),
+    DashboardDestination(CreateReportRoute, "Crear", Icons.Filled.Add, accionCentral = true),
+    DashboardDestination(MyReportsRoute, "Mis reportes", Icons.AutoMirrored.Filled.ListAlt),
+    DashboardDestination(ProfileRoute, "Perfil", Icons.Filled.AccountCircle)
 )

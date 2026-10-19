@@ -14,7 +14,9 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.features.dashboard.component.BottomNavigationBar
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardNavigation
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardRoutes
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.CreateReportRoute
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.EditProfileRoute
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.PublicationDetailRoute
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.destinosDashboard
 
 private val AzulOscuro = Color(0xFF1E3043)
@@ -32,10 +34,11 @@ fun MainScreen(
 
     Scaffold(
         bottomBar = {
-            if (!esModerador && (
-                rutaActual != DashboardRoutes.CREAR &&
-                rutaActual != DashboardRoutes.DETALLE_PUBLICACION
-            )) {
+            if (!esModerador &&
+                rutaActual?.startsWith(CreateReportRoute::class.qualifiedName.orEmpty()) != true &&
+                rutaActual?.startsWith(PublicationDetailRoute::class.qualifiedName.orEmpty()) != true &&
+                rutaActual?.startsWith(EditProfileRoute::class.qualifiedName.orEmpty()) != true
+            ) {
                 BottomNavigationBar(
                     destinos = destinosDashboard,
                     controlador = controlador
