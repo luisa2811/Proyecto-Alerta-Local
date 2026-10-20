@@ -22,14 +22,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.SignalCellular4Bar
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,6 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniquindio.proyectoalertalocal.ui.theme.DesignSystem
+import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
 
 private data class MisReporteUiModel(
     val categoria: String,
@@ -134,39 +131,11 @@ fun MisReportesScreen(
             .fillMaxSize()
             .background(DesignSystem.Colors.Background)
     ) {
-        TopBarHora()
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF1F2A3D))
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Text(
-                text = "Mis reportes",
-                color = DesignSystem.Colors.TextPrimary,
-                fontSize = 23.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        ScreenHeader(
+            title = "Mis reportes",
+            onBack = onBack,
+            titleColor = DesignSystem.Colors.TextPrimary
+        )
 
         Row(
             modifier = Modifier
@@ -215,48 +184,6 @@ fun MisReportesScreen(
             item {
                 BannerNuevoIncidente()
             }
-        }
-    }
-}
-
-@Composable
-private fun TopBarHora() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "9:41",
-            color = DesignSystem.Colors.TextPrimary,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Wifi,
-                contentDescription = "Señal wifi",
-                tint = DesignSystem.Colors.TextPrimary,
-                modifier = Modifier.size(16.dp)
-            )
-            Icon(
-                imageVector = Icons.Filled.SignalCellular4Bar,
-                contentDescription = "Señal celular",
-                tint = DesignSystem.Colors.TextPrimary,
-                modifier = Modifier.size(16.dp)
-            )
-            Icon(
-                imageVector = Icons.Filled.BatteryChargingFull,
-                contentDescription = "Batería",
-                tint = DesignSystem.Colors.TextPrimary,
-                modifier = Modifier.size(18.dp)
-            )
         }
     }
 }

@@ -16,6 +16,7 @@ import uniquindio.proyectoalertalocal.features.dashboard.component.BottomNavigat
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardNavigation
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.CreateReportRoute
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.EditProfileRoute
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.EditResidenceRoute
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.PublicationDetailRoute
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.destinosDashboard
 
@@ -37,7 +38,8 @@ fun MainScreen(
             if (!esModerador &&
                 rutaActual?.startsWith(CreateReportRoute::class.qualifiedName.orEmpty()) != true &&
                 rutaActual?.startsWith(PublicationDetailRoute::class.qualifiedName.orEmpty()) != true &&
-                rutaActual?.startsWith(EditProfileRoute::class.qualifiedName.orEmpty()) != true
+                rutaActual?.startsWith(EditProfileRoute::class.qualifiedName.orEmpty()) != true &&
+                rutaActual?.startsWith(EditResidenceRoute::class.qualifiedName.orEmpty()) != true
             ) {
                 BottomNavigationBar(
                     destinos = destinosDashboard,

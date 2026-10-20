@@ -25,7 +25,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,6 +48,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.Image
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.features.report.CategoriaPublicacion
+import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
 
 private val AzulOscuro = Color(0xFF1E3043)
 private val Naranja = Color(0xFFE65B2F)
@@ -70,39 +70,21 @@ fun CreateReportScreen(
             .fillMaxSize()
             .background(FondoPantalla)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Close,
-                contentDescription = "Volver",
-                tint = Color(0xFF343638),
-                modifier = Modifier
-                    .size(30.dp)
-                    .clickable(onClick = onBack)
-                    .padding(4.dp)
-            )
-            Text(
-                text = "Nuevo reporte",
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 17.dp),
-                color = Color(0xFF282A2C),
-                fontSize = 17.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Image(
-                painter = painterResource(R.drawable.logo_alerta_local),
-                contentDescription = "Logo de Alerta Local",
-                modifier = Modifier
-                    .size(27.dp)
-                    .clip(RoundedCornerShape(6.dp)),
-                contentScale = ContentScale.Crop
-            )
-        }
+        ScreenHeader(
+            title = "Nuevo reporte",
+            onBack = onBack,
+            titleColor = Color(0xFF282A2C),
+            trailingContent = {
+                Image(
+                    painter = painterResource(R.drawable.logo_alerta_local),
+                    contentDescription = "Logo de Alerta Local",
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(RoundedCornerShape(6.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+        )
 
         Column(
             modifier = Modifier

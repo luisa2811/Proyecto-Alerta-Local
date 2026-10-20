@@ -16,11 +16,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
 
 private val FondoDetalle = Color(0xFFFAF9F6)
 private val AzulMarino = Color(0xFF1E3A5F)
@@ -57,32 +56,10 @@ fun ModeratorReportDetailScreen(
             .fillMaxSize()
             .background(FondoDetalle)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver a la bandeja",
-                    tint = Color(0xFF303438)
-                )
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF08284B)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("AL", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.size(48.dp))
-        }
+        ScreenHeader(
+            title = "Detalle del reporte",
+            onBack = onBack
+        )
 
         if (titulo == null || categoria == null || descripcion == null ||
             reportante == null || antiguedad == null || ubicacion == null || tipo == null

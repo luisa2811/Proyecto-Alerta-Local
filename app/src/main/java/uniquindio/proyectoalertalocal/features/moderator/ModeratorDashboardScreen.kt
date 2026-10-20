@@ -19,7 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Cancel
@@ -56,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
 
 private val Navy = Color(0xFF1E3A5F)
 private val NavyDeep = Color(0xFF0C2A4A)
@@ -151,71 +151,39 @@ fun ModeratorDashboardScreen(
                 .background(Navy)
                 .padding(top = 4.dp, bottom = 16.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 12.dp, end = 18.dp, top = 2.dp, bottom = 14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = Color.White
-                    )
+            ScreenHeader(
+                title = if (selectedSection == SeccionModerador.RESOLUCIONES) {
+                    "Gestión de Resoluciones"
+                } else {
+                    "Moderador Comuna 4"
+                },
+                subtitle = if (selectedSection == SeccionModerador.RESOLUCIONES) {
+                    "Feed de incidentes en seguimiento"
+                } else {
+                    "Portal de gestión vecinal"
+                },
+                onBack = onBack,
+                titleColor = Color.White,
+                subtitleColor = Color(0xFFAEBFD3),
+                backButtonColor = NavyDeep,
+                backIconColor = Color.White,
+                trailingContent = {
+                    IconButton(
+                        onClick = onOpenProfile,
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(NavyDeep)
+                    ) {
+                        Icon(
+                            Icons.Filled.Person,
+                            contentDescription = "Perfil",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
-                Box(
-                    modifier = Modifier
-                        .padding(start = 2.dp)
-                        .size(30.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF08284B)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("AL", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 11.dp)
-                ) {
-                    Text(
-                        if (selectedSection == SeccionModerador.RESOLUCIONES) {
-                            "Gestión de Resoluciones"
-                        } else {
-                            "Moderador Comuna 4"
-                        },
-                        color = Color.White,
-                        fontSize = if (selectedSection == SeccionModerador.RESOLUCIONES) 15.sp else 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        if (selectedSection == SeccionModerador.RESOLUCIONES) {
-                            "Feed de incidentes en seguimiento"
-                        } else {
-                            "Portal de gestión vecinal"
-                        },
-                        color = Color(0xFFAEBFD3),
-                        fontSize = 12.sp
-                    )
-                }
-                IconButton(
-                    onClick = onOpenProfile,
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(CircleShape)
-                        .background(NavyDeep)
-                ) {
-                    Icon(
-                        Icons.Filled.Person,
-                        contentDescription = "Perfil",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
+            )
 
             if (selectedSection == SeccionModerador.PENDIENTES) {
                 Row(

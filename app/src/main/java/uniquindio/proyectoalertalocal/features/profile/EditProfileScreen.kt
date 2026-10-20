@@ -17,8 +17,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AlternateEmail
 import androidx.compose.material.icons.filled.Badge
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -42,11 +44,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
+import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
 
 private val Fondo = Color(0xFFF9F9FD)
 private val Tinta = Color(0xFF17191F)
@@ -58,6 +61,7 @@ private val Dorado = Color(0xFF684900)
 @Composable
 fun EditProfileScreen(
     onBack: () -> Unit,
+    onShowMessage: (String) -> Unit = {},
     modeloVista: EditProfileViewModel = viewModel()
 ) {
     val estado by modeloVista.uiState.collectAsState()
@@ -67,38 +71,20 @@ fun EditProfileScreen(
             .fillMaxSize()
             .background(Fondo)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(58.dp)
-                .padding(horizontal = 20.dp),
-                verticalAlignment = Alignment.CenterVertically
-        ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = Tinta,
+        ScreenHeader(
+            title = "Editar mis datos",
+            onBack = onBack,
+            titleColor = Tinta,
+            trailingContent = {
+                Image(
+                    painter = painterResource(R.drawable.logo_alerta_local),
+                    contentDescription = "Alerta Local",
                     modifier = Modifier
-                        .size(24.dp)
-                        .clickable(onClick = onBack)
-            )
-            Text(
-                text = "Editar Mis Datos",
-                color = Tinta,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp)
-            )
-            Image(
-                painter = painterResource(R.drawable.logo_alerta_local),
-                contentDescription = "Alerta Local",
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-            )
-        }
+                        .size(30.dp)
+                        .clip(CircleShape)
+                )
+            }
+        )
 
         Column(
             modifier = Modifier
@@ -119,19 +105,24 @@ fun EditProfileScreen(
                 PersonalField(
                     label = "NOMBRE COMPLETO",
                     value = estado.fullName,
-                    icon = Icons.Filled.Badge
+                    icon = Icons.Filled.Badge,
+                    onValueChange = modeloVista::changeFullName
                 )
                 PersonalField(
                     label = "CORREO ELECTRÓNICO",
                     value = estado.email,
                     icon = Icons.Filled.AlternateEmail,
-                    verified = estado.emailVerified
+                    verified = estado.emailVerified,
+                    keyboardType = KeyboardType.Email,
+                    onValueChange = modeloVista::changeEmail
                 )
                 PersonalField(
                     label = "TELÉFONO MÓVIL",
                     value = estado.phone,
                     icon = Icons.Filled.Phone,
-                    verified = estado.phoneVerified
+                    verified = estado.phoneVerified,
+                    keyboardType = KeyboardType.Phone,
+                    onValueChange = modeloVista::changePhone
                 )
             }
 
@@ -143,7 +134,9 @@ fun EditProfileScreen(
             Spacer(Modifier.height(14.dp))
             LocationCard(
                 address = estado.address,
-                neighborhood = estado.neighborhood
+                neighborhood = estado.neighborhood,
+                onAddressChange = modeloVista::changeAddress,
+                onNeighborhoodChange = modeloVista::changeNeighborhood
             )
 
             Spacer(Modifier.height(24.dp))
@@ -152,7 +145,10 @@ fun EditProfileScreen(
                 icon = Icons.Filled.Shield
             )
             Spacer(Modifier.height(14.dp))
-            PrivacyCard(showName = estado.displayNameInReports)
+            PrivacyCard(
+                showName = estado.displayNameInReports,
+                onToggle = modeloVista::toggleDisplayNameInReports
+            )
 
             Spacer(Modifier.height(28.dp))
             Surface(
@@ -162,6 +158,9 @@ fun EditProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
+                    .clickable {
+                        onShowMessage("Los cambios son temporales y todavía no se guardan.")
+                    }
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -188,6 +187,7 @@ fun EditProfileScreen(
                 fontSize = 14.sp,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
+                    .clickable(onClick = onBack)
                     .padding(top = 18.dp, bottom = 10.dp)
             )
         }
@@ -269,7 +269,9 @@ private fun PersonalField(
     label: String,
     value: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    verified: Boolean = false
+    verified: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    onValueChange: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -318,13 +320,28 @@ private fun PersonalField(
                 .padding(top = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = value,
-                color = Color(0xFF22232A),
-                fontSize = 15.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    color = Color(0xFF22232A),
+                    fontSize = 15.sp
+                ),
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (value.isEmpty()) {
+                            Text(
+                                text = label.lowercase().replaceFirstChar { it.uppercase() },
+                                color = Color(0xFF8A8D94),
+                                fontSize = 15.sp
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
             )
             Icon(
                 imageVector = icon,
@@ -339,7 +356,12 @@ private fun PersonalField(
 }
 
 @Composable
-private fun LocationCard(address: String, neighborhood: String) {
+private fun LocationCard(
+    address: String,
+    neighborhood: String,
+    onAddressChange: (String) -> Unit,
+    onNeighborhoodChange: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -367,19 +389,52 @@ private fun LocationCard(address: String, neighborhood: String) {
                     .weight(1f)
                     .padding(start = 9.dp)
             ) {
-                Text(
-                    text = address,
-                    color = Color(0xFF292A31),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                BasicTextField(
+                    value = address,
+                    onValueChange = onAddressChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        color = Color(0xFF292A31),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    decorationBox = { innerTextField ->
+                        Box {
+                            if (address.isEmpty()) {
+                                Text(
+                                    text = "Dirección",
+                                    color = Color(0xFF8A8D94),
+                                    fontSize = 13.sp
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
                 )
-                Text(
-                    text = neighborhood,
-                    color = Color(0xFF555963),
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 2.dp)
+                BasicTextField(
+                    value = neighborhood,
+                    onValueChange = onNeighborhoodChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp),
+                    singleLine = true,
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        color = Color(0xFF555963),
+                        fontSize = 12.sp
+                    ),
+                    decorationBox = { innerTextField ->
+                        Box {
+                            if (neighborhood.isEmpty()) {
+                                Text(
+                                    text = "Barrio o sector",
+                                    color = Color(0xFF8A8D94),
+                                    fontSize = 12.sp
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
                 )
             }
         }
@@ -441,7 +496,7 @@ private fun LocationCard(address: String, neighborhood: String) {
 }
 
 @Composable
-private fun PrivacyCard(showName: Boolean) {
+private fun PrivacyCard(showName: Boolean, onToggle: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -465,21 +520,10 @@ private fun PrivacyCard(showName: Boolean) {
                 modifier = Modifier.padding(top = 3.dp)
             )
         }
-        Box(
-            modifier = Modifier
-                .padding(start = 10.dp)
-                .size(width = 48.dp, height = 28.dp)
-                .clip(CircleShape)
-                .background(Azul)
-                .padding(3.dp),
-            contentAlignment = if (showName) Alignment.CenterEnd else Alignment.CenterStart
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(22.dp)
-                    .clip(CircleShape)
-                    .background(Color.White)
-            )
-        }
+        Switch(
+            checked = showName,
+            onCheckedChange = { onToggle() },
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }

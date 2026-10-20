@@ -15,6 +15,9 @@ data class ModeratorReportDetailRoute(val reportId: String) : DashboardRoute
 data object DashboardHomeRoute : DashboardRoute
 
 @Serializable
+data object EditResidenceRoute : DashboardRoute
+
+@Serializable
 data object AlertsRoute : DashboardRoute
 
 @Serializable
