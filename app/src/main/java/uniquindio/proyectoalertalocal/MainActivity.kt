@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import uniquindio.proyectoalertalocal.navigation.AppNavigation
-import uniquindio.proyectoalertalocal.ui.theme.ProyectoAlertaLocalTheme
+import uniquindio.proyectoalertalocal.core.theme.ProyectoAlertaLocalTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

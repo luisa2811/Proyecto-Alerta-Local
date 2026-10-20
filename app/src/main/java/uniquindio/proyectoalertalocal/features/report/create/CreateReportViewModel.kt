@@ -11,15 +11,15 @@ class CreateReportViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(CreateReportUiState())
     val uiState: StateFlow<CreateReportUiState> = _uiState.asStateFlow()
 
-    fun seleccionarCategoria(categoria: CategoriaPublicacion) {
-        _uiState.update { it.copy(categoria = categoria) }
+    fun selectCategory(category: CategoriaPublicacion) {
+        _uiState.update { it.copy(category = category) }
     }
 
-    fun cambiarTitulo(titulo: String) {
-        _uiState.update { it.copy(titulo = titulo) }
+    fun changeTitle(title: String) {
+        _uiState.update { it.copy(title = title) }
     }
 
-    fun cambiarDescripcion(descripcion: String) {
-        _uiState.update { it.copy(descripcion = descripcion) }
+    fun changeDescription(description: String) {
+        _uiState.update { it.copy(description = description) }
     }
 }

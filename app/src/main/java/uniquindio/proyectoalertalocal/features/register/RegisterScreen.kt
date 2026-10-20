@@ -1,25 +1,25 @@
 package uniquindio.proyectoalertalocal.features.register
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun RegisterScreen(
     onLoginClick: () -> Unit = {},
-    registerViewModel: RegisterViewModel = viewModel()
+    viewModel: RegisterViewModel = viewModel()
 ) {
-    val uiState by registerViewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     RegisterContent(
         uiState = uiState,
-        onFullNameChange = registerViewModel::onFullNameChange,
-        onEmailChange = registerViewModel::onEmailChange,
-        onNeighborhoodChange = registerViewModel::onNeighborhoodChange,
-        onPasswordChange = registerViewModel::onPasswordChange,
-        onConfirmPasswordChange = registerViewModel::onConfirmPasswordChange,
-        onRegisterClick = registerViewModel::onRegisterClick,
+        onFullNameChange = viewModel::onFullNameChange,
+        onEmailChange = viewModel::onEmailChange,
+        onNeighborhoodChange = viewModel::onNeighborhoodChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
+        onRegisterClick = viewModel::onRegisterClick,
         onLoginClick = onLoginClick
     )
 }

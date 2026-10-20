@@ -16,96 +16,67 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardDestination
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.AlertsRoute
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.CreateReportRoute
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardHomeRoute
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.MyReportsRoute
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.ProfileRoute
-
-private val AzulOscuro = Color(0xFF1E3043)
-private val Naranja = Color(0xFFF45B35)
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardRoutes
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 
 @Composable
 fun BottomNavigationBar(
-    destinos: List<DashboardDestination>,
-    controlador: NavHostController
+    destinations: List<DashboardDestination>,
+    navController: NavHostController
 ) {
-    val entradaActual by controlador.currentBackStackEntryAsState()
-    val rutaActual = entradaActual?.destination?.route
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = currentBackStackEntry?.destination
 
     NavigationBar(
-        containerColor = Color.White,
-        contentColor = AzulOscuro,
+        containerColor = DesignSystem.Colors.White,
+        contentColor = DesignSystem.Colors.PrimaryDark,
         tonalElevation = 8.dp
     ) {
-        destinos.forEach { destino ->
-            val nombreRuta = destino.ruta::class.qualifiedName.orEmpty()
-            val seleccionado = rutaActual?.startsWith(nombreRuta) == true
+        destinations.forEach { destination ->
+            val isSelected = currentDestination?.hasRoute(destination.route::class) == true
 
             NavigationBarItem(
-                selected = seleccionado,
+                selected = isSelected,
                 onClick = {
-                    when (destino.ruta) {
-                        DashboardHomeRoute -> controlador.navigate(DashboardHomeRoute) {
-                            popUpTo<DashboardHomeRoute> { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                        AlertsRoute -> controlador.navigate(AlertsRoute) {
-                            popUpTo<DashboardHomeRoute> { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                        CreateReportRoute -> controlador.navigate(CreateReportRoute) {
-                            popUpTo<DashboardHomeRoute> { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                        MyReportsRoute -> controlador.navigate(MyReportsRoute) {
-                            popUpTo<DashboardHomeRoute> { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                        ProfileRoute -> controlador.navigate(ProfileRoute) {
-                            popUpTo<DashboardHomeRoute> { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                        else -> Unit
+                    navController.navigate(destination.route) {
+                        popUpTo<DashboardRoutes.Home> { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
                     }
                 },
                 icon = {
-                    if (destino.accionCentral) {
+                    if (destination.centralAction) {
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
                                 .shadow(6.dp, CircleShape)
-                                .background(Naranja, CircleShape),
+                                .background(DesignSystem.Colors.HomeAccent, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = destino.icono,
+                                imageVector = destination.icon,
                                 contentDescription = "Crear reporte",
-                                tint = Color.White,
+                                tint = DesignSystem.Colors.White,
                                 modifier = Modifier.size(26.dp)
                             )
                         }
                     } else {
                         Icon(
-                            imageVector = destino.icono,
-                            contentDescription = destino.etiqueta
+                            imageVector = destination.icon,
+                            contentDescription = destination.label
                         )
                     }
                 },
-                label = { Text(destino.etiqueta) },
+                label = { Text(destination.label) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = AzulOscuro,
-                    selectedTextColor = AzulOscuro,
-                    unselectedIconColor = Color(0xFF8490A0),
-                    unselectedTextColor = Color(0xFF697587),
+                    selectedIconColor = DesignSystem.Colors.PrimaryDark,
+                    selectedTextColor = DesignSystem.Colors.PrimaryDark,
+                    unselectedIconColor = DesignSystem.Colors.NavigationMutedIcon,
+                    unselectedTextColor = DesignSystem.Colors.NavigationMutedText,
                     indicatorColor = Color.Transparent
                 )
             )

@@ -4,68 +4,67 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.features.dashboard.component.BottomNavigationBar
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardDestination
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardNavigation
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.CreateReportRoute
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.EditProfileRoute
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.EditResidenceRoute
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.PublicationDetailRoute
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.destinosDashboard
-
-private val AzulOscuro = Color(0xFF1E3043)
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardRoutes
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 
 @Composable
 fun MainScreen(
-    esModerador: Boolean = false,
-    alCerrarSesion: () -> Unit
+    role: UserRole,
+    onLogout: () -> Unit
 ) {
-    val controlador = rememberNavController()
+    val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
-    val alcanceCorrutinas = rememberCoroutineScope()
-    val entradaActual by controlador.currentBackStackEntryAsState()
-    val rutaActual = entradaActual?.destination?.route
+    val coroutineScope = rememberCoroutineScope()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = currentBackStackEntry?.destination
+    val destinations = DashboardDestination.entries.filter { role in it.roles }
+    val showBottomBar = role == UserRole.RESIDENT &&
+        currentDestination?.hasRoute<DashboardRoutes.CreateReport>() != true &&
+        currentDestination?.hasRoute<DashboardRoutes.PublicationDetail>() != true &&
+        currentDestination?.hasRoute<DashboardRoutes.EditProfile>() != true &&
+        currentDestination?.hasRoute<DashboardRoutes.EditResidence>() != true
 
     Scaffold(
         bottomBar = {
-            if (!esModerador &&
-                rutaActual?.startsWith(CreateReportRoute::class.qualifiedName.orEmpty()) != true &&
-                rutaActual?.startsWith(PublicationDetailRoute::class.qualifiedName.orEmpty()) != true &&
-                rutaActual?.startsWith(EditProfileRoute::class.qualifiedName.orEmpty()) != true &&
-                rutaActual?.startsWith(EditResidenceRoute::class.qualifiedName.orEmpty()) != true
-            ) {
+            if (showBottomBar) {
                 BottomNavigationBar(
-                    destinos = destinosDashboard,
-                    controlador = controlador
+                    destinations = destinations,
+                    navController = navController
                 )
             }
         },
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { datos ->
+            SnackbarHost(hostState = snackbarHostState) { snackbarData ->
                 Snackbar(
-                    containerColor = AzulOscuro,
-                    contentColor = Color.White
+                    containerColor = DesignSystem.Colors.PrimaryDark,
+                    contentColor = DesignSystem.Colors.White
                 ) {
-                    androidx.compose.material3.Text(text = datos.visuals.message)
+                    Text(text = snackbarData.visuals.message)
                 }
             }
         }
-    ) { espacioInterior ->
+    ) { innerPadding ->
         DashboardNavigation(
-            controlador = controlador,
-            espacioInterior = espacioInterior,
-            esModerador = esModerador,
-            alCerrarSesion = alCerrarSesion,
-            alMostrarMensaje = { mensaje ->
-                alcanceCorrutinas.launch {
-                    snackbarHostState.showSnackbar(mensaje)
+            navController = navController,
+            innerPadding = innerPadding,
+            role = role,
+            onLogout = onLogout,
+            onShowMessage = { message ->
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(message)
                 }
             }
         )

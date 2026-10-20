@@ -1,39 +1,43 @@
 package uniquindio.proyectoalertalocal.features.dashboard.navigation
 
 import kotlinx.serialization.Serializable
+import uniquindio.proyectoalertalocal.domain.model.UserRole
 
 @Serializable
-sealed interface DashboardRoute
+sealed class DashboardRoutes {
+    @Serializable
+    data class Entry(val role: UserRole) : DashboardRoutes()
 
-@Serializable
-data object ModeratorDashboardRoute : DashboardRoute
+    @Serializable
+    data object ModeratorHome : DashboardRoutes()
 
-@Serializable
-data class ModeratorReportDetailRoute(val reportId: String) : DashboardRoute
+    @Serializable
+    data class ModeratorReportDetail(val reportId: String) : DashboardRoutes()
 
-@Serializable
-data object DashboardHomeRoute : DashboardRoute
+    @Serializable
+    data object Home : DashboardRoutes()
 
-@Serializable
-data object EditResidenceRoute : DashboardRoute
+    @Serializable
+    data object EditResidence : DashboardRoutes()
 
-@Serializable
-data object AlertsRoute : DashboardRoute
+    @Serializable
+    data object Alerts : DashboardRoutes()
 
-@Serializable
-data object CreateReportRoute : DashboardRoute
+    @Serializable
+    data object CreateReport : DashboardRoutes()
 
-@Serializable
-data object MyReportsRoute : DashboardRoute
+    @Serializable
+    data object MyReports : DashboardRoutes()
 
-@Serializable
-data object ProfileRoute : DashboardRoute
+    @Serializable
+    data object Profile : DashboardRoutes()
 
-@Serializable
-data object EditProfileRoute : DashboardRoute
+    @Serializable
+    data object EditProfile : DashboardRoutes()
 
-@Serializable
-data object NotificationsRoute : DashboardRoute
+    @Serializable
+    data object Notifications : DashboardRoutes()
 
-@Serializable
-data class PublicationDetailRoute(val publicationId: String) : DashboardRoute
+    @Serializable
+    data class PublicationDetail(val publicationId: String) : DashboardRoutes()
+}

@@ -1,6 +1,7 @@
-package uniquindio.proyectoalertalocal.features.home
+package uniquindio.proyectoalertalocal.features.user.profile
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -51,23 +52,20 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.widthIn
 import uniquindio.proyectoalertalocal.R
-import uniquindio.proyectoalertalocal.ui.theme.ProyectoAlertaLocalTheme
-import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
-
-private val FondoMapa = Color(0xFFF0F2F6)
-private val NaranjaResidencia = Color(0xFFE65B2F)
-private val TextoResidencia = Color(0xFF202833)
-private val TextoSecundarioResidencia = Color(0xFF687385)
-private val AzulResidencia = Color(0xFF1555A1)
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.theme.ProyectoAlertaLocalTheme
+import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 
 @Composable
 fun EditResidenceScreen(
@@ -75,31 +73,31 @@ fun EditResidenceScreen(
     onConfirm: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var complemento by remember { mutableStateOf("Apto 302, Edificio Los Robles") }
-    var nivelZoom by remember { mutableStateOf(15) }
-    var vistaAlterna by remember { mutableStateOf(false) }
-    var marcadorX by remember { mutableStateOf(0.5f) }
-    var marcadorY by remember { mutableStateOf(0.37f) }
+    var complement by remember { mutableStateOf("Apto 302, Edificio Los Robles") }
+    var zoomLevel by remember { mutableStateOf(15) }
+    var alternateView by remember { mutableStateOf(false) }
+    var markerX by remember { mutableStateOf(0.5f) }
+    var markerY by remember { mutableStateOf(0.37f) }
 
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(FondoMapa)
+            .background(DesignSystem.Colors.ResidenceMapBackground)
     ) {
         NeighborhoodMap(
-            nivelZoom = nivelZoom,
-            vistaAlterna = vistaAlterna,
+            zoomLevel = zoomLevel,
+            alternateView = alternateView,
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(maxWidth, maxHeight) {
                     detectDragGestures(
-                        onDragStart = { punto ->
-                            marcadorX = (punto.x / size.width).coerceIn(0.08f, 0.92f)
-                            marcadorY = (punto.y / size.height).coerceIn(0.12f, 0.75f)
+                        onDragStart = { point ->
+                            markerX = (point.x / size.width).coerceIn(0.08f, 0.92f)
+                            markerY = (point.y / size.height).coerceIn(0.12f, 0.75f)
                         },
-                        onDrag = { cambio, _ ->
-                            marcadorX = (cambio.position.x / size.width).coerceIn(0.08f, 0.92f)
-                            marcadorY = (cambio.position.y / size.height).coerceIn(0.12f, 0.75f)
+                        onDrag = { change, _ ->
+                            markerX = (change.position.x / size.width).coerceIn(0.08f, 0.92f)
+                            markerY = (change.position.y / size.height).coerceIn(0.12f, 0.75f)
                         }
                     )
                 }
@@ -109,14 +107,14 @@ fun EditResidenceScreen(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .fillMaxWidth()
-                .background(Color.White.copy(alpha = 0.96f))
+                .background(DesignSystem.Colors.White.copy(alpha = 0.96f))
         ) {
             ScreenHeader(
                 title = "Editar dirección de residencia",
                 onBack = onBack,
-                titleColor = TextoResidencia,
+                titleColor = DesignSystem.Colors.ResidenceText,
                 trailingContent = {
-                    androidx.compose.foundation.Image(
+                    Image(
                         painter = painterResource(R.drawable.logo_alerta_local),
                         contentDescription = "Alerta Local",
                         modifier = Modifier
@@ -137,15 +135,15 @@ fun EditResidenceScreen(
             MapControl(
                 description = "Centrar mapa",
                 onClick = {
-                    marcadorX = 0.5f
-                    marcadorY = 0.37f
-                    nivelZoom = 15
+                    markerX = 0.5f
+                    markerY = 0.37f
+                    zoomLevel = 15
                 }
             ) {
                 Icon(
                     imageVector = Icons.Filled.MyLocation,
                     contentDescription = null,
-                    tint = AzulResidencia,
+                    tint = DesignSystem.Colors.ResidenceBlue,
                     modifier = Modifier.size(21.dp)
                 )
             }
@@ -153,31 +151,31 @@ fun EditResidenceScreen(
                 modifier = Modifier
                     .shadow(5.dp, RoundedCornerShape(14.dp))
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Color.White)
+                    .background(DesignSystem.Colors.White)
             ) {
                 MapControl(
                     description = "Acercar",
-                    onClick = { nivelZoom = (nivelZoom + 1).coerceAtMost(19) },
+                    onClick = { zoomLevel = (zoomLevel + 1).coerceAtMost(19) },
                     shadow = false
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = null, tint = TextoResidencia)
+                    Icon(Icons.Filled.Add, contentDescription = null, tint = DesignSystem.Colors.ResidenceText)
                 }
                 MapControl(
                     description = "Alejar",
-                    onClick = { nivelZoom = (nivelZoom - 1).coerceAtLeast(12) },
+                    onClick = { zoomLevel = (zoomLevel - 1).coerceAtLeast(12) },
                     shadow = false
                 ) {
-                    Icon(Icons.Filled.Remove, contentDescription = null, tint = TextoResidencia)
+                    Icon(Icons.Filled.Remove, contentDescription = null, tint = DesignSystem.Colors.ResidenceText)
                 }
             }
             MapControl(
                 description = "Cambiar estilo del mapa",
-                onClick = { vistaAlterna = !vistaAlterna }
+                onClick = { alternateView = !alternateView }
             ) {
                 Icon(
                     imageVector = Icons.Filled.Layers,
                     contentDescription = null,
-                    tint = TextoResidencia,
+                    tint = DesignSystem.Colors.ResidenceText,
                     modifier = Modifier.size(21.dp)
                 )
             }
@@ -188,7 +186,7 @@ fun EditResidenceScreen(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 106.dp, top = 102.dp),
-            color = TextoSecundarioResidencia,
+            color = DesignSystem.Colors.ResidenceSecondaryText,
             fontSize = 13.sp
         )
         Text(
@@ -196,7 +194,7 @@ fun EditResidenceScreen(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(end = 82.dp, top = 170.dp),
-            color = TextoSecundarioResidencia,
+            color = DesignSystem.Colors.ResidenceSecondaryText,
             fontSize = 13.sp
         )
         Text(
@@ -204,7 +202,7 @@ fun EditResidenceScreen(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 105.dp, top = maxHeight * 0.32f),
-            color = TextoSecundarioResidencia,
+            color = DesignSystem.Colors.ResidenceSecondaryText,
             fontSize = 13.sp
         )
 
@@ -212,8 +210,8 @@ fun EditResidenceScreen(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .offset(
-                    x = maxWidth * marcadorX - 66.dp,
-                    y = maxHeight * marcadorY - 66.dp
+                    x = maxWidth * markerX - 66.dp,
+                    y = maxHeight * markerY - 66.dp
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -250,7 +248,7 @@ fun EditResidenceScreen(
                     .size(46.dp)
                     .shadow(6.dp, CircleShape),
                 shape = CircleShape,
-                color = NaranjaResidencia
+                color = DesignSystem.Colors.AccentDark
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
@@ -264,9 +262,9 @@ fun EditResidenceScreen(
         }
 
         ResidenceSheet(
-            complemento = complemento,
-            onComplementoChange = { complemento = it },
-            onConfirm = { onConfirm(complemento) },
+            complement = complement,
+            onComplementChange = { complement = it },
+            onConfirm = { onConfirm(complement) },
             onCancel = onBack,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
@@ -275,42 +273,42 @@ fun EditResidenceScreen(
 
 @Composable
 private fun NeighborhoodMap(
-    nivelZoom: Int,
-    vistaAlterna: Boolean,
+    zoomLevel: Int,
+    alternateView: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val colorEdificio = if (vistaAlterna) Color(0xFFE6ECE5) else Color.White
-    val factorZoom = 1f + (nivelZoom - 15) * 0.045f
+    val buildingColor = if (alternateView) Color(0xFFE6ECE5) else Color.White
+    val zoomFactor = 1f + (zoomLevel - 15) * 0.045f
 
     Canvas(
         modifier = modifier.graphicsLayer(
-            scaleX = factorZoom,
-            scaleY = factorZoom
+            scaleX = zoomFactor,
+            scaleY = zoomFactor
         )
     ) {
-        drawRect(FondoMapa)
-        val calle = 12.dp.toPx()
-        val pasoHorizontal = size.height / 5f
-        val pasoVertical = size.width / 4f
-        val margen = 8.dp.toPx()
-        for (fila in 0..5) {
-            for (columna in 0..3) {
-                val left = columna * pasoVertical + margen
-                val top = fila * pasoHorizontal + margen
+        drawRect(DesignSystem.Colors.ResidenceMapBackground)
+        val streetWidth = 12.dp.toPx()
+        val horizontalSpacing = size.height / 5f
+        val verticalSpacing = size.width / 4f
+        val margin = 8.dp.toPx()
+        for (row in 0..5) {
+            for (column in 0..3) {
+                val left = column * verticalSpacing + margin
+                val top = row * horizontalSpacing + margin
                 drawRoundRect(
-                    color = colorEdificio,
+                    color = buildingColor,
                     topLeft = Offset(left, top),
                     size = Size(
-                        (pasoVertical - margen * 1.7f).coerceAtLeast(0f),
-                        (pasoHorizontal - margen * 1.7f).coerceAtLeast(0f)
+                        (verticalSpacing - margin * 1.7f).coerceAtLeast(0f),
+                        (horizontalSpacing - margin * 1.7f).coerceAtLeast(0f)
                     ),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(10.dp.toPx())
+                    cornerRadius = CornerRadius(10.dp.toPx())
                 )
             }
         }
-        for (columna in 1..3) {
-            val x = columna * pasoVertical
-            drawLine(Color.White, Offset(x, 0f), Offset(x, size.height), calle)
+        for (column in 1..3) {
+            val x = column * verticalSpacing
+            drawLine(Color.White, Offset(x, 0f), Offset(x, size.height), streetWidth)
             drawLine(
                 Color(0xFFD9DEE8),
                 Offset(x, 0f),
@@ -319,9 +317,9 @@ private fun NeighborhoodMap(
                 pathEffect = PathEffect.dashPathEffect(floatArrayOf(9.dp.toPx(), 7.dp.toPx()))
             )
         }
-        for (fila in 1..4) {
-            val y = fila * pasoHorizontal
-            drawLine(Color.White, Offset(0f, y), Offset(size.width, y), calle)
+        for (row in 1..4) {
+            val y = row * horizontalSpacing
+            drawLine(Color.White, Offset(0f, y), Offset(size.width, y), streetWidth)
             drawLine(
                 Color(0xFFD9DEE8),
                 Offset(0f, y),
@@ -363,8 +361,8 @@ private fun MapControl(
 
 @Composable
 private fun ResidenceSheet(
-    complemento: String,
-    onComplementoChange: (String) -> Unit,
+    complement: String,
+    onComplementChange: (String) -> Unit,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
@@ -395,7 +393,7 @@ private fun ResidenceSheet(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "PUNTO DE RESIDENCIA",
-                        color = AzulResidencia,
+                        color = DesignSystem.Colors.ResidenceBlue,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.8.sp
@@ -403,7 +401,7 @@ private fun ResidenceSheet(
                     Text(
                         text = "Confirmar ubicación",
                         modifier = Modifier.padding(top = 2.dp),
-                        color = TextoResidencia,
+                        color = DesignSystem.Colors.ResidenceText,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -415,7 +413,7 @@ private fun ResidenceSheet(
                     Text(
                         text = "●  Ubicación aproximada",
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        color = AzulResidencia,
+                        color = DesignSystem.Colors.ResidenceBlue,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -441,7 +439,7 @@ private fun ResidenceSheet(
                     Icon(
                         imageVector = Icons.Filled.LocationOn,
                         contentDescription = null,
-                        tint = TextoResidencia,
+                        tint = DesignSystem.Colors.ResidenceText,
                         modifier = Modifier.size(21.dp)
                     )
                 }
@@ -452,14 +450,14 @@ private fun ResidenceSheet(
                 ) {
                     Text(
                         text = "Cra 15 #8-42",
-                        color = TextoResidencia,
+                        color = DesignSystem.Colors.ResidenceText,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "Chapinero Central · Sector Los Rosales",
                         modifier = Modifier.padding(top = 2.dp),
-                        color = TextoSecundarioResidencia,
+                        color = DesignSystem.Colors.ResidenceSecondaryText,
                         fontSize = 11.sp,
                         maxLines = 1
                     )
@@ -471,18 +469,18 @@ private fun ResidenceSheet(
                             modifier = Modifier
                                 .size(7.dp)
                                 .clip(CircleShape)
-                                .background(NaranjaResidencia)
+                                .background(DesignSystem.Colors.AccentDark)
                         )
                         Text(
                             text = "  Margen estimado: ±5 metros",
-                            color = TextoSecundarioResidencia,
+                            color = DesignSystem.Colors.ResidenceSecondaryText,
                             fontSize = 10.sp
                         )
                     }
                 }
                 Text(
                     text = "Exacto",
-                    color = TextoSecundarioResidencia,
+                    color = DesignSystem.Colors.ResidenceSecondaryText,
                     fontSize = 10.sp
                 )
             }
@@ -495,13 +493,13 @@ private fun ResidenceSheet(
             ) {
                 Text(
                     text = "Complemento residencial",
-                    color = TextoResidencia,
+                    color = DesignSystem.Colors.ResidenceText,
                     fontSize = 11.sp
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
                     text = "Opcional",
-                    color = TextoSecundarioResidencia,
+                    color = DesignSystem.Colors.ResidenceSecondaryText,
                     fontSize = 11.sp
                 )
             }
@@ -517,26 +515,26 @@ private fun ResidenceSheet(
                 Icon(
                     imageVector = Icons.Filled.Apartment,
                     contentDescription = null,
-                    tint = TextoSecundarioResidencia,
+                    tint = DesignSystem.Colors.ResidenceSecondaryText,
                     modifier = Modifier.size(18.dp)
                 )
                 BasicTextField(
-                    value = complemento,
-                    onValueChange = onComplementoChange,
+                    value = complement,
+                    onValueChange = onComplementChange,
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 9.dp),
                     singleLine = true,
-                    textStyle = androidx.compose.ui.text.TextStyle(
-                        color = TextoResidencia,
+                    textStyle = TextStyle(
+                        color = DesignSystem.Colors.ResidenceText,
                         fontSize = 13.sp
                     ),
                     decorationBox = { innerTextField ->
                         Box {
-                            if (complemento.isEmpty()) {
+                            if (complement.isEmpty()) {
                                 Text(
                                     text = "Ej. Apto 302, Torre B",
-                                    color = TextoSecundarioResidencia,
+                                    color = DesignSystem.Colors.ResidenceSecondaryText,
                                     fontSize = 13.sp
                                 )
                             }
@@ -558,7 +556,7 @@ private fun ResidenceSheet(
                 Icon(
                     imageVector = Icons.Filled.Shield,
                     contentDescription = null,
-                    tint = TextoSecundarioResidencia,
+                    tint = DesignSystem.Colors.ResidenceSecondaryText,
                     modifier = Modifier
                         .padding(top = 1.dp)
                         .size(17.dp)
@@ -566,7 +564,7 @@ private fun ResidenceSheet(
                 Text(
                     text = "Privacidad vecinal asegurada: Tu dirección exacta nunca será pública. Tus vecinos sólo verán alertas geográficas dentro de tu cuadrante comunitario.",
                     modifier = Modifier.padding(start = 9.dp),
-                    color = TextoSecundarioResidencia,
+                    color = DesignSystem.Colors.ResidenceSecondaryText,
                     fontSize = 11.sp,
                     lineHeight = 17.sp
                 )
@@ -580,7 +578,7 @@ private fun ResidenceSheet(
                 .height(48.dp),
             shape = RoundedCornerShape(13.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = NaranjaResidencia,
+                containerColor = DesignSystem.Colors.AccentDark,
                 contentColor = Color.White
             )
         ) {
@@ -605,7 +603,7 @@ private fun ResidenceSheet(
             shape = RoundedCornerShape(13.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFFF3DEDF),
-                contentColor = TextoResidencia
+                contentColor = DesignSystem.Colors.ResidenceText
             )
         ) {
             Text("Cancelar y volver", fontSize = 13.sp)

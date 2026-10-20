@@ -1,24 +1,35 @@
 package uniquindio.proyectoalertalocal.features.dashboard.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.ui.graphics.vector.ImageVector
+import uniquindio.proyectoalertalocal.domain.model.UserRole
 
-data class DashboardDestination(
-    val ruta: DashboardRoute,
-    val etiqueta: String,
-    val icono: ImageVector,
-    val accionCentral: Boolean = false
-)
-
-val destinosDashboard = listOf(
-    DashboardDestination(DashboardHomeRoute, "Inicio", Icons.Filled.Home),
-    DashboardDestination(AlertsRoute, "Alertas", Icons.Filled.Notifications),
-    DashboardDestination(CreateReportRoute, "Crear", Icons.Filled.Add, accionCentral = true),
-    DashboardDestination(MyReportsRoute, "Mis reportes", Icons.AutoMirrored.Filled.ListAlt),
-    DashboardDestination(ProfileRoute, "Perfil", Icons.Filled.AccountCircle)
-)
+enum class DashboardDestination(
+    val route: DashboardRoutes,
+    val label: String,
+    val icon: ImageVector,
+    val roles: Set<UserRole>,
+    val centralAction: Boolean = false
+) {
+    HOME(DashboardRoutes.Home, "Inicio", Icons.Filled.Home, setOf(UserRole.RESIDENT)),
+    ALERTS(DashboardRoutes.Alerts, "Alertas", Icons.Filled.Notifications, setOf(UserRole.RESIDENT)),
+    CREATE_REPORT(
+        DashboardRoutes.CreateReport,
+        "Crear",
+        Icons.Filled.Add,
+        setOf(UserRole.RESIDENT),
+        centralAction = true
+    ),
+    MY_REPORTS(
+        DashboardRoutes.MyReports,
+        "Mis reportes",
+        Icons.AutoMirrored.Filled.ListAlt,
+        setOf(UserRole.RESIDENT)
+    ),
+    PROFILE(DashboardRoutes.Profile, "Perfil", Icons.Filled.AccountCircle, setOf(UserRole.RESIDENT))
+}

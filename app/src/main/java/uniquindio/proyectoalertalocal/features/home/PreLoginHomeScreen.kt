@@ -32,11 +32,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.R
-
-private val AzulOscuro = Color(0xFF1E3043)
-private val Naranja = Color(0xFFE65B2F)
-private val Fondo = Color(0xFFFAF9F6)
 
 @Composable
 fun PreLoginHomeScreen(
@@ -47,7 +44,7 @@ fun PreLoginHomeScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Fondo)
+            .background(DesignSystem.Colors.Background)
             .padding(horizontal = 24.dp, vertical = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -66,7 +63,7 @@ fun PreLoginHomeScreen(
             Text(
                 text = "Alerta Local",
                 modifier = Modifier.padding(start = 10.dp),
-                color = AzulOscuro,
+                color = DesignSystem.Colors.PrimaryDark,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -75,7 +72,7 @@ fun PreLoginHomeScreen(
         Spacer(Modifier.height(38.dp))
         Text(
             text = "Tu barrio, más conectado",
-            color = AzulOscuro,
+            color = DesignSystem.Colors.PrimaryDark,
             fontSize = 28.sp,
             lineHeight = 34.sp,
             fontWeight = FontWeight.Bold,
@@ -84,7 +81,7 @@ fun PreLoginHomeScreen(
         Text(
             text = "Infórmate y participa en el cuidado de tu comunidad.",
             modifier = Modifier.padding(top = 10.dp),
-            color = Color(0xFF747B82),
+            color = DesignSystem.Colors.TextSecondary,
             fontSize = 14.sp,
             textAlign = TextAlign.Center
         )
@@ -105,19 +102,19 @@ fun PreLoginHomeScreen(
                     Icon(
                         Icons.Filled.Place,
                         contentDescription = null,
-                        tint = AzulOscuro
+                        tint = DesignSystem.Colors.PrimaryDark
                     )
                     Text(
                         "La Esperanza · mapa demostrativo",
                         modifier = Modifier.padding(start = 7.dp),
-                        color = AzulOscuro,
+                        color = DesignSystem.Colors.PrimaryDark,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = Color.White
+                    color = DesignSystem.Colors.White
                 ) {
                     Row(
                         modifier = Modifier
@@ -128,20 +125,20 @@ fun PreLoginHomeScreen(
                         Icon(
                             Icons.Filled.NotificationsActive,
                             contentDescription = null,
-                            tint = Naranja,
+                            tint = DesignSystem.Colors.AccentDark,
                             modifier = Modifier.size(23.dp)
                         )
                         Column(modifier = Modifier.padding(start = 11.dp)) {
                             Text(
                                 "Alertas cercanas",
-                                color = AzulOscuro,
+                                color = DesignSystem.Colors.PrimaryDark,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
                                 "Reportes, servicios y novedades del barrio",
                                 modifier = Modifier.padding(top = 4.dp),
-                                color = Color(0xFF747B82),
+                                color = DesignSystem.Colors.TextSecondary,
                                 fontSize = 11.sp
                             )
                         }
@@ -157,7 +154,7 @@ fun PreLoginHomeScreen(
                 .fillMaxWidth()
                 .height(50.dp),
             shape = RoundedCornerShape(13.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AzulOscuro)
+            colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.PrimaryDark)
         ) {
             Text("Iniciar sesión", fontWeight = FontWeight.SemiBold)
         }
@@ -169,7 +166,7 @@ fun PreLoginHomeScreen(
                 .height(50.dp),
             shape = RoundedCornerShape(13.dp)
         ) {
-            Text("Crear una cuenta", color = AzulOscuro, fontWeight = FontWeight.SemiBold)
+            Text("Crear una cuenta", color = DesignSystem.Colors.PrimaryDark, fontWeight = FontWeight.SemiBold)
         }
     }
 }

@@ -40,7 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,136 +50,132 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
-import uniquindio.proyectoalertalocal.ui.theme.ProyectoAlertaLocalTheme
-
-private val AzulOscuro = Color(0xFF1E3043)
-private val FondoPantalla = Color(0xFFFAF9F6)
-private val TextoSecundario = Color(0xFF78818B)
-private val Naranja = Color(0xFFFF5722)
-private val BordeCampo = Color(0xFFE4E1DC)
-private val FondoSelector = Color(0xFFF0EDE8)
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.theme.ProyectoAlertaLocalTheme
 
 @Composable
-fun PantallaInicioSesion(
+fun LoginScreen(
     onForgotPasswordClick: (String) -> Unit = {},
     onRegisterClick: () -> Unit = {},
     onLoginSuccess: (String) -> Unit = {},
-    modeloVista: InicioSesionViewModel = viewModel()
+    viewModel: LoginViewModel = viewModel()
 ) {
-    val estado = modeloVista.estado.collectAsState().value
-    val estadoSnackbar = remember { SnackbarHostState() }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarState = remember { SnackbarHostState() }
 
-    LaunchedEffect(estado.mensajeSnackbar) {
-        estado.mensajeSnackbar?.let { mensaje ->
-            estadoSnackbar.showSnackbar(mensaje)
-            modeloVista.limpiarMensajeSnackbar()
+    LaunchedEffect(uiState.snackbarMessage) {
+        uiState.snackbarMessage?.let { message ->
+            snackbarState.showSnackbar(message)
+            viewModel.clearSnackbarMessage()
         }
     }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = FondoPantalla,
+        containerColor = DesignSystem.Colors.Background,
         snackbarHost = {
-            SnackbarHost(hostState = estadoSnackbar) { datos ->
+            SnackbarHost(hostState = snackbarState) { snackbarData ->
                 Snackbar(
-                    containerColor = AzulOscuro,
-                    contentColor = Color.White
+                    containerColor = DesignSystem.Colors.PrimaryDark,
+                    contentColor = DesignSystem.Colors.White
                 ) {
-                    Text(text = datos.visuals.message)
+                    Text(text = snackbarData.visuals.message)
                 }
             }
         }
-    ) { espacioInterior ->
-        ContenidoInicioSesion(
-            estado = estado,
-            alCambiarCorreo = modeloVista::cambiarCorreo,
-            alCambiarContrasena = modeloVista::cambiarContrasena,
-            alCambiarCodigoModerador = modeloVista::cambiarCodigoModerador,
-            alCambiarRol = modeloVista::cambiarRol,
-            alIntentarInicioSesion = { onLoginSuccess(estado.rolSeleccionado) },
-            alOlvidarContrasena = { onForgotPasswordClick(estado.correo) },
-            alCrearCuenta = onRegisterClick,
-            modificador = Modifier.padding(espacioInterior)
+    ) { innerPadding ->
+        LoginContent(
+            uiState = uiState,
+            onEmailChange = viewModel::changeEmail,
+            onPasswordChange = viewModel::changePassword,
+            onModeratorCodeChange = viewModel::changeModeratorCode,
+            onRoleChange = viewModel::changeRole,
+            onLoginAttempt = { onLoginSuccess(uiState.selectedRole) },
+            onForgotPassword = { onForgotPasswordClick(uiState.email) },
+            onCreateAccount = onRegisterClick,
+            modifier = Modifier.padding(innerPadding)
         )
     }
 }
 
 @Composable
-private fun ContenidoInicioSesion(
-    estado: InicioSesionUiState,
-    alCambiarCorreo: (String) -> Unit,
-    alCambiarContrasena: (String) -> Unit,
-    alCambiarCodigoModerador: (String) -> Unit,
-    alCambiarRol: (String) -> Unit,
-    alIntentarInicioSesion: () -> Unit,
-    alOlvidarContrasena: () -> Unit,
-    alCrearCuenta: () -> Unit,
-    modificador: Modifier = Modifier
+private fun LoginContent(
+    uiState: LoginUiState,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onModeratorCodeChange: (String) -> Unit,
+    onRoleChange: (String) -> Unit,
+    onLoginAttempt: () -> Unit,
+    onForgotPassword: () -> Unit,
+    onCreateAccount: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modificador
+        modifier = modifier
             .fillMaxSize()
-            .background(FondoPantalla)
+            .background(DesignSystem.Colors.Background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
             .padding(top = 32.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        LogoAlertaLocal()
+        AlertLocalLogo()
         Spacer(modifier = Modifier.height(18.dp))
         Text(
             text = "Alerta Local",
-            color = AzulOscuro,
+            color = DesignSystem.Colors.PrimaryDark,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Reportes ciudadanos de tu barrio",
-            color = TextoSecundario,
+            color = DesignSystem.Colors.TextSecondary,
             fontSize = 13.sp
         )
 
         Spacer(modifier = Modifier.height(38.dp))
-        SelectorDeRol(
-            rolSeleccionado = estado.rolSeleccionado,
-            alSeleccionarRol = alCambiarRol
+        RoleSelector(
+            selectedRole = uiState.selectedRole,
+            onRoleSelect = onRoleChange
         )
 
         Spacer(modifier = Modifier.height(20.dp))
-        CampoDeFormulario(
-            etiqueta = "Correo electrónico",
-            valor = estado.correo,
-            alCambiar = alCambiarCorreo,
-            indicacion = "nombre@correo.com",
-            tipoTeclado = KeyboardType.Email
+        FormField(
+            label = "Correo electrónico",
+            value = uiState.email,
+            onValueChange = onEmailChange,
+            placeholder = "nombre@correo.com",
+            keyboardType = KeyboardType.Email
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        CampoDeFormulario(
-            etiqueta = "Contraseña",
-            valor = estado.contrasena,
-            alCambiar = alCambiarContrasena,
-            indicacion = "password123",
-            tipoTeclado = KeyboardType.Password,
-            ocultarTexto = true
+        FormField(
+            label = "Contraseña",
+            value = uiState.password,
+            onValueChange = onPasswordChange,
+            placeholder = "password123",
+            keyboardType = KeyboardType.Password,
+            hideText = true
         )
 
-        if (estado.rolSeleccionado == "Moderador") {
+        if (uiState.selectedRole == "Moderador") {
             Spacer(modifier = Modifier.height(16.dp))
-            CampoDeFormulario(
-                etiqueta = "Código de credencial de moderador",
-                valor = estado.codigoModerador,
-                alCambiar = alCambiarCodigoModerador,
-                indicacion = "Ej: MOD-8824-B",
-                tipoTeclado = KeyboardType.Ascii,
-                requerido = true
+            FormField(
+                label = "Código de credencial de moderador",
+                value = uiState.moderatorCode,
+                onValueChange = onModeratorCodeChange,
+                placeholder = "Ej: MOD-8824-B",
+                keyboardType = KeyboardType.Ascii,
+                required = true
             )
             Row(
                 modifier = Modifier
@@ -191,12 +187,12 @@ private fun ContenidoInicioSesion(
                     imageVector = Icons.Outlined.Lock,
                     contentDescription = null,
                     modifier = Modifier.size(13.dp),
-                    tint = TextoSecundario
+                    tint = DesignSystem.Colors.TextSecondary
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Acceso restringido con auditoría pericial y cívica",
-                    color = TextoSecundario,
+                    color = DesignSystem.Colors.TextSecondary,
                     fontSize = 11.sp
                 )
             }
@@ -207,25 +203,25 @@ private fun ContenidoInicioSesion(
             modifier = Modifier
                 .align(Alignment.End)
                 .padding(top = 22.dp)
-                .clickable(onClick = alOlvidarContrasena),
-            color = AzulOscuro,
+                .clickable(onClick = onForgotPassword),
+            color = DesignSystem.Colors.PrimaryDark,
             fontSize = 12.sp
         )
 
         Button(
-            onClick = alIntentarInicioSesion,
+            onClick = onLoginAttempt,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 26.dp)
                 .height(48.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = AzulOscuro,
-                contentColor = Color.White
+                containerColor = DesignSystem.Colors.PrimaryDark,
+                contentColor = DesignSystem.Colors.White
             )
         ) {
             Text(
-                text = if (estado.rolSeleccionado == "Moderador") {
+                text = if (uiState.selectedRole == "Moderador") {
                     "Acceder como moderador"
                 } else {
                     "Iniciar sesión"
@@ -234,16 +230,16 @@ private fun ContenidoInicioSesion(
             )
         }
 
-        if (estado.rolSeleccionado == "Residente") {
-            SeparadorDecorativo(modifier = Modifier.padding(top = 25.dp))
+        if (uiState.selectedRole == "Residente") {
+            DecorativeSeparator(modifier = Modifier.padding(top = 25.dp))
 
-            val textoRegistro = buildAnnotatedString {
-                withStyle(SpanStyle(color = AzulOscuro)) {
+            val registerText = buildAnnotatedString {
+                withStyle(SpanStyle(color = DesignSystem.Colors.PrimaryDark)) {
                     append("¿Eres nuevo? ")
                 }
                 withStyle(
                     SpanStyle(
-                        color = Naranja,
+                        color = DesignSystem.Colors.Accent,
                         fontWeight = FontWeight.SemiBold
                     )
                 ) {
@@ -251,10 +247,10 @@ private fun ContenidoInicioSesion(
                 }
             }
             Text(
-                text = textoRegistro,
+                text = registerText,
                 modifier = Modifier
                     .padding(top = 24.dp)
-                    .clickable(onClick = alCrearCuenta),
+                    .clickable(onClick = onCreateAccount),
                 fontSize = 13.sp
             )
         }
@@ -262,7 +258,7 @@ private fun ContenidoInicioSesion(
 }
 
 @Composable
-private fun LogoAlertaLocal() {
+private fun AlertLocalLogo() {
     Image(
         painter = painterResource(id = R.drawable.logo_alerta_local),
         contentDescription = "Logo de Alerta Local",
@@ -273,81 +269,81 @@ private fun LogoAlertaLocal() {
     )
 }
 @Composable
-private fun SelectorDeRol(
-    rolSeleccionado: String,
-    alSeleccionarRol: (String) -> Unit
+private fun RoleSelector(
+    selectedRole: String,
+    onRoleSelect: (String) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(FondoSelector)
+            .background(DesignSystem.Colors.RoleSelectorBackground)
             .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        OpcionDeRol(
-            nombre = "Residente",
-            seleccionado = rolSeleccionado == "Residente",
-            alSeleccionar = { alSeleccionarRol("Residente") },
-            modificador = Modifier.weight(1f)
+        RoleOption(
+            name = "Residente",
+            selected = selectedRole == "Residente",
+            onSelect = { onRoleSelect("Residente") },
+            modifier = Modifier.weight(1f)
         )
-        OpcionDeRol(
-            nombre = "Moderador",
-            seleccionado = rolSeleccionado == "Moderador",
-            alSeleccionar = { alSeleccionarRol("Moderador") },
-            modificador = Modifier.weight(1f)
+        RoleOption(
+            name = "Moderador",
+            selected = selectedRole == "Moderador",
+            onSelect = { onRoleSelect("Moderador") },
+            modifier = Modifier.weight(1f)
         )
     }
 }
 
 @Composable
-private fun OpcionDeRol(
-    nombre: String,
-    seleccionado: Boolean,
-    alSeleccionar: () -> Unit,
-    modificador: Modifier = Modifier
+private fun RoleOption(
+    name: String,
+    selected: Boolean,
+    onSelect: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val colorIcono = if (seleccionado) Color.White else AzulOscuro
+    val iconColor = if (selected) DesignSystem.Colors.White else DesignSystem.Colors.PrimaryDark
 
     Row(
-        modifier = modificador
+        modifier = modifier
             .fillMaxSize()
             .clip(RoundedCornerShape(13.dp))
-            .background(if (seleccionado) AzulOscuro else Color.Transparent)
-            .clickable(onClick = alSeleccionar),
+            .background(if (selected) DesignSystem.Colors.PrimaryDark else Color.Transparent)
+            .clickable(onClick = onSelect),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = if (nombre == "Residente") {
+            imageVector = if (name == "Residente") {
                 Icons.Outlined.PersonOutline
             } else {
                 Icons.Outlined.Shield
             },
             contentDescription = null,
             modifier = Modifier.size(16.dp),
-            tint = colorIcono
+            tint = iconColor
         )
         Spacer(modifier = Modifier.width(7.dp))
         Text(
-            text = nombre,
-            color = if (seleccionado) Color.White else AzulOscuro,
+            text = name,
+            color = if (selected) DesignSystem.Colors.White else DesignSystem.Colors.PrimaryDark,
             fontSize = 13.sp,
-            fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Normal
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
 }
 
 @Composable
-private fun CampoDeFormulario(
-    etiqueta: String,
-    valor: String,
-    alCambiar: (String) -> Unit,
-    indicacion: String,
-    tipoTeclado: KeyboardType,
-    ocultarTexto: Boolean = false,
-    requerido: Boolean = false
+private fun FormField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    keyboardType: KeyboardType,
+    hideText: Boolean = false,
+    required: Boolean = false
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -356,12 +352,12 @@ private fun CampoDeFormulario(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = etiqueta,
+                text = label,
                 modifier = Modifier.padding(start = 2.dp),
-                color = AzulOscuro,
+                color = DesignSystem.Colors.PrimaryDark,
                 fontSize = 12.sp
             )
-            if (requerido) {
+            if (required) {
                 Text(
                     text = "Requerido",
                     modifier = Modifier
@@ -372,7 +368,7 @@ private fun CampoDeFormulario(
                             RoundedCornerShape(50)
                         )
                         .padding(horizontal = 9.dp, vertical = 3.dp),
-                    color = Naranja,
+                    color = DesignSystem.Colors.Accent,
                     fontSize = 10.sp
                 )
             }
@@ -383,35 +379,35 @@ private fun CampoDeFormulario(
                 .fillMaxWidth()
                 .height(46.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color.White)
-                .border(BorderStroke(1.dp, BordeCampo), RoundedCornerShape(12.dp))
+                .background(DesignSystem.Colors.White)
+                .border(BorderStroke(1.dp, DesignSystem.Colors.Border), RoundedCornerShape(12.dp))
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             BasicTextField(
-                value = valor,
-                onValueChange = alCambiar,
+                value = value,
+                onValueChange = onValueChange,
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    color = AzulOscuro,
+                    color = DesignSystem.Colors.PrimaryDark,
                     fontSize = 14.sp,
-                    letterSpacing = if (ocultarTexto) 1.sp else 0.sp
+                    letterSpacing = if (hideText) 1.sp else 0.sp
                 ),
-                keyboardOptions = KeyboardOptions(keyboardType = tipoTeclado),
-                visualTransformation = if (ocultarTexto) {
+                keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                visualTransformation = if (hideText) {
                     PasswordVisualTransformation()
                 } else {
-                    androidx.compose.ui.text.input.VisualTransformation.None
+                    VisualTransformation.None
                 },
                 decorationBox = { campo ->
                     Box {
-                        if (valor.isEmpty()) {
+                        if (value.isEmpty()) {
                             Text(
-                                text = indicacion,
-                                color = AzulOscuro,
+                                text = placeholder,
+                                color = DesignSystem.Colors.PrimaryDark,
                                 fontSize = 14.sp,
-                                letterSpacing = if (ocultarTexto) 1.sp else 0.sp
+                                letterSpacing = if (hideText) 1.sp else 0.sp
                             )
                         }
                         campo()
@@ -423,7 +419,7 @@ private fun CampoDeFormulario(
 }
 
 @Composable
-private fun SeparadorDecorativo(modifier: Modifier = Modifier) {
+private fun DecorativeSeparator(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -435,7 +431,7 @@ private fun SeparadorDecorativo(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .weight(1f)
                 .height(1.dp)
-                .background(BordeCampo)
+                .background(DesignSystem.Colors.Border)
         )
         Spacer(
             modifier = Modifier
@@ -447,24 +443,24 @@ private fun SeparadorDecorativo(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .weight(1f)
                 .height(1.dp)
-                .background(BordeCampo)
+                .background(DesignSystem.Colors.Border)
         )
     }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFFAF9F6)
 @Composable
-private fun VistaPreviaInicioSesion() {
+private fun LoginScreenPreview() {
     ProyectoAlertaLocalTheme {
-        ContenidoInicioSesion(
-            estado = InicioSesionUiState(),
-            alCambiarCorreo = {},
-            alCambiarContrasena = {},
-            alCambiarCodigoModerador = {},
-            alCambiarRol = {},
-            alIntentarInicioSesion = {},
-            alOlvidarContrasena = {},
-            alCrearCuenta = {}
+        LoginContent(
+            uiState = LoginUiState(),
+            onEmailChange = {},
+            onPasswordChange = {},
+            onModeratorCodeChange = {},
+            onRoleChange = {},
+            onLoginAttempt = {},
+            onForgotPassword = {},
+            onCreateAccount = {}
         )
     }
 }

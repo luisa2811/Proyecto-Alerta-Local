@@ -1,5 +1,6 @@
-package uniquindio.proyectoalertalocal.features.profile
+package uniquindio.proyectoalertalocal.features.user.profile
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,35 +38,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
-import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
-
-private val Fondo = Color(0xFFF8F7F3)
-private val Azul = Color(0xFF203D58)
-private val Tinta = Color(0xFF172337)
-private val Secundario = Color(0xFF817E7B)
-private val Borde = Color(0xFFECEAE6)
+import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 
 @Composable
 fun ProfileDashboardScreen(
     onBack: () -> Unit,
     onEditProfile: () -> Unit,
-    modeloVista: ProfileDashboardViewModel = viewModel()
+    viewModel: ProfileDashboardViewModel = viewModel()
 ) {
-    val estado by modeloVista.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Fondo)
+            .background(DesignSystem.Colors.Background)
     ) {
         ScreenHeader(
             title = "Mi perfil",
             onBack = onBack,
-            titleColor = Tinta,
+            titleColor = DesignSystem.Colors.TextPrimary,
             trailingContent = {
-                androidx.compose.foundation.Image(
+                Image(
                     painter = painterResource(R.drawable.logo_alerta_local),
                     contentDescription = "Alerta Local",
                     modifier = Modifier
@@ -84,7 +80,7 @@ fun ProfileDashboardScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFFAF9F6))
+                    .background(DesignSystem.Colors.Background)
                     .padding(horizontal = 18.dp)
                     .padding(bottom = 18.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -94,26 +90,26 @@ fun ProfileDashboardScreen(
                         .padding(top = 14.dp)
                         .size(68.dp)
                         .clip(CircleShape)
-                        .background(Azul),
+                        .background(DesignSystem.Colors.Primary),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = estado.initials,
+                        text = uiState.initials,
                         color = Color.White,
                         fontSize = 23.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
                 Text(
-                    text = estado.fullName,
-                    color = Tinta,
+                    text = uiState.fullName,
+                    color = DesignSystem.Colors.TextPrimary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 10.dp)
                 )
                 Text(
-                    text = estado.memberSince,
-                    color = Secundario,
+                    text = uiState.memberSince,
+                    color = DesignSystem.Colors.TextSecondary,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 2.dp)
                 )
@@ -129,12 +125,12 @@ fun ProfileDashboardScreen(
                         Icon(
                             imageVector = Icons.Filled.StarBorder,
                             contentDescription = null,
-                            tint = Azul,
+                            tint = DesignSystem.Colors.Primary,
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
-                            text = estado.guardianLevel,
-                            color = Azul,
+                            text = uiState.guardianLevel,
+                            color = DesignSystem.Colors.Primary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(start = 5.dp)
@@ -148,15 +144,15 @@ fun ProfileDashboardScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${estado.points} pts",
+                        text = "${uiState.points} pts",
                         color = Color(0xFF42403E),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = "${estado.pointsToHero} pts para Héroe Comunitario",
-                        color = Secundario,
+                        text = "${uiState.pointsToHero} pts para Héroe Comunitario",
+                        color = DesignSystem.Colors.TextSecondary,
                         fontSize = 10.sp
                     )
                 }
@@ -173,7 +169,7 @@ fun ProfileDashboardScreen(
                             .fillMaxWidth(0.68f)
                             .height(8.dp)
                             .clip(CircleShape)
-                            .background(Azul)
+                            .background(DesignSystem.Colors.Primary)
                     )
                 }
 
@@ -184,19 +180,19 @@ fun ProfileDashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(9.dp)
                 ) {
                     StatCard(
-                        count = estado.activeReports,
+                        count = uiState.activeReports,
                         label = "Activas",
-                        color = Tinta,
+                        color = DesignSystem.Colors.TextPrimary,
                         modifier = Modifier.weight(1f)
                     )
                     StatCard(
-                        count = estado.completedReports,
+                        count = uiState.completedReports,
                         label = "Finalizadas",
                         color = Color(0xFF23754F),
                         modifier = Modifier.weight(1f)
                     )
                     StatCard(
-                        count = estado.reportsToVerify,
+                        count = uiState.reportsToVerify,
                         label = "Por verificar",
                         color = Color(0xFFD75418),
                         modifier = Modifier.weight(1f)
@@ -205,7 +201,7 @@ fun ProfileDashboardScreen(
 
                 Text(
                     text = "Insignias",
-                    color = Tinta,
+                    color = DesignSystem.Colors.TextPrimary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
@@ -219,7 +215,7 @@ fun ProfileDashboardScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Top
                 ) {
-                    estado.badges.forEach { badge ->
+                    uiState.badges.forEach { badge ->
                         BadgeItem(badge = badge)
                     }
                 }
@@ -231,7 +227,7 @@ fun ProfileDashboardScreen(
                     .padding(horizontal = 18.dp)
                     .padding(top = 0.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(DesignSystem.Colors.White)
             ) {
                 ProfileMenuRow(
                     title = "Editar mis datos",
@@ -256,7 +252,7 @@ private fun StatCard(
         modifier = modifier
             .height(64.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(DesignSystem.Colors.White)
             .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -269,7 +265,7 @@ private fun StatCard(
         )
         Text(
             text = label,
-            color = Secundario,
+            color = DesignSystem.Colors.TextSecondary,
             fontSize = 9.sp,
             modifier = Modifier.padding(top = 1.dp)
         )
@@ -320,7 +316,7 @@ private fun BadgeItem(badge: ProfileBadgeUiModel) {
         }
         Text(
             text = badge.title,
-            color = Secundario,
+            color = DesignSystem.Colors.TextSecondary,
             fontSize = 9.sp,
             lineHeight = 11.sp,
             textAlign = TextAlign.Center,
@@ -347,7 +343,7 @@ private fun ProfileMenuRow(
         ) {
             Text(
                 text = title,
-                color = if (destructive) Color(0xFFD92626) else Tinta,
+                color = if (destructive) Color(0xFFD92626) else DesignSystem.Colors.TextPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f)
@@ -365,7 +361,7 @@ private fun ProfileMenuRow(
                     .fillMaxWidth()
                     .padding(start = 14.dp)
                     .height(1.dp)
-                    .background(Borde)
+                    .background(DesignSystem.Colors.Border)
             )
         }
     }

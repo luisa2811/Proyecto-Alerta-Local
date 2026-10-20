@@ -8,33 +8,33 @@ import kotlinx.coroutines.flow.update
 
 class HomeViewModel : ViewModel() {
 
-    private val _estado = MutableStateFlow(HomeUiState())
-    val estado: StateFlow<HomeUiState> = _estado.asStateFlow()
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    fun seleccionarCategoria(categoria: CategoriaAlerta?) {
-        _estado.update { estadoActual ->
-            val alertasFiltradas = categoria?.let { seleccionada ->
-                estadoActual.alertas.filter { it.categoria == seleccionada }
-            } ?: estadoActual.alertas
+    fun selectCategory(category: CategoriaAlerta?) {
+        _uiState.update { currentState ->
+            val filteredAlerts = category?.let { selectedCategory ->
+                currentState.alerts.filter { it.categoria == selectedCategory }
+            } ?: currentState.alerts
 
-            estadoActual.copy(
-                categoriaSeleccionada = categoria,
-                alertaSeleccionadaId = alertasFiltradas.firstOrNull()?.id
+            currentState.copy(
+                selectedCategory = category,
+                selectedAlertId = filteredAlerts.firstOrNull()?.id
             )
         }
     }
 
-    fun seleccionarAlerta(id: String) {
-        if (_estado.value.alertasFiltradas.any { it.id == id }) {
-            _estado.update { it.copy(alertaSeleccionadaId = id) }
+    fun selectAlert(id: String) {
+        if (_uiState.value.filteredAlerts.any { it.id == id }) {
+            _uiState.update { it.copy(selectedAlertId = id) }
         }
     }
 
-    fun seleccionarVista(vista: VistaAlertas) {
-        _estado.update { it.copy(vistaSeleccionada = vista) }
+    fun selectView(view: VistaAlertas) {
+        _uiState.update { it.copy(selectedView = view) }
     }
 
-    fun seleccionarProximidad(proximidad: String) {
-        _estado.update { it.copy(proximidadSeleccionada = proximidad) }
+    fun selectProximity(proximity: String) {
+        _uiState.update { it.copy(selectedProximity = proximity) }
     }
 }
