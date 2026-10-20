@@ -36,7 +36,9 @@ fun alertasDemostrativas(): List<AlertUiModel> = listOf(
         distancia = "A 300 m",
         antiguedad = "hace 2 h",
         posicionX = 0.34f,
-        posicionY = 0.20f
+        posicionY = 0.20f,
+        meGusta = 28,
+        cantidadComentarios = 6
     ),
     AlertUiModel(
         id = "emergencia-1",
@@ -51,7 +53,9 @@ fun alertasDemostrativas(): List<AlertUiModel> = listOf(
         distancia = "A 450 m",
         antiguedad = "hace 15 min",
         posicionX = 0.51f,
-        posicionY = 0.42f
+        posicionY = 0.42f,
+        meGusta = 18,
+        cantidadComentarios = 4
     ),
     AlertUiModel(
         id = "infraestructura-1",
@@ -66,7 +70,9 @@ fun alertasDemostrativas(): List<AlertUiModel> = listOf(
         distancia = "A 600 m",
         antiguedad = "hace 3 h",
         posicionX = 0.77f,
-        posicionY = 0.38f
+        posicionY = 0.38f,
+        meGusta = 14,
+        cantidadComentarios = 2
     ),
     AlertUiModel(
         id = "seguridad-2",
@@ -81,7 +87,9 @@ fun alertasDemostrativas(): List<AlertUiModel> = listOf(
         distancia = "A 750 m",
         antiguedad = "hace 40 min",
         posicionX = 0.25f,
-        posicionY = 0.53f
+        posicionY = 0.53f,
+        meGusta = 8,
+        cantidadComentarios = 1
     ),
     AlertUiModel(
         id = "infraestructura-2",
@@ -96,6 +104,8 @@ fun alertasDemostrativas(): List<AlertUiModel> = listOf(
         distancia = "A 900 m",
         antiguedad = "hace 5 h",
         posicionX = 0.67f,
-        posicionY = 0.56f
+        posicionY = 0.56f,
+        meGusta = 11,
+        cantidadComentarios = 3
     )
 )

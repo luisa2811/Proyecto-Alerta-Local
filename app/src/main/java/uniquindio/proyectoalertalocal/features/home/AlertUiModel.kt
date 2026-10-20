@@ -21,5 +21,7 @@ data class AlertUiModel(
     val distancia: String,
     val antiguedad: String,
     val posicionX: Float,
-    val posicionY: Float
+    val posicionY: Float,
+    val meGusta: Int = 0,
+    val cantidadComentarios: Int = 0
 )

@@ -119,7 +119,8 @@ internal enum class TipoReporte(val icono: ImageVector, val color: Color, val fo
 fun ModeratorDashboardScreen(
     onBack: () -> Unit,
     onShowMessage: (String) -> Unit,
-    onOpenDetail: (String) -> Unit
+    onOpenDetail: (String) -> Unit,
+    onOpenProfile: () -> Unit
 ) {
     var selectedSection by remember { mutableStateOf(SeccionModerador.PENDIENTES) }
     var selectedStatus by remember { mutableStateOf(EstadoModeracion.PENDIENTE) }
@@ -201,7 +202,7 @@ fun ModeratorDashboardScreen(
                     )
                 }
                 IconButton(
-                    onClick = { onShowMessage("Perfil de moderador") },
+                    onClick = onOpenProfile,
                     modifier = Modifier
                         .size(38.dp)
                         .clip(CircleShape)

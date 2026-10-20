@@ -17,12 +17,15 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
@@ -31,6 +34,7 @@ import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -114,18 +118,12 @@ fun HomeScreen(
                     .fillMaxWidth()
             )
 
-            VistaAlertas.LISTA -> Box(
+            VistaAlertas.LISTA -> ListaAlertas(
+                alertas = estado.alertasFiltradas,
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "La vista de lista está pendiente de implementación.",
-                    color = TextoSecundario,
-                    fontSize = 13.sp
-                )
-            }
+                    .fillMaxWidth()
+            )
         }
     }
 }
@@ -459,6 +457,189 @@ private fun MapaSimulado(
                     .padding(start = 12.dp, end = 12.dp, bottom = 10.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun ListaAlertas(
+    alertas: List<AlertUiModel>,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        items(alertas, key = { it.id }) { alerta ->
+            TarjetaAlertaLista(
+                alerta = alerta
+            )
+        }
+    }
+}
+
+@Composable
+private fun TarjetaAlertaLista(
+    alerta: AlertUiModel
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        shadowElevation = 2.dp
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Etiqueta(
+                    texto = alerta.categoria.etiqueta,
+                    fondo = alerta.categoria.color.copy(alpha = 0.12f),
+                    colorTexto = alerta.categoria.color
+                )
+                if (alerta.verificada) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Row(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Color(0xFFD7F7E9))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            tint = Color(0xFF00875A),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = "Verificado",
+                            modifier = Modifier.padding(start = 3.dp),
+                            color = Color(0xFF00875A),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "${alerta.distancia} · ${alerta.antiguedad}",
+                    color = TextoSecundario,
+                    fontSize = 10.sp
+                )
+            }
+
+            Text(
+                text = alerta.titulo,
+                modifier = Modifier.padding(top = 8.dp),
+                color = Color(0xFF202326),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = alerta.descripcion,
+                modifier = Modifier.padding(top = 4.dp),
+                color = Color(0xFF777D82),
+                fontSize = 12.sp,
+                lineHeight = 17.sp
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 9.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ContadorAlerta(
+                    icono = Icons.Filled.ThumbUp,
+                    cantidad = alerta.meGusta,
+                    descripcion = "Me gusta"
+                )
+                ContadorAlerta(
+                    icono = Icons.Filled.ChatBubbleOutline,
+                    cantidad = alerta.cantidadComentarios,
+                    descripcion = "Comentarios"
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(27.dp)
+                        .background(AzulOscuro, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = alerta.inicialesReportante,
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                ) {
+                    Text(
+                        text = alerta.nombreReportante,
+                        color = Color(0xFF3F4346),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = alerta.rolReportante,
+                        color = TextoSecundario,
+                        fontSize = 10.sp
+                    )
+                }
+                Text(
+                    text = alerta.ubicacion,
+                    modifier = Modifier.weight(1f),
+                    color = TextoSecundario,
+                    fontSize = 10.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+        }
+    }
+}
+
+@Composable
+private fun ContadorAlerta(
+    icono: androidx.compose.ui.graphics.vector.ImageVector,
+    cantidad: Int,
+    descripcion: String
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = icono,
+            contentDescription = descripcion,
+            tint = TextoSecundario,
+            modifier = Modifier.size(15.dp)
+        )
+        Text(
+            text = cantidad.toString(),
+            modifier = Modifier.padding(start = 4.dp),
+            color = Color(0xFF565A5D),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium
+        )
+        Text(
+            text = descripcion,
+            modifier = Modifier.padding(start = 4.dp),
+            color = TextoSecundario,
+            fontSize = 10.sp
+        )
     }
 }
 

@@ -1,81 +1,90 @@
 package uniquindio.proyectoalertalocal.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import kotlinx.serialization.Serializable
 import uniquindio.proyectoalertalocal.features.dashboard.MainScreen
+import uniquindio.proyectoalertalocal.features.home.PreLoginHomeScreen
 import uniquindio.proyectoalertalocal.features.login.PantallaInicioSesion
 import uniquindio.proyectoalertalocal.features.login.PasswordRecoveryScreen
+import uniquindio.proyectoalertalocal.features.onboarding.OnboardingScreen
 import uniquindio.proyectoalertalocal.features.register.RegisterScreen
 
-private object RutasAplicacion {
-    const val INICIO = "inicio/{moderador}"
-    const val INICIO_SESION = "inicio_sesion"
-    const val REGISTRO = "registro"
-    const val RECUPERACION_CONTRASENA = "recuperacion_contrasena"
-}
+@Serializable
+data object OnboardingRoute
+
+@Serializable
+data object PublicHomeRoute
+
+@Serializable
+data object LoginRoute
+
+@Serializable
+data object RegisterRoute
+
+@Serializable
+data class PasswordRecoveryRoute(val email: String)
+
+@Serializable
+data class DashboardEntryRoute(val moderator: Boolean)
 
 @Composable
-fun AppNavigation() {
-    val controlador = rememberNavController()
-
+fun AppNavigation(controlador: NavHostController = rememberNavController()) {
     NavHost(
         navController = controlador,
-        startDestination = RutasAplicacion.INICIO_SESION
+        startDestination = OnboardingRoute
     ) {
-        composable(
-            route = RutasAplicacion.INICIO,
-            arguments = listOf(
-                navArgument("moderador") {
-                    type = NavType.BoolType
-                    defaultValue = false
-                }
-            )
-        ) { entrada ->
-            val esModerador = entrada.arguments?.getBoolean("moderador") ?: false
-            MainScreen(
-                esModerador = esModerador,
-                alCerrarSesion = {
-                    controlador.navigate(RutasAplicacion.INICIO_SESION) {
-                        popUpTo(RutasAplicacion.INICIO) { inclusive = true }
+        composable<OnboardingRoute> {
+            OnboardingScreen(
+                onContinue = {
+                    controlador.navigate(PublicHomeRoute) {
+                        popUpTo<OnboardingRoute> { inclusive = true }
                     }
                 }
             )
         }
-        composable(RutasAplicacion.INICIO_SESION) {
+        composable<PublicHomeRoute> {
+            PreLoginHomeScreen(
+                onLogin = { controlador.navigate(LoginRoute) },
+                onRegister = { controlador.navigate(RegisterRoute) }
+            )
+        }
+        composable<LoginRoute> {
             PantallaInicioSesion(
                 onLoginSuccess = { rol ->
-                    controlador.navigate("inicio/${rol == "Moderador"}") {
-                        popUpTo(RutasAplicacion.INICIO_SESION) { inclusive = true }
+                    controlador.navigate(DashboardEntryRoute(moderator = rol == "Moderador")) {
+                        popUpTo<PublicHomeRoute> { inclusive = true }
                     }
                 },
                 onForgotPasswordClick = { correo ->
-                    controlador.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("correo_recuperacion", correo)
-                    controlador.navigate(RutasAplicacion.RECUPERACION_CONTRASENA)
+                    controlador.navigate(PasswordRecoveryRoute(email = correo))
                 },
-                onRegisterClick = {
-                    controlador.navigate(RutasAplicacion.REGISTRO)
-                }
+                onRegisterClick = { controlador.navigate(RegisterRoute) }
             )
         }
-        composable(RutasAplicacion.REGISTRO) {
-            RegisterScreen(
-                onLoginClick = { controlador.popBackStack() }
-            )
+        composable<RegisterRoute> {
+            RegisterScreen(onLoginClick = { controlador.popBackStack() })
         }
-        composable(RutasAplicacion.RECUPERACION_CONTRASENA) {
-            val correoInicial = controlador.previousBackStackEntry
-                ?.savedStateHandle
-                ?.get<String>("correo_recuperacion")
-                .orEmpty()
+        composable<PasswordRecoveryRoute> { entrada ->
+            val ruta = entrada.toRoute<PasswordRecoveryRoute>()
             PasswordRecoveryScreen(
-                initialEmail = correoInicial,
+                initialEmail = ruta.email,
                 onBackToLogin = { controlador.popBackStack() }
+            )
+        }
+        composable<DashboardEntryRoute> { entrada ->
+            val esModerador = entrada.toRoute<DashboardEntryRoute>().moderator
+            MainScreen(
+                esModerador = esModerador,
+                alCerrarSesion = {
+                    controlador.navigate(LoginRoute) {
+                        popUpTo<DashboardEntryRoute> { inclusive = true }
+                    }
+                }
             )
         }
     }

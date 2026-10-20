@@ -34,10 +34,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.Image
 import uniquindio.proyectoalertalocal.R
@@ -62,11 +60,10 @@ fun CreateReportScreen(
     onBack: () -> Unit,
     onSubmit: () -> Unit,
     onShowMessage: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    modeloVista: CreateReportViewModel = viewModel()
 ) {
-    var categoria by remember { mutableStateOf(CategoriaPublicacion.SEGURIDAD) }
-    var titulo by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
+    val estado = modeloVista.uiState.collectAsState().value
 
     Column(
         modifier = modifier
@@ -137,11 +134,11 @@ fun CreateReportScreen(
                         CategoriaPublicacion.MASCOTAS,
                         CategoriaPublicacion.COMUNIDAD
                     ).forEach { opcion ->
-                        val seleccionada = opcion == categoria
+                        val seleccionada = opcion == estado.categoria
                         Surface(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .clickable { categoria = opcion },
+                                .clickable { modeloVista.seleccionarCategoria(opcion) },
                             shape = CircleShape,
                             color = if (seleccionada) AzulOscuro else Color(0xFFF0EFEC)
                         ) {
@@ -166,16 +163,16 @@ fun CreateReportScreen(
 
                 CampoReporte(
                     etiqueta = "Título",
-                    valor = titulo,
+                    valor = estado.titulo,
                     indicacion = "Ej: Poste de luz apagado",
-                    alCambiar = { titulo = it },
+                    alCambiar = modeloVista::cambiarTitulo,
                     modifier = Modifier.padding(top = 17.dp)
                 )
                 CampoReporte(
                     etiqueta = "Descripción",
-                    valor = descripcion,
+                    valor = estado.descripcion,
                     indicacion = "Cuenta qué pasó, cuándo y cualquier detalle útil...",
-                    alCambiar = { descripcion = it },
+                    alCambiar = modeloVista::cambiarDescripcion,
                     multilinea = true,
                     modifier = Modifier.padding(top = 17.dp)
                 )
