@@ -58,7 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
-import uniquindio.proyectoalertalocal.ui.theme.ProyectoAlertaLocalThemem
+import uniquindio.proyectoalertalocal.ui.theme.ProyectoAlertaLocalTheme
 
 private val AzulOscuro = Color(0xFF1E3043)
 private val FondoPantalla = Color(0xFFFAF9F6)
