@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChatBubbleOutline
@@ -41,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
+import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
 
 private val Fondo = Color(0xFFF8F7F3)
 private val Azul = Color(0xFF203D58)
@@ -61,47 +61,20 @@ fun ProfileDashboardScreen(
             .fillMaxSize()
             .background(Fondo)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-                .padding(horizontal = 18.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Surface(
-                shape = CircleShape,
-                color = Color.White,
-                shadowElevation = 2.dp,
-                modifier = Modifier
-                    .size(34.dp)
-                    .clickable(onClick = onBack)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = Azul,
-                        modifier = Modifier.size(19.dp)
-                    )
-                }
+        ScreenHeader(
+            title = "Mi perfil",
+            onBack = onBack,
+            titleColor = Tinta,
+            trailingContent = {
+                androidx.compose.foundation.Image(
+                    painter = painterResource(R.drawable.logo_alerta_local),
+                    contentDescription = "Alerta Local",
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(RoundedCornerShape(7.dp))
+                )
             }
-            Text(
-                text = "Mi perfil",
-                color = Tinta,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 14.dp)
-            )
-            androidx.compose.foundation.Image(
-                painter = painterResource(R.drawable.logo_alerta_local),
-                contentDescription = "Alerta Local",
-                modifier = Modifier
-                    .size(28.dp)
-                    .clip(RoundedCornerShape(7.dp))
-            )
-        }
+        )
 
         Column(
             modifier = Modifier

@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import uniquindio.proyectoalertalocal.features.home.HomeScreen
+import uniquindio.proyectoalertalocal.features.home.EditResidenceScreen
 import uniquindio.proyectoalertalocal.features.moderator.ModeratorDashboardScreen
 import uniquindio.proyectoalertalocal.features.moderator.ModeratorReportDetailScreen
 import uniquindio.proyectoalertalocal.features.notifications.NotificationsScreen
@@ -92,10 +93,23 @@ private fun NavGraphBuilder.dashboardDestinations(
             onCreateReport = {
                 controlador.navigate(CreateReportRoute)
             },
+            onEditAddress = {
+                controlador.navigate(EditResidenceRoute)
+            },
             onOpenNotifications = {
                 controlador.navigate(NotificationsRoute)
             },
             onShowMessage = alMostrarMensaje
+        )
+    }
+
+    composable<EditResidenceRoute> {
+        EditResidenceScreen(
+            onBack = { controlador.popBackStack() },
+            onConfirm = { complemento ->
+                alMostrarMensaje("Dirección confirmada: $complemento")
+                controlador.popBackStack()
+            }
         )
     }
 
@@ -144,7 +158,8 @@ private fun NavGraphBuilder.dashboardDestinations(
 
     composable<EditProfileRoute> {
         EditProfileScreen(
-            onBack = { controlador.popBackStack() }
+            onBack = { controlador.popBackStack() },
+            onShowMessage = alMostrarMensaje
         )
     }
 

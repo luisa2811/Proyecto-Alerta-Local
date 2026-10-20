@@ -1,6 +1,5 @@
 package uniquindio.proyectoalertalocal.features.report.detail
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +25,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,14 +40,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import uniquindio.proyectoalertalocal.R
+import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
 
 private val AzulOscuro = Color(0xFF1E3043)
 private val Naranja = Color(0xFFE65B2F)
@@ -76,42 +72,24 @@ fun ReportDetailScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Volver al feed",
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .clickable(onClick = onBack)
-                    .padding(8.dp),
-                tint = AzulOscuro
-            )
-            Image(
-                painter = painterResource(R.drawable.logo_alerta_local),
-                contentDescription = "Logo de Alerta Local",
-                modifier = Modifier.size(26.dp),
-                contentScale = ContentScale.Crop
-            )
-            Icon(
-                imageVector = Icons.Filled.MoreHoriz,
-                contentDescription = "Más opciones",
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .clickable {
-                        onShowMessage("Más opciones estarán disponibles próximamente.")
-                    }
-                    .padding(7.dp),
-                tint = AzulOscuro
-            )
-        }
+        ScreenHeader(
+            title = "Detalle del reporte",
+            onBack = onBack,
+            trailingContent = {
+                Icon(
+                    imageVector = Icons.Filled.MoreHoriz,
+                    contentDescription = "Más opciones",
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            onShowMessage("Más opciones estarán disponibles próximamente.")
+                        }
+                        .padding(8.dp),
+                    tint = AzulOscuro
+                )
+            }
+        )
 
         Column(
             modifier = Modifier

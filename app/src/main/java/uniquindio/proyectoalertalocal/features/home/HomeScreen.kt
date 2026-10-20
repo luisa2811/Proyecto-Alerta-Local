@@ -73,6 +73,7 @@ private val TextoSecundario = Color(0xFF858B91)
 @Composable
 fun HomeScreen(
     onCreateReport: () -> Unit,
+    onEditAddress: () -> Unit,
     onOpenNotifications: () -> Unit,
     onShowMessage: (String) -> Unit,
     modeloVista: HomeViewModel = viewModel()
@@ -85,9 +86,7 @@ fun HomeScreen(
             .background(Fondo)
     ) {
         EncabezadoInicio(
-            onEditLocation = {
-                onShowMessage("La ubicación mostrada es de demostración.")
-            },
+            onEditLocation = onEditAddress,
             onOpenNotifications = onOpenNotifications
         )
         FiltrosCategorias(

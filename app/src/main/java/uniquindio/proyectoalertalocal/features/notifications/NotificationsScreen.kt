@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Notifications
@@ -36,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
 
 private val Fondo = Color(0xFFF6F5F2)
 private val Texto = Color(0xFF1F2A37)
@@ -104,50 +104,28 @@ fun NotificationsScreen(onBack: () -> Unit) {
             .fillMaxSize()
             .background(Fondo)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 14.dp, end = 18.dp, top = 14.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(CircleShape)
-                    .clickable(onClick = onBack),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = Texto,
-                    modifier = Modifier.size(22.dp)
+        ScreenHeader(
+            title = "Notificaciones",
+            onBack = onBack,
+            titleColor = Texto,
+            trailingContent = {
+                Text(
+                    "Marcar leídas",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            for (index in notificaciones.indices) {
+                                notificaciones[index] =
+                                    notificaciones[index].copy(noLeida = false)
+                            }
+                        }
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    color = Azul,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
-            Text(
-                "Notificaciones",
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp),
-                color = Texto,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                "Marcar leídas",
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        for (index in notificaciones.indices) {
-                            notificaciones[index] = notificaciones[index].copy(noLeida = false)
-                        }
-                    }
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                color = Azul,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
+        )
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),

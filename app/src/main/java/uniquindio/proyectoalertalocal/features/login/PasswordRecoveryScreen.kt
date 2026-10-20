@@ -24,7 +24,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccessTime
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -62,6 +61,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
 import uniquindio.proyectoalertalocal.R
 
 private val RecoveryBackground = Color(0xFFFAF9F6)
@@ -146,30 +146,14 @@ fun PasswordRecoveryScreen(
 
 @Composable
 private fun RecoveryHeader(title: String, onBack: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .background(RecoveryBackground)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-            contentDescription = "Volver",
-            tint = RecoveryNavy,
-            modifier = Modifier
-                .size(28.dp)
-                .clickable(onClick = onBack)
-        )
-        Text(
-            text = title,
-            modifier = Modifier.padding(start = 16.dp),
-            color = RecoveryNavy,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
+    ScreenHeader(
+        title = title,
+        onBack = onBack,
+        modifier = Modifier.background(RecoveryBackground),
+        titleColor = RecoveryNavy,
+        backButtonColor = Color.White,
+        backIconColor = RecoveryNavy
+    )
 }
 
 @Composable
@@ -526,23 +510,14 @@ private fun RecoveryProgress(currentStep: Int) {
 
 @Composable
 private fun RecoveryLogo() {
-    Box(
+    Image(
+        painter = painterResource(id = R.drawable.logo_alerta_local),
+        contentDescription = "Logo de Alerta Local",
         modifier = Modifier
             .size(80.dp)
-            .shadow(10.dp, RoundedCornerShape(18.dp))
-            .clip(RoundedCornerShape(18.dp))
-            .background(RecoverySurface),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.logo_alerta_local),
-            contentDescription = "Logo de Alerta Local",
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            contentScale = ContentScale.Fit
-        )
-    }
+            .clip(RoundedCornerShape(12.dp)),
+        contentScale = ContentScale.Fit
+    )
 }
 
 @Composable

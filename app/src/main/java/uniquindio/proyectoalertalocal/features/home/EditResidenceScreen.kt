@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Check
@@ -62,6 +61,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.widthIn
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.ui.theme.ProyectoAlertaLocalTheme
+import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
 
 private val FondoMapa = Color(0xFFF0F2F6)
 private val NaranjaResidencia = Color(0xFFE65B2F)
@@ -111,38 +111,20 @@ fun EditResidenceScreen(
                 .fillMaxWidth()
                 .background(Color.White.copy(alpha = 0.96f))
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(62.dp)
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = TextoResidencia
+            ScreenHeader(
+                title = "Editar dirección de residencia",
+                onBack = onBack,
+                titleColor = TextoResidencia,
+                trailingContent = {
+                    androidx.compose.foundation.Image(
+                        painter = painterResource(R.drawable.logo_alerta_local),
+                        contentDescription = "Alerta Local",
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(RoundedCornerShape(7.dp))
                     )
                 }
-                Text(
-                    text = "Editar dirección de residencia",
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp),
-                    color = TextoResidencia,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1
-                )
-                androidx.compose.foundation.Image(
-                    painter = painterResource(R.drawable.logo_alerta_local),
-                    contentDescription = "Alerta Local",
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(RoundedCornerShape(7.dp))
-                )
-            }
+            )
         }
 
         Column(

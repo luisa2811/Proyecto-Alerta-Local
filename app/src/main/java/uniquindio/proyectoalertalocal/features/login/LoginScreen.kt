@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,7 +22,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material.icons.Icons
@@ -128,10 +126,9 @@ private fun ContenidoInicioSesion(
         modifier = modificador
             .fillMaxSize()
             .background(FondoPantalla)
-            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
-            .padding(top = 48.dp, bottom = 24.dp),
+            .padding(top = 32.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         LogoAlertaLocal()
@@ -266,24 +263,14 @@ private fun ContenidoInicioSesion(
 
 @Composable
 private fun LogoAlertaLocal() {
-    Box(
+    Image(
+        painter = painterResource(id = R.drawable.logo_alerta_local),
+        contentDescription = "Logo de Alerta Local",
         modifier = Modifier
             .size(80.dp)
-            .shadow(12.dp, RoundedCornerShape(18.dp))
-            .clip(RoundedCornerShape(18.dp))
-            .background(Color.White),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.logo_alerta_local),
-            contentDescription = "Logo de Alerta Local",
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            contentScale = ContentScale.Fit
-
-        )
-    }
+            .clip(RoundedCornerShape(12.dp)),
+        contentScale = ContentScale.Fit
+    )
 }
 @Composable
 private fun SelectorDeRol(
