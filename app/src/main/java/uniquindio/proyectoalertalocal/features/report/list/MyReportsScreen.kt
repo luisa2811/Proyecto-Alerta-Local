@@ -39,90 +39,91 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import uniquindio.proyectoalertalocal.ui.theme.DesignSystem
-import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 
-private data class MisReporteUiModel(
-    val categoria: String,
-    val categoriaColor: Color,
-    val estado: String,
-    val estadoColor: Color,
-    val titulo: String,
-    val ubicacion: String,
-    val distancia: String,
-    val comentarios: Int,
-    val valoracion: Int,
-    val colorFoto: Color,
-    val etiquetaAccion: String? = null,
-    val descripcionAccion: String? = null,
-    val requiereIcono: Boolean = false
+private data class MyReportUiModel(
+    val category: String,
+    val categoryColor: Color,
+    val status: String,
+    val statusColor: Color,
+    val title: String,
+    val location: String,
+    val distance: String,
+    val commentCount: Int,
+    val rating: Int,
+    val photoColor: Color,
+    val actionLabel: String? = null,
+    val actionDescription: String? = null,
+    val requiresIcon: Boolean = false
 )
 
 @Composable
-fun MisReportesScreen(
+fun MyReportsScreen(
     onBack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var tabSeleccionada by remember { mutableStateOf("Todos") }
+    var selectedTab by remember { mutableStateOf("Todos") }
 
     val tabs = listOf("Todos", "Verificados", "En revisión", "Resueltos")
-    val reportes = remember(tabSeleccionada) {
-        val lista = listOf(
-            MisReporteUiModel(
-                categoria = "Seguridad",
-                categoriaColor = Color(0xFFDCF3E8),
-                estado = "Verificado",
-                estadoColor = Color(0xFF1CBF7A),
-                titulo = "Intento de robo en la Cra 15 con Calle 8",
-                ubicacion = "Cra 15 #8-42, Chapinero",
-                distancia = "A 28 apoyos",
-                comentarios = 6,
-                valoracion = 28,
-                colorFoto = Color(0xFFB7D4E8),
-                etiquetaAccion = null,
-                descripcionAccion = null
+    val reports = remember(selectedTab) {
+        val allReports = listOf(
+            MyReportUiModel(
+                category = "Seguridad",
+                categoryColor = Color(0xFFDCF3E8),
+                status = "Verificado",
+                statusColor = Color(0xFF1CBF7A),
+                title = "Intento de robo en la Cra 15 con Calle 8",
+                location = "Cra 15 #8-42, Chapinero",
+                distance = "A 28 apoyos",
+                commentCount = 6,
+                rating = 28,
+                photoColor = Color(0xFFB7D4E8),
+                actionLabel = null,
+                actionDescription = null
             ),
-            MisReporteUiModel(
-                categoria = "Infraestructura",
-                categoriaColor = Color(0xFFE8F0FF),
-                estado = "En revisión",
-                estadoColor = Color(0xFFE8A63C),
-                titulo = "Poste de luz apagado hace 3 días",
-                ubicacion = "A 850 m · Cra 12 con Calle 6, esquina",
-                distancia = "A 850 m",
-                comentarios = 2,
-                valoracion = 14,
-                colorFoto = Color(0xFF9CC4DF),
-                etiquetaAccion = "En revisión por moderadores vecinales.",
-                descripcionAccion = "",
-                requiereIcono = true
+            MyReportUiModel(
+                category = "Infraestructura",
+                categoryColor = Color(0xFFE8F0FF),
+                status = "En revisión",
+                statusColor = Color(0xFFE8A63C),
+                title = "Poste de luz apagado hace 3 días",
+                location = "A 850 m · Cra 12 con Calle 6, esquina",
+                distance = "A 850 m",
+                commentCount = 2,
+                rating = 14,
+                photoColor = Color(0xFF9CC4DF),
+                actionLabel = "En revisión por moderadores vecinales.",
+                actionDescription = "",
+                requiresIcon = true
             ),
-            MisReporteUiModel(
-                categoria = "Comunidad",
-                categoriaColor = Color(0xFFDCF4EB),
-                estado = "Resuelto",
-                estadoColor = Color(0xFF1FA974),
-                titulo = "Acumulación de basuras en el parque infantil",
-                ubicacion = "Parque Central Los Rosales",
-                distancia = "A 9 apoyos",
-                comentarios = 3,
-                valoracion = 9,
-                colorFoto = Color(0xFFB5D9B7),
-                etiquetaAccion = "Solucionado y cerrado con cuadrilla comunitaria y aseo.",
-                descripcionAccion = "",
-                requiereIcono = true
+            MyReportUiModel(
+                category = "Comunidad",
+                categoryColor = Color(0xFFDCF4EB),
+                status = "Resuelto",
+                statusColor = Color(0xFF1FA974),
+                title = "Acumulación de basuras en el parque infantil",
+                location = "Parque Central Los Rosales",
+                distance = "A 9 apoyos",
+                commentCount = 3,
+                rating = 9,
+                photoColor = Color(0xFFB5D9B7),
+                actionLabel = "Solucionado y cerrado con cuadrilla comunitaria y aseo.",
+                actionDescription = "",
+                requiresIcon = true
             )
         )
 
-        when (tabSeleccionada) {
-            "Verificados" -> lista.filter { it.estado == "Verificado" }
-            "En revisión" -> lista.filter { it.estado == "En revisión" }
-            "Resueltos" -> lista.filter { it.estado == "Resuelto" }
-            else -> lista
+        when (selectedTab) {
+            "Verificados" -> allReports.filter { it.status == "Verificado" }
+            "En revisión" -> allReports.filter { it.status == "En revisión" }
+            "Resueltos" -> allReports.filter { it.status == "Resuelto" }
+            else -> allReports
         }
     }
 
@@ -146,12 +147,12 @@ fun MisReportesScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             tabs.forEach { tab ->
-                val seleccionado = tab == tabSeleccionada
+                val isSelected = tab == selectedTab
                 Surface(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .clickable { tabSeleccionada = tab },
-                    color = if (seleccionado) Color(0xFFDDE4EC) else Color(0xFFEAEAEA),
+                        .clickable { selectedTab = tab },
+                    color = if (isSelected) Color(0xFFDDE4EC) else Color(0xFFEAEAEA),
                     tonalElevation = 0.dp,
                     shadowElevation = 0.dp
                 ) {
@@ -162,8 +163,8 @@ fun MisReportesScreen(
                         Text(
                             text = tab,
                             fontSize = 13.sp,
-                            fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Medium,
-                            color = if (seleccionado) DesignSystem.Colors.TextPrimary else Color(0xFF5E6770)
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                            color = if (isSelected) DesignSystem.Colors.TextPrimary else Color(0xFF5E6770)
                         )
                     }
                 }
@@ -177,23 +178,23 @@ fun MisReportesScreen(
             contentPadding = PaddingValues(top = 8.dp, bottom = 18.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(reportes) { reporte ->
-                ReporteCard(reporte = reporte)
+            items(reports) { report ->
+                ReportCard(report = report)
             }
 
             item {
-                BannerNuevoIncidente()
+                NewIncidentBanner()
             }
         }
     }
 }
 
 @Composable
-private fun ReporteCard(reporte: MisReporteUiModel) {
+private fun ReportCard(report: MyReportUiModel) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        color = Color.White,
+        color = DesignSystem.Colors.White,
         tonalElevation = 0.dp,
         shadowElevation = 2.dp
     ) {
@@ -209,20 +210,20 @@ private fun ReporteCard(reporte: MisReporteUiModel) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        EtiquetaPill(
-                            text = reporte.categoria,
-                            background = reporte.categoriaColor,
+                        PillTag(
+                            text = report.category,
+                            background = report.categoryColor,
                             textColor = Color(0xFF3E5A6D)
                         )
-                        EtiquetaPill(
-                            text = reporte.estado,
-                            background = reporte.estadoColor.copy(alpha = 0.14f),
-                            textColor = reporte.estadoColor
+                        PillTag(
+                            text = report.status,
+                            background = report.statusColor.copy(alpha = 0.14f),
+                            textColor = report.statusColor
                         )
                     }
 
                     Text(
-                        text = reporte.titulo,
+                        text = report.title,
                         modifier = Modifier.padding(top = 10.dp),
                         color = DesignSystem.Colors.TextPrimary,
                         fontWeight = FontWeight.SemiBold,
@@ -231,7 +232,7 @@ private fun ReporteCard(reporte: MisReporteUiModel) {
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    if (reporte.requiereIcono) {
+                    if (report.requiresIcon) {
                         Box(
                             modifier = Modifier
                                 .padding(top = 10.dp)
@@ -248,7 +249,7 @@ private fun ReporteCard(reporte: MisReporteUiModel) {
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    text = reporte.etiquetaAccion ?: "",
+                                    text = report.actionLabel ?: "",
                                     color = Color(0xFF5C6470),
                                     fontSize = 12.sp,
                                     maxLines = 2,
@@ -270,7 +271,7 @@ private fun ReporteCard(reporte: MisReporteUiModel) {
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
-                            text = reporte.ubicacion,
+                            text = report.location,
                             color = Color(0xFF6D7580),
                             fontSize = 12.sp,
                             modifier = Modifier.padding(start = 4.dp),
@@ -284,8 +285,8 @@ private fun ReporteCard(reporte: MisReporteUiModel) {
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconInfo(icon = Icons.Filled.StarBorder, count = reporte.valoracion)
-                        IconInfo(icon = Icons.Filled.ChatBubbleOutline, count = reporte.comentarios)
+                        InfoIcon(icon = Icons.Filled.StarBorder, count = report.rating)
+                        InfoIcon(icon = Icons.Filled.ChatBubbleOutline, count = report.commentCount)
                     }
                 }
 
@@ -298,8 +299,8 @@ private fun ReporteCard(reporte: MisReporteUiModel) {
                         .background(
                             brush = Brush.verticalGradient(
                                 listOf(
-                                    reporte.colorFoto,
-                                    reporte.colorFoto.copy(alpha = 0.8f),
+                                    report.photoColor,
+                                    report.photoColor.copy(alpha = 0.8f),
                                     Color(0xFFD8E5F2)
                                 )
                             )
@@ -331,7 +332,7 @@ private fun ReporteCard(reporte: MisReporteUiModel) {
 }
 
 @Composable
-private fun EtiquetaPill(
+private fun PillTag(
     text: String,
     background: Color,
     textColor: Color
@@ -353,7 +354,7 @@ private fun EtiquetaPill(
 }
 
 @Composable
-private fun IconInfo(icon: androidx.compose.ui.graphics.vector.ImageVector, count: Int) {
+private fun InfoIcon(icon: ImageVector, count: Int) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = icon,
@@ -372,7 +373,7 @@ private fun IconInfo(icon: androidx.compose.ui.graphics.vector.ImageVector, coun
 }
 
 @Composable
-private fun BannerNuevoIncidente() {
+private fun NewIncidentBanner() {
     Surface(
         modifier = Modifier
             .fillMaxWidth()

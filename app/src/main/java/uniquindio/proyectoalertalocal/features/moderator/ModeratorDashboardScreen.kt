@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,68 +54,71 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
+import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 
-private val Navy = Color(0xFF1E3A5F)
-private val NavyDeep = Color(0xFF0C2A4A)
-private val Page = Color(0xFFFAF9F6)
-private val Muted = Color(0xFF85898E)
-private val Green = Color(0xFF00523D)
-private val Red = Color(0xFFC4191D)
-
-internal enum class EstadoModeracion(val etiqueta: String) {
-    PENDIENTE("Pendientes"),
-    VERIFICADA("Verificadas"),
-    RECHAZADA("Rechazadas")
+internal enum class ModerationStatus(val label: String) {
+    PENDING("Pendientes"),
+    VERIFIED("Verificadas"),
+    REJECTED("Rechazadas")
 }
 
-private enum class SeccionModerador(val etiqueta: String) {
-    PENDIENTES("Pendientes"),
-    RESOLUCIONES("Resoluciones")
+private enum class ModeratorSection(val label: String) {
+    PENDING_REPORTS("Pendientes"),
+    RESOLUTIONS("Resoluciones")
 }
 
-private enum class FiltroResolucion(val etiqueta: String) {
-    ACTIVAS("Activas / En curso"),
-    RESUELTAS("Resueltas")
+private enum class ResolutionFilter(val label: String) {
+    ACTIVE("Activas / En curso"),
+    RESOLVED("Resueltas")
 }
 
-internal data class ReporteResolucion(
+internal data class ResolutionReport(
     val id: String,
-    val categoria: String,
-    val titulo: String,
-    val reportante: String,
-    val ubicacion: String,
-    val descripcion: String,
-    val tiempo: String,
-    val estado: String,
-    val respaldos: Int,
-    val comentarios: Int,
-    val notaResolucion: String? = null,
-    val resuelto: Boolean = false,
-    val tipo: TipoReporte
+    val category: String,
+    val title: String,
+    val reporter: String,
+    val location: String,
+    val description: String,
+    val time: String,
+    val status: String,
+    val supportCount: Int,
+    val commentCount: Int,
+    val resolutionNote: String? = null,
+    val resolved: Boolean = false,
+    val type: ReportType
 )
 
-internal data class ReporteModeracion(
+internal data class ModerationReport(
     val id: String,
-    val categoria: String,
-    val titulo: String,
-    val reportante: String,
-    val antiguedad: String,
-    val ubicacion: String,
-    val descripcion: String,
-    val estado: EstadoModeracion,
-    val tipo: TipoReporte,
-    val prioridad: String? = null
+    val category: String,
+    val title: String,
+    val reporter: String,
+    val age: String,
+    val location: String,
+    val description: String,
+    val status: ModerationStatus,
+    val type: ReportType,
+    val priority: String? = null
 )
 
-internal enum class TipoReporte(val icono: ImageVector, val color: Color, val fondo: Color) {
-    INFRAESTRUCTURA(Icons.Filled.Build, Color(0xFF264363), Color(0xFFE9E8E3)),
-    SEGURIDAD(Icons.Filled.Security, Color(0xFFB42222), Color(0xFFFFE0DD)),
-    MASCOTAS(Icons.Filled.Pets, Color(0xFF9B513A), Color(0xFFFCE1D8))
+internal enum class ReportType(val icon: ImageVector, val color: Color, val background: Color) {
+    INFRASTRUCTURE(
+        Icons.Filled.Build,
+        DesignSystem.Colors.ModeratorInfrastructure,
+        DesignSystem.Colors.ModeratorInfrastructureBackground
+    ),
+    SECURITY(
+        Icons.Filled.Security,
+        DesignSystem.Colors.ModeratorSecurity,
+        DesignSystem.Colors.ModeratorSecurityBackground
+    ),
+    PETS(Icons.Filled.Pets, DesignSystem.Colors.ModeratorPets, DesignSystem.Colors.ModeratorPetsBackground)
 }
 
 @Composable
@@ -122,42 +128,42 @@ fun ModeratorDashboardScreen(
     onOpenDetail: (String) -> Unit,
     onOpenProfile: () -> Unit
 ) {
-    var selectedSection by remember { mutableStateOf(SeccionModerador.PENDIENTES) }
-    var selectedStatus by remember { mutableStateOf(EstadoModeracion.PENDIENTE) }
-    var reportes by remember { mutableStateOf(reportesDemostrativos()) }
-    var reporteEnRechazo by remember { mutableStateOf("") }
-    var motivoRechazo by remember { mutableStateOf("") }
-    var motivosRapidos by remember { mutableStateOf(emptySet<String>()) }
-    var filtroResolucion by remember { mutableStateOf(FiltroResolucion.ACTIVAS) }
-    var categoriaResolucion by remember { mutableStateOf("Todas") }
-    var reportesResolucion by remember { mutableStateOf(resolucionesDemostrativas()) }
-    var reporteResolucionEnEdicion by remember { mutableStateOf("") }
-    var notaResolucion by remember { mutableStateOf("") }
+    var selectedSection by remember { mutableStateOf(ModeratorSection.PENDING_REPORTS) }
+    var selectedStatus by remember { mutableStateOf(ModerationStatus.PENDING) }
+    var reports by remember { mutableStateOf(demoReports()) }
+    var reportBeingRejected by remember { mutableStateOf("") }
+    var rejectionReason by remember { mutableStateOf("") }
+    var quickReasons by remember { mutableStateOf(emptySet<String>()) }
+    var resolutionFilter by remember { mutableStateOf(ResolutionFilter.ACTIVE) }
+    var resolutionCategory by remember { mutableStateOf("Todas") }
+    var resolutionReports by remember { mutableStateOf(demoResolutions()) }
+    var resolutionReportBeingEdited by remember { mutableStateOf("") }
+    var resolutionNote by remember { mutableStateOf("") }
 
-    val reportesVisibles = reportes.filter { it.estado == selectedStatus }
-    val resolucionesVisibles = reportesResolucion.filter { reporte ->
-        (reporte.resuelto == (filtroResolucion == FiltroResolucion.RESUELTAS)) &&
-            (categoriaResolucion == "Todas" || reporte.categoria == categoriaResolucion)
+    val visibleReports = reports.filter { it.status == selectedStatus }
+    val visibleResolutions = resolutionReports.filter { report ->
+        (report.resolved == (resolutionFilter == ResolutionFilter.RESOLVED)) &&
+            (resolutionCategory == "Todas" || report.category == resolutionCategory)
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Page)
+            .background(DesignSystem.Colors.Background)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Navy)
+                .background(DesignSystem.Colors.ModeratorNavy)
                 .padding(top = 4.dp, bottom = 16.dp)
         ) {
             ScreenHeader(
-                title = if (selectedSection == SeccionModerador.RESOLUCIONES) {
+                title = if (selectedSection == ModeratorSection.RESOLUTIONS) {
                     "Gestión de Resoluciones"
                 } else {
                     "Moderador Comuna 4"
                 },
-                subtitle = if (selectedSection == SeccionModerador.RESOLUCIONES) {
+                subtitle = if (selectedSection == ModeratorSection.RESOLUTIONS) {
                     "Feed de incidentes en seguimiento"
                 } else {
                     "Portal de gestión vecinal"
@@ -165,7 +171,7 @@ fun ModeratorDashboardScreen(
                 onBack = onBack,
                 titleColor = Color.White,
                 subtitleColor = Color(0xFFAEBFD3),
-                backButtonColor = NavyDeep,
+                backButtonColor = DesignSystem.Colors.ModeratorNavyDeep,
                 backIconColor = Color.White,
                 trailingContent = {
                     IconButton(
@@ -173,7 +179,7 @@ fun ModeratorDashboardScreen(
                         modifier = Modifier
                             .size(38.dp)
                             .clip(CircleShape)
-                            .background(NavyDeep)
+                            .background(DesignSystem.Colors.ModeratorNavyDeep)
                     ) {
                         Icon(
                             Icons.Filled.Person,
@@ -185,7 +191,7 @@ fun ModeratorDashboardScreen(
                 }
             )
 
-            if (selectedSection == SeccionModerador.PENDIENTES) {
+            if (selectedSection == ModeratorSection.PENDING_REPORTS) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -193,25 +199,25 @@ fun ModeratorDashboardScreen(
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    EstadoModeracion.values().forEach { estado ->
-                        val seleccionado = estado == selectedStatus
-                        val conteo = when (estado) {
-                            EstadoModeracion.PENDIENTE -> "5"
-                            EstadoModeracion.VERIFICADA -> "48"
-                            EstadoModeracion.RECHAZADA -> "12"
+                    ModerationStatus.values().forEach { status ->
+                        val selected = status == selectedStatus
+                        val count = when (status) {
+                            ModerationStatus.PENDING -> "5"
+                            ModerationStatus.VERIFIED -> "48"
+                            ModerationStatus.REJECTED -> "12"
                         }
                         Surface(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .clickable {
-                                    selectedStatus = estado
-                                    selectedSection = if (estado == EstadoModeracion.PENDIENTE) {
-                                        SeccionModerador.PENDIENTES
+                                    selectedStatus = status
+                                    selectedSection = if (status == ModerationStatus.PENDING) {
+                                        ModeratorSection.PENDING_REPORTS
                                     } else {
-                                        SeccionModerador.RESOLUCIONES
+                                        ModeratorSection.RESOLUTIONS
                                     }
                                 },
-                            color = if (seleccionado) Color.White else Color(0xFF345476),
+                            color = if (selected) Color.White else Color(0xFF345476),
                             shape = CircleShape
                         ) {
                             Row(
@@ -219,14 +225,14 @@ fun ModeratorDashboardScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    estado.etiqueta,
-                                    color = if (seleccionado) NavyDeep else Color(0xFFD3DEEA),
+                                    status.label,
+                                    color = if (selected) DesignSystem.Colors.ModeratorNavyDeep else Color(0xFFD3DEEA),
                                     fontSize = 12.sp,
-                                    fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Normal
+                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                                 )
                                 Text(
-                                    " $conteo",
-                                    color = if (seleccionado) Color(0xFF7D8790) else Color(0xFFB8C8D9),
+                                    " $count",
+                                    color = if (selected) Color(0xFF7D8790) else Color(0xFFB8C8D9),
                                     fontSize = 12.sp
                                 )
                             }
@@ -241,14 +247,14 @@ fun ModeratorDashboardScreen(
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    FiltroResolucion.values().forEach { filtro ->
-                        val seleccionado = filtro == filtroResolucion
-                        val conteo = if (filtro == FiltroResolucion.ACTIVAS) "18" else "42"
+                    ResolutionFilter.values().forEach { filter ->
+                        val selected = filter == resolutionFilter
+                        val count = if (filter == ResolutionFilter.ACTIVE) "18" else "42"
                         Surface(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .clickable { filtroResolucion = filtro },
-                            color = if (seleccionado) Color.White else Color.Transparent,
+                                .clickable { resolutionFilter = filter },
+                            color = if (selected) Color.White else Color.Transparent,
                             shape = CircleShape
                         ) {
                             Row(
@@ -256,14 +262,14 @@ fun ModeratorDashboardScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    filtro.etiqueta,
-                                    color = if (seleccionado) NavyDeep else Color(0xFFD3DEEA),
+                                    filter.label,
+                                    color = if (selected) DesignSystem.Colors.ModeratorNavyDeep else Color(0xFFD3DEEA),
                                     fontSize = 12.sp,
-                                    fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Normal
+                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                                 )
                                 Text(
-                                    " $conteo",
-                                    color = if (seleccionado) Color(0xFF7D8790) else Color(0xFFB8C8D9),
+                                    " $count",
+                                    color = if (selected) Color(0xFF7D8790) else Color(0xFFB8C8D9),
                                     fontSize = 12.sp
                                 )
                             }
@@ -273,94 +279,94 @@ fun ModeratorDashboardScreen(
             }
         }
 
-        if (selectedSection == SeccionModerador.RESOLUCIONES) {
+        if (selectedSection == ModeratorSection.RESOLUTIONS) {
             Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
-                androidx.compose.foundation.lazy.LazyRow(
+                LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    val categorias = listOf("Todas", "Infraestructura", "Seguridad", "Mascotas", "Comunidad")
-                    items(categorias.size) { index ->
-                        val categoria = categorias[index]
-                        val cantidad = if (categoria == "Todas") 18 else when (categoria) {
+                    val categories = listOf("Todas", "Infraestructura", "Seguridad", "Mascotas", "Comunidad")
+                    items(categories.size) { index ->
+                        val category = categories[index]
+                        val count = if (category == "Todas") 18 else when (category) {
                             "Infraestructura" -> 9
                             "Seguridad" -> 5
                             "Mascotas" -> 3
                             else -> 1
                         }
-                        FiltroCategoriaResolucion(
-                            label = categoria,
-                            count = cantidad,
-                            selected = categoriaResolucion == categoria,
-                            onClick = { categoriaResolucion = categoria }
+                        ResolutionCategoryFilter(
+                            label = category,
+                            count = count,
+                            selected = resolutionCategory == category,
+                            onClick = { resolutionCategory = category }
                         )
                     }
                 }
             }
-            if (resolucionesVisibles.isEmpty()) {
+            if (visibleResolutions.isEmpty()) {
                 Box(
                     modifier = Modifier.weight(1f).fillMaxWidth().padding(28.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No hay incidentes en esta categoría.", color = Muted, fontSize = 14.sp)
+                    Text("No hay incidentes en esta categoría.", color = DesignSystem.Colors.ModeratorMuted, fontSize = 14.sp)
                 }
             } else {
-                androidx.compose.foundation.lazy.LazyColumn(
+                LazyColumn(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 14.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    items(resolucionesVisibles.size, key = { resolucionesVisibles[it].id }) { index ->
-                        TarjetaResolucion(
-                            reporte = resolucionesVisibles[index],
-                            mostrarFormularioResolucion = reporteResolucionEnEdicion == resolucionesVisibles[index].id,
-                            notaResolucion = notaResolucion,
-                            onNotaChange = { notaResolucion = it },
+                    items(visibleResolutions.size, key = { visibleResolutions[it].id }) { index ->
+                        ResolutionCard(
+                            report = visibleResolutions[index],
+                            showResolutionForm = resolutionReportBeingEdited == visibleResolutions[index].id,
+                            resolutionNote = resolutionNote,
+                            onNoteChange = { resolutionNote = it },
                             onToggleResolveForm = {
-                                val id = resolucionesVisibles[index].id
-                                if (reporteResolucionEnEdicion == id) {
-                                    reporteResolucionEnEdicion = ""
-                                    notaResolucion = ""
+                                val id = visibleResolutions[index].id
+                                if (resolutionReportBeingEdited == id) {
+                                    resolutionReportBeingEdited = ""
+                                    resolutionNote = ""
                                 } else {
-                                    reporteResolucionEnEdicion = id
-                                    notaResolucion = ""
+                                    resolutionReportBeingEdited = id
+                                    resolutionNote = ""
                                 }
                             },
                             onResolve = {
-                                val id = resolucionesVisibles[index].id
-                                val nota = notaResolucion.trim()
-                                if (nota.isBlank()) {
+                                val id = visibleResolutions[index].id
+                                val note = resolutionNote.trim()
+                                if (note.isBlank()) {
                                     onShowMessage("Escribe un comentario de resolución antes de marcar el reporte como resuelto.")
-                                    return@TarjetaResolucion
+                                    return@ResolutionCard
                                 }
-                                reportesResolucion = reportesResolucion.map {
+                                resolutionReports = resolutionReports.map {
                                     if (it.id == id) {
                                         it.copy(
-                                            resuelto = true,
-                                            estado = "Resuelto hace 1h",
-                                            notaResolucion = nota
+                                            resolved = true,
+                                            status = "Resuelto hace 1h",
+                                            resolutionNote = note
                                         )
                                     } else {
                                         it
                                     }
                                 }
-                                reporteResolucionEnEdicion = ""
-                                notaResolucion = ""
-                                filtroResolucion = FiltroResolucion.RESUELTAS
+                                resolutionReportBeingEdited = ""
+                                resolutionNote = ""
+                                resolutionFilter = ResolutionFilter.RESOLVED
                             },
                             onReopen = {
-                                val id = resolucionesVisibles[index].id
-                                reportesResolucion = reportesResolucion.map {
-                                    if (it.id == id) it.copy(resuelto = false, estado = "Activo") else it
+                                val id = visibleResolutions[index].id
+                                resolutionReports = resolutionReports.map {
+                                    if (it.id == id) it.copy(resolved = false, status = "Activo") else it
                                 }
-                                filtroResolucion = FiltroResolucion.ACTIVAS
+                                resolutionFilter = ResolutionFilter.ACTIVE
                             },
-                            onDetails = { onOpenDetail(resolucionesVisibles[index].id) }
+                            onDetails = { onOpenDetail(visibleResolutions[index].id) }
                         )
                     }
                 }
             }
-        } else if (reportesVisibles.isEmpty()) {
+        } else if (visibleReports.isEmpty()) {
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -369,63 +375,63 @@ fun ModeratorDashboardScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Filled.Inbox, contentDescription = null, tint = Muted, modifier = Modifier.size(42.dp))
+                    Icon(Icons.Filled.Inbox, contentDescription = null, tint = DesignSystem.Colors.ModeratorMuted, modifier = Modifier.size(42.dp))
                     Text(
                         "No hay reportes en esta sección",
                         modifier = Modifier.padding(top = 12.dp),
-                        color = Muted,
+                        color = DesignSystem.Colors.ModeratorMuted,
                         fontSize = 14.sp
                     )
                 }
             }
         } else {
-            androidx.compose.foundation.lazy.LazyColumn(
+            LazyColumn(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(reportesVisibles.size, key = { reportesVisibles[it].id }) { index ->
-                    val reporte = reportesVisibles[index]
-                    ReporteCard(
-                        reporte = reporte,
-                        onShowDetail = { onOpenDetail(reporte.id) },
-                        mostrarRechazo = reporteEnRechazo == reporte.id,
-                        motivo = motivoRechazo,
-                        motivosSeleccionados = motivosRapidos,
-                        onMotivoChange = { motivoRechazo = it },
-                        onToggleMotivo = { motivo ->
-                            motivosRapidos = if (motivo in motivosRapidos) {
-                                motivosRapidos - motivo
+                items(visibleReports.size, key = { visibleReports[it].id }) { index ->
+                    val report = visibleReports[index]
+                    ReportCard(
+                        report = report,
+                        onShowDetail = { onOpenDetail(report.id) },
+                        showRejection = reportBeingRejected == report.id,
+                        reason = rejectionReason,
+                        selectedReasons = quickReasons,
+                        onReasonChange = { rejectionReason = it },
+                        onToggleReason = { reason ->
+                            quickReasons = if (reason in quickReasons) {
+                                quickReasons - reason
                             } else {
-                                motivosRapidos + motivo
+                                quickReasons + reason
                             }
                         },
                         onVerify = {
-                            reportes = reportes.map {
-                                if (it.id == reporte.id) it.copy(estado = EstadoModeracion.VERIFICADA) else it
+                            reports = reports.map {
+                                if (it.id == report.id) it.copy(status = ModerationStatus.VERIFIED) else it
                             }
-                            reporteEnRechazo = ""
+                            reportBeingRejected = ""
                             onShowMessage("Reporte verificado.")
                         },
                         onStartReject = {
-                            reporteEnRechazo = reporte.id
-                            motivoRechazo = ""
-                            motivosRapidos = emptySet()
+                            reportBeingRejected = report.id
+                            rejectionReason = ""
+                            quickReasons = emptySet()
                         },
-                        onCancelReject = { reporteEnRechazo = "" },
+                        onCancelReject = { reportBeingRejected = "" },
                         onConfirmReject = {
-                            val detalle = (listOf(motivoRechazo.trim()).filter { it.isNotEmpty() } + motivosRapidos)
+                            val details = (listOf(rejectionReason.trim()).filter { it.isNotEmpty() } + quickReasons)
                                 .joinToString(", ")
-                            if (detalle.isBlank()) {
+                            if (details.isBlank()) {
                                 onShowMessage("Selecciona un motivo o escribe una explicación para rechazar.")
                             } else {
-                                reportes = reportes.map {
-                                    if (it.id == reporte.id) it.copy(estado = EstadoModeracion.RECHAZADA) else it
+                                reports = reports.map {
+                                    if (it.id == report.id) it.copy(status = ModerationStatus.REJECTED) else it
                                 }
-                                reporteEnRechazo = ""
-                                onShowMessage("Rechazo registrado: $detalle")
+                                reportBeingRejected = ""
+                                onShowMessage("Rechazo registrado: $details")
                             }
                         }
                     )
@@ -433,15 +439,15 @@ fun ModeratorDashboardScreen(
             }
         }
 
-        NavegacionModerador(
+        ModeratorNavigation(
             selected = selectedSection,
-            pendingCount = reportes.count { it.estado == EstadoModeracion.PENDIENTE },
-            onSelect = { seccion ->
-                selectedSection = seccion
-                selectedStatus = if (seccion == SeccionModerador.PENDIENTES) {
-                    EstadoModeracion.PENDIENTE
-                } else if (selectedStatus == EstadoModeracion.PENDIENTE) {
-                    EstadoModeracion.VERIFICADA
+            pendingCount = reports.count { it.status == ModerationStatus.PENDING },
+            onSelect = { section ->
+                selectedSection = section
+                selectedStatus = if (section == ModeratorSection.PENDING_REPORTS) {
+                    ModerationStatus.PENDING
+                } else if (selectedStatus == ModerationStatus.PENDING) {
+                    ModerationStatus.VERIFIED
                 } else {
                     selectedStatus
                 }
@@ -452,7 +458,7 @@ fun ModeratorDashboardScreen(
 }
 
 @Composable
-private fun FiltroCategoriaResolucion(
+private fun ResolutionCategoryFilter(
     label: String,
     count: Int,
     selected: Boolean,
@@ -462,7 +468,7 @@ private fun FiltroCategoriaResolucion(
         modifier = Modifier
             .clip(CircleShape)
             .clickable(onClick = onClick),
-        color = if (selected) NavyDeep else Color(0xFFECEBE7),
+        color = if (selected) DesignSystem.Colors.ModeratorNavyDeep else Color(0xFFECEBE7),
         shape = CircleShape
     ) {
         Row(
@@ -496,11 +502,11 @@ private fun FiltroCategoriaResolucion(
 }
 
 @Composable
-private fun TarjetaResolucion(
-    reporte: ReporteResolucion,
-    mostrarFormularioResolucion: Boolean,
-    notaResolucion: String,
-    onNotaChange: (String) -> Unit,
+private fun ResolutionCard(
+    report: ResolutionReport,
+    showResolutionForm: Boolean,
+    resolutionNote: String,
+    onNoteChange: (String) -> Unit,
     onToggleResolveForm: () -> Unit,
     onResolve: () -> Unit,
     onReopen: () -> Unit,
@@ -517,38 +523,42 @@ private fun TarjetaResolucion(
                 Row(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(reporte.tipo.fondo)
+                        .background(report.type.background)
                         .padding(horizontal = 9.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        reporte.tipo.icono,
+                        report.type.icon,
                         contentDescription = null,
-                        tint = reporte.tipo.color,
+                        tint = report.type.color,
                         modifier = Modifier.size(13.dp)
                     )
                     Text(
-                        reporte.categoria,
+                        report.category,
                         modifier = Modifier.padding(start = 4.dp),
-                        color = reporte.tipo.color,
+                        color = report.type.color,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
                 Text(
-                    "#${reporte.id}",
+                    "#${report.id}",
                     modifier = Modifier.padding(start = 8.dp).weight(1f),
-                    color = Muted,
+                    color = DesignSystem.Colors.ModeratorMuted,
                     fontSize = 11.sp
                 )
                 Surface(
-                    color = if (reporte.resuelto) Color(0xFFDDF8E9) else Color(0xFFE9E8E4),
+                    color = if (report.resolved) {
+                        DesignSystem.Colors.ModeratorVerifiedBackground
+                    } else {
+                        Color(0xFFE9E8E4)
+                    },
                     shape = CircleShape
                 ) {
                     Text(
-                        if (reporte.resuelto) "Resuelto" else "Activo",
+                        if (report.resolved) "Resuelto" else "Activo",
                         modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
-                        color = if (reporte.resuelto) Green else NavyDeep,
+                        color = if (report.resolved) DesignSystem.Colors.ModeratorGreen else DesignSystem.Colors.ModeratorNavyDeep,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -556,16 +566,16 @@ private fun TarjetaResolucion(
             }
 
             Text(
-                reporte.titulo,
+                report.title,
                 modifier = Modifier.padding(top = 12.dp),
-                color = Color(0xFF202326),
+                color = DesignSystem.Colors.ReportTitleText,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                "${reporte.reportante} · ${reporte.tiempo} · ${reporte.ubicacion}",
+                "${report.reporter} · ${report.time} · ${report.location}",
                 modifier = Modifier.padding(top = 3.dp),
-                color = Muted,
+                color = DesignSystem.Colors.ModeratorMuted,
                 fontSize = 11.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -579,7 +589,7 @@ private fun TarjetaResolucion(
                 verticalAlignment = Alignment.Top
             ) {
                 Text(
-                    reporte.descripcion,
+                    report.description,
                     modifier = Modifier.weight(1f),
                     color = Color(0xFF55595D),
                     fontSize = 13.sp,
@@ -587,7 +597,7 @@ private fun TarjetaResolucion(
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
-                MediaReporte(
+                ReportMedia(
                     modifier = Modifier.size(width = 58.dp, height = 58.dp),
                     caption = null
                 )
@@ -610,8 +620,8 @@ private fun TarjetaResolucion(
                 )
             }
 
-            if (!reporte.resuelto) {
-                if (mostrarFormularioResolucion) {
+            if (!report.resolved) {
+                if (showResolutionForm) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -622,30 +632,30 @@ private fun TarjetaResolucion(
                     ) {
                         Text(
                             "Comentario de resolución",
-                            color = Green,
+                            color = DesignSystem.Colors.ModeratorGreen,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         BasicTextField(
-                            value = notaResolucion,
-                            onValueChange = onNotaChange,
+                            value = resolutionNote,
+                            onValueChange = onNoteChange,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 8.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(Color.White)
                                 .padding(10.dp),
-                            textStyle = androidx.compose.ui.text.TextStyle(
+                            textStyle = TextStyle(
                                 color = Color(0xFF424548),
                                 fontSize = 12.sp,
                                 lineHeight = 17.sp
                             ),
                             decorationBox = { innerTextField ->
                                 Box {
-                                    if (notaResolucion.isEmpty()) {
+                                    if (resolutionNote.isEmpty()) {
                                         Text(
                                             "Describe brevemente la acción realizada...",
-                                            color = Muted,
+                                            color = DesignSystem.Colors.ModeratorMuted,
                                             fontSize = 12.sp
                                         )
                                     }
@@ -661,10 +671,10 @@ private fun TarjetaResolucion(
                                 .height(42.dp),
                             shape = CircleShape,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Green,
+                                containerColor = DesignSystem.Colors.ModeratorGreen,
                                 contentColor = Color.White
                             ),
-                            enabled = notaResolucion.isNotBlank()
+                            enabled = resolutionNote.isNotBlank()
                         ) {
                             Icon(
                                 Icons.Filled.CheckCircleOutline,
@@ -688,7 +698,7 @@ private fun TarjetaResolucion(
                             .height(42.dp),
                         shape = CircleShape,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Green,
+                            containerColor = DesignSystem.Colors.ModeratorGreen,
                             contentColor = Color.White
                         )
                     ) {
@@ -706,11 +716,11 @@ private fun TarjetaResolucion(
                     }
                 }
             } else {
-                reporte.notaResolucion?.takeIf { it.isNotBlank() }?.let { nota ->
+                report.resolutionNote?.takeIf { it.isNotBlank() }?.let { note ->
                     Text(
-                        nota,
+                        note,
                         modifier = Modifier.padding(top = 10.dp),
-                        color = Green,
+                        color = DesignSystem.Colors.ModeratorGreen,
                         fontSize = 11.sp,
                         lineHeight = 16.sp
                     )
@@ -732,14 +742,14 @@ private fun TarjetaResolucion(
 }
 
 @Composable
-private fun ReporteCard(
-    reporte: ReporteModeracion,
+private fun ReportCard(
+    report: ModerationReport,
     onShowDetail: () -> Unit,
-    mostrarRechazo: Boolean,
-    motivo: String,
-    motivosSeleccionados: Set<String>,
-    onMotivoChange: (String) -> Unit,
-    onToggleMotivo: (String) -> Unit,
+    showRejection: Boolean,
+    reason: String,
+    selectedReasons: Set<String>,
+    onReasonChange: (String) -> Unit,
+    onToggleReason: (String) -> Unit,
     onVerify: () -> Unit,
     onStartReject: () -> Unit,
     onCancelReject: () -> Unit,
@@ -756,37 +766,37 @@ private fun ReporteCard(
                 Row(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(reporte.tipo.fondo)
+                        .background(report.type.background)
                         .padding(horizontal = 9.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        reporte.tipo.icono,
+                        report.type.icon,
                         contentDescription = null,
-                        tint = reporte.tipo.color,
+                        tint = report.type.color,
                         modifier = Modifier.size(13.dp)
                     )
                     Text(
-                        reporte.categoria,
+                        report.category,
                         modifier = Modifier.padding(start = 4.dp),
-                        color = reporte.tipo.color,
+                        color = report.type.color,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
                 Text(
-                    "#${reporte.id}",
+                    "#${report.id}",
                     modifier = Modifier.padding(start = 8.dp).weight(1f),
-                    color = Muted,
+                    color = DesignSystem.Colors.ModeratorMuted,
                     fontSize = 11.sp
                 )
-                reporte.prioridad?.let {
+                report.priority?.let {
                     Text(it, color = Color(0xFFC84400), fontSize = 11.sp, fontWeight = FontWeight.Medium)
                 }
-                if (reporte.estado == EstadoModeracion.PENDIENTE) {
+                if (report.status == ModerationStatus.PENDING) {
                     Box(
                         modifier = Modifier
-                            .padding(start = if (reporte.prioridad == null) 0.dp else 8.dp)
+                            .padding(start = if (report.priority == null) 0.dp else 8.dp)
                             .size(9.dp)
                             .clip(CircleShape)
                             .background(Color(0xFFFF8158))
@@ -794,16 +804,16 @@ private fun ReporteCard(
                 }
             }
             Text(
-                reporte.titulo,
+                report.title,
                 modifier = Modifier.padding(top = 12.dp),
-                color = Color(0xFF202326),
+                color = DesignSystem.Colors.ReportTitleText,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                "${reporte.reportante} · ${reporte.antiguedad} · ${reporte.ubicacion}",
+                "${report.reporter} · ${report.age} · ${report.location}",
                 modifier = Modifier.padding(top = 3.dp),
-                color = Muted,
+                color = DesignSystem.Colors.ModeratorMuted,
                 fontSize = 11.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -817,7 +827,7 @@ private fun ReporteCard(
                 verticalAlignment = Alignment.Top
             ) {
                 Text(
-                    reporte.descripcion,
+                    report.description,
                     modifier = Modifier.weight(1f),
                     color = Color(0xFF55595D),
                     fontSize = 13.sp,
@@ -825,7 +835,7 @@ private fun ReporteCard(
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
-                MediaReporte(
+                ReportMedia(
                     modifier = Modifier.size(width = 58.dp, height = 58.dp),
                     caption = null
                 )
@@ -844,42 +854,42 @@ private fun ReporteCard(
                 Text("Ver detalle", modifier = Modifier.padding(start = 6.dp), fontSize = 12.sp)
             }
 
-            if (mostrarRechazo && reporte.estado == EstadoModeracion.PENDIENTE) {
+            if (showRejection && report.status == ModerationStatus.PENDING) {
                 RejectionForm(
-                    motivo = motivo,
-                    motivosSeleccionados = motivosSeleccionados,
-                    onMotivoChange = onMotivoChange,
-                    onToggleMotivo = onToggleMotivo,
+                    reason = reason,
+                    selectedReasons = selectedReasons,
+                    onReasonChange = onReasonChange,
+                    onToggleReason = onToggleReason,
                     onCancel = onCancelReject,
                     onConfirm = onConfirmReject
                 )
-            } else if (reporte.estado == EstadoModeracion.PENDIENTE) {
+            } else if (report.status == ModerationStatus.PENDING) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 14.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    AccionModerador(
+                    ModeratorAction(
                         label = "Verificar",
                         icon = Icons.Filled.CheckCircle,
-                        color = Green,
+                        color = DesignSystem.Colors.ModeratorGreen,
                         modifier = Modifier.weight(1f),
                         onClick = onVerify
                     )
-                    AccionModerador(
+                    ModeratorAction(
                         label = "Rechazar",
                         icon = Icons.Filled.Cancel,
-                        color = Red,
+                        color = DesignSystem.Colors.ModeratorRed,
                         modifier = Modifier.weight(1f),
                         onClick = onStartReject
                     )
                 }
             } else {
                 Text(
-                    if (reporte.estado == EstadoModeracion.VERIFICADA) "Reporte verificado" else "Reporte rechazado",
+                    if (report.status == ModerationStatus.VERIFIED) "Reporte verificado" else "Reporte rechazado",
                     modifier = Modifier.padding(top = 12.dp),
-                    color = if (reporte.estado == EstadoModeracion.VERIFICADA) Green else Red,
+                    color = if (report.status == ModerationStatus.VERIFIED) DesignSystem.Colors.ModeratorGreen else DesignSystem.Colors.ModeratorRed,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -890,10 +900,10 @@ private fun ReporteCard(
 
 @Composable
 private fun RejectionForm(
-    motivo: String,
-    motivosSeleccionados: Set<String>,
-    onMotivoChange: (String) -> Unit,
-    onToggleMotivo: (String) -> Unit,
+    reason: String,
+    selectedReasons: Set<String>,
+    onReasonChange: (String) -> Unit,
+    onToggleReason: (String) -> Unit,
     onCancel: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -906,11 +916,11 @@ private fun RejectionForm(
             .padding(12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.Cancel, contentDescription = null, tint = Red, modifier = Modifier.size(16.dp))
+            Icon(Icons.Filled.Cancel, contentDescription = null, tint = DesignSystem.Colors.ModeratorRed, modifier = Modifier.size(16.dp))
             Text(
                 "Motivo del rechazo",
                 modifier = Modifier.padding(start = 6.dp),
-                color = Red,
+                color = DesignSystem.Colors.ModeratorRed,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -923,25 +933,25 @@ private fun RejectionForm(
             lineHeight = 17.sp
         )
         BasicTextField(
-            value = motivo,
-            onValueChange = onMotivoChange,
+            value = reason,
+            onValueChange = onReasonChange,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)
                 .clip(RoundedCornerShape(9.dp))
                 .background(Color.White)
                 .padding(10.dp),
-            textStyle = androidx.compose.ui.text.TextStyle(
+            textStyle = TextStyle(
                 color = Color(0xFF424548),
                 fontSize = 12.sp,
                 lineHeight = 17.sp
             ),
             decorationBox = { innerTextField ->
                 Box {
-                    if (motivo.isEmpty()) {
+                    if (reason.isEmpty()) {
                         Text(
                             "Ej: la foto no corresponde a la ubicación indicada o está duplicado...",
-                            color = Muted,
+                            color = DesignSystem.Colors.ModeratorMuted,
                             fontSize = 12.sp,
                             lineHeight = 17.sp
                         )
@@ -958,18 +968,18 @@ private fun RejectionForm(
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             listOf("Ubicación incorrecta", "Foto poco clara", "Duplicado").forEach { chip ->
-                val elegido = chip in motivosSeleccionados
+                val selected = chip in selectedReasons
                 Surface(
                     modifier = Modifier
                         .clip(RoundedCornerShape(5.dp))
-                        .clickable { onToggleMotivo(chip) },
-                    color = if (elegido) Color(0xFFFFD6D6) else Color.White,
+                        .clickable { onToggleReason(chip) },
+                    color = if (selected) Color(0xFFFFD6D6) else Color.White,
                     shape = RoundedCornerShape(5.dp)
                 ) {
                     Text(
                         chip,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-                        color = if (elegido) Red else Color(0xFF44484B),
+                        color = if (selected) DesignSystem.Colors.ModeratorRed else Color(0xFF44484B),
                         fontSize = 10.sp
                     )
                 }
@@ -987,7 +997,7 @@ private fun RejectionForm(
                     .weight(1.35f)
                     .height(42.dp),
                 shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(containerColor = Red, contentColor = Color.White),
+                colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.ModeratorRed, contentColor = Color.White),
                 contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
                 Icon(Icons.Filled.Cancel, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -1012,7 +1022,7 @@ private fun RejectionForm(
 }
 
 @Composable
-private fun AccionModerador(
+private fun ModeratorAction(
     label: String,
     icon: ImageVector,
     color: Color,
@@ -1024,8 +1034,8 @@ private fun AccionModerador(
         modifier = modifier.height(42.dp),
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (color == Red) Color(0xFFF0EFEC) else color,
-            contentColor = if (color == Red) Red else Color.White
+            containerColor = if (color == DesignSystem.Colors.ModeratorRed) Color(0xFFF0EFEC) else color,
+            contentColor = if (color == DesignSystem.Colors.ModeratorRed) DesignSystem.Colors.ModeratorRed else Color.White
         ),
         contentPadding = PaddingValues(horizontal = 8.dp)
     ) {
@@ -1033,7 +1043,7 @@ private fun AccionModerador(
         Text(
             label,
             modifier = Modifier.padding(start = 5.dp),
-            color = if (color == Red) Red else Color.White,
+            color = if (color == DesignSystem.Colors.ModeratorRed) DesignSystem.Colors.ModeratorRed else Color.White,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -1041,7 +1051,7 @@ private fun AccionModerador(
 }
 
 @Composable
-private fun MediaReporte(modifier: Modifier, caption: String?) {
+private fun ReportMedia(modifier: Modifier, caption: String?) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
@@ -1083,10 +1093,10 @@ private fun MediaReporte(modifier: Modifier, caption: String?) {
 }
 
 @Composable
-private fun NavegacionModerador(
-    selected: SeccionModerador,
+private fun ModeratorNavigation(
+    selected: ModeratorSection,
     pendingCount: Int,
-    onSelect: (SeccionModerador) -> Unit
+    onSelect: (ModeratorSection) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -1097,22 +1107,22 @@ private fun NavegacionModerador(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         listOf(
-            Triple(SeccionModerador.PENDIENTES, Icons.Filled.Inbox, pendingCount.toString()),
-            Triple(SeccionModerador.RESOLUCIONES, Icons.Filled.TaskAlt, "")
-        ).forEach { (seccion, icono, badge) ->
-            val activa = selected == seccion
+            Triple(ModeratorSection.PENDING_REPORTS, Icons.Filled.Inbox, pendingCount.toString()),
+            Triple(ModeratorSection.RESOLUTIONS, Icons.Filled.TaskAlt, "")
+        ).forEach { (section, icon, badge) ->
+            val active = selected == section
             Column(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
-                    .clickable { onSelect(seccion) }
+                    .clickable { onSelect(section) }
                     .padding(horizontal = 24.dp, vertical = 3.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box {
                     Icon(
-                        icono,
-                        contentDescription = seccion.etiqueta,
-                        tint = if (activa) NavyDeep else Color(0xFF63666A),
+                        icon,
+                        contentDescription = section.label,
+                        tint = if (active) DesignSystem.Colors.ModeratorNavyDeep else Color(0xFF63666A),
                         modifier = Modifier.size(23.dp)
                     )
                     if (badge.isNotEmpty()) {
@@ -1129,116 +1139,116 @@ private fun NavegacionModerador(
                     }
                 }
                 Text(
-                    seccion.etiqueta,
+                    section.label,
                     modifier = Modifier.padding(top = 2.dp),
-                    color = if (activa) NavyDeep else Color(0xFF606266),
+                    color = if (active) DesignSystem.Colors.ModeratorNavyDeep else Color(0xFF606266),
                     fontSize = 10.sp,
-                    fontWeight = if (activa) FontWeight.SemiBold else FontWeight.Normal
+                    fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal
                 )
             }
         }
     }
 }
 
-internal fun reportesDemostrativos() = listOf(
-    ReporteModeracion(
+internal fun demoReports() = listOf(
+    ModerationReport(
         id = "INF-8492",
-        categoria = "Infraestructura",
-        titulo = "Hueco grande en la vía principal",
-        reportante = "Andrés T.",
-        antiguedad = "hace 20 min",
-        ubicacion = "Calle 45 con Cra 12",
-        descripcion = "Hueco profundo en la calzada que dificulta el tránsito.",
-        estado = EstadoModeracion.PENDIENTE,
-        tipo = TipoReporte.INFRAESTRUCTURA
+        category = "Infraestructura",
+        title = "Hueco grande en la vía principal",
+        reporter = "Andrés T.",
+        age = "hace 20 min",
+        location = "Calle 45 con Cra 12",
+        description = "Hueco profundo en la calzada que dificulta el tránsito.",
+        status = ModerationStatus.PENDING,
+        type = ReportType.INFRASTRUCTURE
     ),
-    ReporteModeracion(
+    ModerationReport(
         id = "SEG-1044",
-        categoria = "Seguridad",
-        titulo = "Cámara comunitaria dañada",
-        reportante = "Pedro G.",
-        antiguedad = "hace 45 min",
-        ubicacion = "Parque Norte",
-        descripcion = "El domo de vigilancia de la esquina norte amaneció con el cristal fracturado y el cable desconectado. Se requiere revisión.",
-        estado = EstadoModeracion.PENDIENTE,
-        tipo = TipoReporte.SEGURIDAD,
-        prioridad = "Prioridad Alta"
+        category = "Seguridad",
+        title = "Cámara comunitaria dañada",
+        reporter = "Pedro G.",
+        age = "hace 45 min",
+        location = "Parque Norte",
+        description = "El domo de vigilancia de la esquina norte amaneció con el cristal fracturado y el cable desconectado. Se requiere revisión.",
+        status = ModerationStatus.PENDING,
+        type = ReportType.SECURITY,
+        priority = "Prioridad Alta"
     ),
-    ReporteModeracion(
+    ModerationReport(
         id = "MAS-5120",
-        categoria = "Mascotas",
-        titulo = "Gato encontrado cerca al parque",
-        reportante = "Sofía M.",
-        antiguedad = "hace 1 h",
-        ubicacion = "Cra 14 #32-10",
-        descripcion = "Gatito atigrado naranja muy dócil, tiene collar azul sin placa de identificación. Lo resguardamos mientras encontramos a su familia.",
-        estado = EstadoModeracion.PENDIENTE,
-        tipo = TipoReporte.MASCOTAS
+        category = "Mascotas",
+        title = "Gato encontrado cerca al parque",
+        reporter = "Sofía M.",
+        age = "hace 1 h",
+        location = "Cra 14 #32-10",
+        description = "Gatito atigrado naranja muy dócil, tiene collar azul sin placa de identificación. Lo resguardamos mientras encontramos a su familia.",
+        status = ModerationStatus.PENDING,
+        type = ReportType.PETS
     ),
-    ReporteModeracion(
+    ModerationReport(
         id = "INF-8420",
-        categoria = "Infraestructura",
-        titulo = "Luminaria reparada en el parque",
-        reportante = "Laura P.",
-        antiguedad = "ayer",
-        ubicacion = "Parque Central",
-        descripcion = "La comunidad confirmó que la lámpara ya fue reparada.",
-        estado = EstadoModeracion.VERIFICADA,
-        tipo = TipoReporte.INFRAESTRUCTURA
+        category = "Infraestructura",
+        title = "Luminaria reparada en el parque",
+        reporter = "Laura P.",
+        age = "ayer",
+        location = "Parque Central",
+        description = "La comunidad confirmó que la lámpara ya fue reparada.",
+        status = ModerationStatus.VERIFIED,
+        type = ReportType.INFRASTRUCTURE
     ),
-    ReporteModeracion(
+    ModerationReport(
         id = "SEG-1021",
-        categoria = "Seguridad",
-        titulo = "Reporte duplicado de vehículo",
-        reportante = "Julián M.",
-        antiguedad = "hace 2 h",
-        ubicacion = "Calle 10 #14-20",
-        descripcion = "Se encontraron dos reportes iguales para el mismo incidente.",
-        estado = EstadoModeracion.RECHAZADA,
-        tipo = TipoReporte.SEGURIDAD
+        category = "Seguridad",
+        title = "Reporte duplicado de vehículo",
+        reporter = "Julián M.",
+        age = "hace 2 h",
+        location = "Calle 10 #14-20",
+        description = "Se encontraron dos reportes iguales para el mismo incidente.",
+        status = ModerationStatus.REJECTED,
+        type = ReportType.SECURITY
     )
 )
 
-internal fun resolucionesDemostrativas() = listOf(
-    ReporteResolucion(
+internal fun demoResolutions() = listOf(
+    ResolutionReport(
         id = "4082",
-        categoria = "Infraestructura",
-        titulo = "Poste de luz apagado hace 3 días",
-        reportante = "Carlos R.",
-        ubicacion = "Cra 15 #8-42, Barrio La Esperanza",
-        descripcion = "La luminaria lleva varios días apagada y la cuadra queda sin iluminación durante la noche.",
-        tiempo = "hace 3h",
-        estado = "En atención / Verificado",
-        respaldos = 14,
-        comentarios = 0,
-        tipo = TipoReporte.INFRAESTRUCTURA
+        category = "Infraestructura",
+        title = "Poste de luz apagado hace 3 días",
+        reporter = "Carlos R.",
+        location = "Cra 15 #8-42, Barrio La Esperanza",
+        description = "La luminaria lleva varios días apagada y la cuadra queda sin iluminación durante la noche.",
+        time = "hace 3h",
+        status = "En atención / Verificado",
+        supportCount = 14,
+        commentCount = 0,
+        type = ReportType.INFRASTRUCTURE
     ),
-    ReporteResolucion(
+    ResolutionReport(
         id = "3920",
-        categoria = "Seguridad",
-        titulo = "Cámara comunitaria rota en Parque Norte",
-        reportante = "Pedro G.",
-        ubicacion = "Calle 12 con Av. Principal, Esquina Nororiente",
-        descripcion = "Domo de videovigilancia barrial vandalizado ayer en la noche. No hay cobertura sobre la entrada del parque.",
-        tiempo = "hace 5h",
-        estado = "Inspección asignada",
-        respaldos = 18,
-        comentarios = 7,
-        tipo = TipoReporte.SEGURIDAD
+        category = "Seguridad",
+        title = "Cámara comunitaria rota en Parque Norte",
+        reporter = "Pedro G.",
+        location = "Calle 12 con Av. Principal, Esquina Nororiente",
+        description = "Domo de videovigilancia barrial vandalizado ayer en la noche. No hay cobertura sobre la entrada del parque.",
+        time = "hace 5h",
+        status = "Inspección asignada",
+        supportCount = 18,
+        commentCount = 7,
+        type = ReportType.SECURITY
     ),
-    ReporteResolucion(
+    ResolutionReport(
         id = "3811",
-        categoria = "Mascotas",
-        titulo = "Gato encontrado cerca al parque",
-        reportante = "Sofía M.",
-        ubicacion = "Cra 14 #32-10",
-        descripcion = "Gato encontrado y reunido con su familia después de contactar a los vecinos del sector.",
-        tiempo = "hace 1h",
-        estado = "Resuelto hace 1h",
-        respaldos = 8,
-        comentarios = 4,
-        notaResolucion = "\"Reunido con su dueño exitosamente tras contacto vecinal en el punto de encuentro.\"",
-        resuelto = true,
-        tipo = TipoReporte.MASCOTAS
+        category = "Mascotas",
+        title = "Gato encontrado cerca al parque",
+        reporter = "Sofía M.",
+        location = "Cra 14 #32-10",
+        description = "Gato encontrado y reunido con su familia después de contactar a los vecinos del sector.",
+        time = "hace 1h",
+        status = "Resuelto hace 1h",
+        supportCount = 8,
+        commentCount = 4,
+        resolutionNote = "\"Reunido con su dueño exitosamente tras contacto vecinal en el punto de encuentro.\"",
+        resolved = true,
+        type = ReportType.PETS
     )
 )

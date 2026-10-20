@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,39 +29,36 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
-
-private val FondoDetalle = Color(0xFFFAF9F6)
-private val AzulMarino = Color(0xFF1E3A5F)
-private val GrisSecundario = Color(0xFF85898E)
+import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 
 @Composable
 fun ModeratorReportDetailScreen(
     reportId: String,
     onBack: () -> Unit
 ) {
-    val reporte = reportesDemostrativos().firstOrNull { it.id == reportId }
-    val resolucion = resolucionesDemostrativas().firstOrNull { it.id == reportId }
-    val titulo = reporte?.titulo ?: resolucion?.titulo
-    val categoria = reporte?.categoria ?: resolucion?.categoria
-    val descripcion = reporte?.descripcion ?: resolucion?.descripcion
-    val reportante = reporte?.reportante ?: resolucion?.reportante
-    val antiguedad = reporte?.antiguedad ?: resolucion?.tiempo
-    val ubicacion = reporte?.ubicacion ?: resolucion?.ubicacion
-    val tipo = reporte?.tipo ?: resolucion?.tipo
+    val report = demoReports().firstOrNull { it.id == reportId }
+    val resolution = demoResolutions().firstOrNull { it.id == reportId }
+    val title = report?.title ?: resolution?.title
+    val category = report?.category ?: resolution?.category
+    val description = report?.description ?: resolution?.description
+    val reporter = report?.reporter ?: resolution?.reporter
+    val age = report?.age ?: resolution?.time
+    val location = report?.location ?: resolution?.location
+    val type = report?.type ?: resolution?.type
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(FondoDetalle)
+            .background(DesignSystem.Colors.Background)
     ) {
         ScreenHeader(
             title = "Detalle del reporte",
             onBack = onBack
         )
 
-        if (titulo == null || categoria == null || descripcion == null ||
-            reportante == null || antiguedad == null || ubicacion == null || tipo == null
+        if (title == null || category == null || description == null ||
+            reporter == null || age == null || location == null || type == null
         ) {
             Box(
                 modifier = Modifier
@@ -70,7 +66,7 @@ fun ModeratorReportDetailScreen(
                     .padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No se encontró este reporte.", color = GrisSecundario)
+                Text("No se encontró este reporte.", color = DesignSystem.Colors.ModeratorMuted)
             }
         } else {
             Column(
@@ -80,7 +76,7 @@ fun ModeratorReportDetailScreen(
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 24.dp)
             ) {
-                FotoReporteDetalle()
+                ReportDetailPhoto()
 
                 Row(
                     modifier = Modifier.padding(top = 16.dp),
@@ -88,38 +84,46 @@ fun ModeratorReportDetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Surface(
-                        color = tipo.fondo,
+                        color = type.background,
                         shape = RoundedCornerShape(50)
                     ) {
                         Text(
-                            categoria,
+                            category,
                             modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
-                            color = tipo.color,
+                            color = type.color,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
-                    val estado = reporte?.estado?.etiqueta ?: resolucion?.estado ?: "En seguimiento"
-                    val estadoColor = when (reporte?.estado) {
-                        EstadoModeracion.PENDIENTE -> Color(0xFF9A6500)
-                        EstadoModeracion.VERIFICADA -> Color(0xFF0A9B53)
-                        EstadoModeracion.RECHAZADA -> Color(0xFFC4191D)
-                        null -> if (resolucion?.resuelto == true) Color(0xFF0A9B53) else Color(0xFF9A6500)
+                    val status = report?.status?.label ?: resolution?.status ?: "En seguimiento"
+                    val statusColor = when (report?.status) {
+                        ModerationStatus.PENDING -> DesignSystem.Colors.ModeratorPendingText
+                        ModerationStatus.VERIFIED -> DesignSystem.Colors.ModeratorVerifiedText
+                        ModerationStatus.REJECTED -> DesignSystem.Colors.ModeratorRed
+                        null -> if (resolution?.resolved == true) {
+                            DesignSystem.Colors.ModeratorVerifiedText
+                        } else {
+                            DesignSystem.Colors.ModeratorPendingText
+                        }
                     }
-                    val estadoFondo = when (reporte?.estado) {
-                        EstadoModeracion.PENDIENTE -> Color(0xFFFFF1D8)
-                        EstadoModeracion.VERIFICADA -> Color(0xFFDDF8E9)
-                        EstadoModeracion.RECHAZADA -> Color(0xFFFFE0DD)
-                        null -> if (resolucion?.resuelto == true) Color(0xFFDDF8E9) else Color(0xFFFFF1D8)
+                    val statusBackground = when (report?.status) {
+                        ModerationStatus.PENDING -> DesignSystem.Colors.ModeratorPendingBackground
+                        ModerationStatus.VERIFIED -> DesignSystem.Colors.ModeratorVerifiedBackground
+                        ModerationStatus.REJECTED -> DesignSystem.Colors.ModeratorSecurityBackground
+                        null -> if (resolution?.resolved == true) {
+                            DesignSystem.Colors.ModeratorVerifiedBackground
+                        } else {
+                            DesignSystem.Colors.ModeratorPendingBackground
+                        }
                     }
                     Surface(
-                        color = estadoFondo,
+                        color = statusBackground,
                         shape = RoundedCornerShape(50)
                     ) {
                         Text(
-                            estado,
+                            status,
                             modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
-                            color = estadoColor,
+                            color = statusColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -127,9 +131,9 @@ fun ModeratorReportDetailScreen(
                 }
 
                 Text(
-                    titulo,
+                    title,
                     modifier = Modifier.padding(top = 12.dp),
-                    color = Color(0xFF202326),
+                    color = DesignSystem.Colors.ReportTitleText,
                     fontSize = 20.sp,
                     lineHeight = 25.sp,
                     fontWeight = FontWeight.Bold
@@ -139,7 +143,7 @@ fun ModeratorReportDetailScreen(
                     modifier = Modifier.padding(top = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val initials = reportante
+                    val initials = reporter
                         .split(" ")
                         .mapNotNull { it.firstOrNull()?.toString() }
                         .take(2)
@@ -151,29 +155,29 @@ fun ModeratorReportDetailScreen(
                             .background(Color(0xFFDCE8F3)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(initials, color = AzulMarino, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(initials, color = DesignSystem.Colors.ModeratorNavy, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                     Text(
                         "Publicado por ",
                         modifier = Modifier.padding(start = 8.dp),
-                        color = GrisSecundario,
+                        color = DesignSystem.Colors.ModeratorMuted,
                         fontSize = 12.sp
                     )
                     Text(
-                        reportante,
+                        reporter,
                         color = Color(0xFF3D4246),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        " · $antiguedad",
-                        color = GrisSecundario,
+                        " · $age",
+                        color = DesignSystem.Colors.ModeratorMuted,
                         fontSize = 12.sp
                     )
                 }
 
                 Text(
-                    descripcion,
+                    description,
                     modifier = Modifier.padding(top = 16.dp),
                     color = Color(0xFF565A5D),
                     fontSize = 13.sp,
@@ -207,7 +211,7 @@ fun ModeratorReportDetailScreen(
                         }
                         Column(modifier = Modifier.padding(start = 12.dp)) {
                             Text(
-                                ubicacion,
+                                location,
                                 color = Color(0xFF34383B),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -215,7 +219,7 @@ fun ModeratorReportDetailScreen(
                             Text(
                                 "Ver ubicación exacta en el mapa",
                                 modifier = Modifier.padding(top = 3.dp),
-                                color = GrisSecundario,
+                                color = DesignSystem.Colors.ModeratorMuted,
                                 fontSize = 11.sp
                             )
                         }
@@ -227,7 +231,7 @@ fun ModeratorReportDetailScreen(
 }
 
 @Composable
-private fun FotoReporteDetalle() {
+private fun ReportDetailPhoto() {
     Box(
         modifier = Modifier
             .fillMaxWidth()

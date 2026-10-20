@@ -29,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -45,8 +44,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniquindio.proyectoalertalocal.R
-import uniquindio.proyectoalertalocal.ui.theme.DesignSystem
-import uniquindio.proyectoalertalocal.ui.theme.ProyectoAlertaLocalTheme
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.theme.ProyectoAlertaLocalTheme
 
 @Composable
 fun RegisterContent(
@@ -289,7 +288,7 @@ private fun RegisterButton(
         shape = RoundedCornerShape(DesignSystem.Dimensions.ButtonCornerRadius),
         colors = ButtonDefaults.buttonColors(
             containerColor = DesignSystem.Colors.Primary,
-            contentColor = Color.White
+            contentColor = DesignSystem.Colors.White
         )
     ) {
         Text(text = "Registrarme", fontSize = 14.sp)

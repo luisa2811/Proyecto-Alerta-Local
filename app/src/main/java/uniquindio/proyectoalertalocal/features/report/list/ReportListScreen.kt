@@ -1,11 +1,13 @@
 package uniquindio.proyectoalertalocal.features.report.list
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,7 +35,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,52 +42,50 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.features.report.CategoriaPublicacion
 import uniquindio.proyectoalertalocal.features.report.PublicacionUiModel
-import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 
-private val AzulOscuro = Color(0xFF1E3043)
-private val FondoPantalla = Color(0xFFFAF9F6)
-private val GrisSecundario = Color(0xFF96999C)
-
 @Composable
-fun FeedScreen(
+fun ReportListScreen(
     onOpenPublication: (String) -> Unit,
     onOpenNotifications: () -> Unit,
     onShowMessage: (String) -> Unit,
     modifier: Modifier = Modifier,
-    modeloVista: FeedViewModel = viewModel()
+    viewModel: ReportListViewModel = viewModel()
 ) {
-    val estado = modeloVista.uiState.collectAsState().value
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(FondoPantalla)
+            .background(DesignSystem.Colors.Background)
     ) {
-        EncabezadoFeed(
+        ReportListHeader(
             onOpenNotifications = onOpenNotifications,
             onShowMessage = onShowMessage
         )
-        FiltrosFeed(
-            categoriaSeleccionada = estado.categoriaSeleccionada,
-            onSelectCategory = modeloVista::seleccionarCategoria
+        ReportFilters(
+            selectedCategory = uiState.selectedCategory,
+            onSelectCategory = viewModel::selectCategory
         )
-        ControlesFeed(
-            proximidad = estado.proximidad,
-            onSelectProximity = modeloVista::seleccionarProximidad
+        ReportControls(
+            proximity = uiState.proximity,
+            onSelectProximity = viewModel::selectProximity
         )
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            contentPadding = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
                 top = 8.dp,
@@ -94,10 +93,10 @@ fun FeedScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(estado.publicacionesFiltradas, key = { it.id }) { publicacion ->
-                TarjetaPublicacion(
-                    publicacion = publicacion,
-                    onClick = { onOpenPublication(publicacion.id) }
+            items(uiState.filteredPublications, key = { it.id }) { publication ->
+                PublicationCard(
+                    publication = publication,
+                    onClick = { onOpenPublication(publication.id) }
                 )
             }
         }
@@ -105,7 +104,7 @@ fun FeedScreen(
 }
 
 @Composable
-private fun EncabezadoFeed(
+private fun ReportListHeader(
     onOpenNotifications: () -> Unit,
     onShowMessage: (String) -> Unit
 ) {
@@ -128,7 +127,7 @@ private fun EncabezadoFeed(
                 Text(
                     text = "Alerta Local",
                     modifier = Modifier.padding(start = 9.dp),
-                    color = Color(0xFF17191C),
+                    color = DesignSystem.Colors.HeaderText,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -142,13 +141,13 @@ private fun EncabezadoFeed(
                 Icon(
                     imageVector = Icons.Filled.Place,
                     contentDescription = "Ubicación simulada",
-                    tint = GrisSecundario,
+                    tint = DesignSystem.Colors.ReportMutedText,
                     modifier = Modifier.size(14.dp)
                 )
                 Text(
                     text = "Barrio La Esperanza",
                     modifier = Modifier.padding(start = 4.dp),
-                    color = GrisSecundario,
+                    color = DesignSystem.Colors.ReportMutedText,
                     fontSize = 12.sp
                 )
             }
@@ -159,13 +158,13 @@ private fun EncabezadoFeed(
                     .size(42.dp)
                     .clickable(onClick = onOpenNotifications),
                 shape = CircleShape,
-                color = Color(0xFFF0EFEC)
+                color = DesignSystem.Colors.FilterSurface
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Filled.NotificationsNone,
                         contentDescription = "Abrir notificaciones",
-                        tint = AzulOscuro,
+                        tint = DesignSystem.Colors.PrimaryDark,
                         modifier = Modifier.size(22.dp)
                     )
                 }
@@ -182,11 +181,11 @@ private fun EncabezadoFeed(
 }
 
 @Composable
-private fun FiltrosFeed(
-    categoriaSeleccionada: CategoriaPublicacion?,
+private fun ReportFilters(
+    selectedCategory: CategoriaPublicacion?,
     onSelectCategory: (CategoriaPublicacion?) -> Unit
 ) {
-    val categorias = listOf(null) + CategoriaPublicacion.entries
+    val categories = listOf(null) + CategoriaPublicacion.entries
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -194,21 +193,21 @@ private fun FiltrosFeed(
             .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        categorias.forEach { categoria ->
-            val seleccionado = categoria == categoriaSeleccionada
+        categories.forEach { category ->
+            val isSelected = category == selectedCategory
             Surface(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .clickable { onSelectCategory(categoria) },
+                    .clickable { onSelectCategory(category) },
                 shape = CircleShape,
-                color = if (seleccionado) AzulOscuro else Color(0xFFF0F0EF)
+                color = if (isSelected) DesignSystem.Colors.PrimaryDark else DesignSystem.Colors.FilterSurface
             ) {
                 Text(
-                    text = categoria?.etiqueta ?: "Todos",
+                    text = category?.etiqueta ?: "Todos",
                     modifier = Modifier.padding(horizontal = 15.dp, vertical = 7.dp),
-                    color = if (seleccionado) Color.White else Color(0xFF505357),
+                    color = if (isSelected) DesignSystem.Colors.White else Color(0xFF505357),
                     fontSize = 12.sp,
-                    fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Normal
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                 )
             }
         }
@@ -216,11 +215,11 @@ private fun FiltrosFeed(
 }
 
 @Composable
-private fun ControlesFeed(
-    proximidad: String,
+private fun ReportControls(
+    proximity: String,
     onSelectProximity: (String) -> Unit
 ) {
-    var menuAbierto by remember { mutableStateOf(false) }
+    var isMenuOpen by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -230,8 +229,8 @@ private fun ControlesFeed(
     ) {
         Box {
             OutlinedButton(
-                onClick = { menuAbierto = true },
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                onClick = { isMenuOpen = true },
+                contentPadding = PaddingValues(
                     horizontal = 12.dp,
                     vertical = 5.dp
                 ),
@@ -241,25 +240,25 @@ private fun ControlesFeed(
                     imageVector = Icons.Filled.FilterList,
                     contentDescription = "Filtrar proximidad",
                     modifier = Modifier.size(15.dp),
-                    tint = GrisSecundario
+                    tint = DesignSystem.Colors.ReportMutedText
                 )
                 Text(
-                    text = proximidad,
+                    text = proximity,
                     modifier = Modifier.padding(start = 6.dp),
                     color = Color(0xFF53575A),
                     fontSize = 12.sp
                 )
             }
             DropdownMenu(
-                expanded = menuAbierto,
-                onDismissRequest = { menuAbierto = false }
+                expanded = isMenuOpen,
+                onDismissRequest = { isMenuOpen = false }
             ) {
-                listOf("Cerca de mí", "En mi zona", "Toda la ciudad").forEach { opcion ->
+                listOf("Cerca de mí", "En mi zona", "Toda la ciudad").forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(opcion) },
+                        text = { Text(option) },
                         onClick = {
-                            onSelectProximity(opcion)
-                            menuAbierto = false
+                            onSelectProximity(option)
+                            isMenuOpen = false
                         }
                     )
                 }
@@ -271,7 +270,7 @@ private fun ControlesFeed(
                 .clip(RoundedCornerShape(10.dp))
                 .background(Color.White)
                 .padding(horizontal = 15.dp, vertical = 7.dp),
-            color = AzulOscuro,
+            color = DesignSystem.Colors.PrimaryDark,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -279,8 +278,8 @@ private fun ControlesFeed(
 }
 
 @Composable
-private fun TarjetaPublicacion(
-    publicacion: PublicacionUiModel,
+private fun PublicationCard(
+    publication: PublicacionUiModel,
     onClick: () -> Unit
 ) {
     Surface(
@@ -288,7 +287,7 @@ private fun TarjetaPublicacion(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = DesignSystem.Colors.White,
         shadowElevation = 2.dp
     ) {
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
@@ -296,35 +295,35 @@ private fun TarjetaPublicacion(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                EtiquetaFeed(
-                    texto = publicacion.categoria.etiqueta,
-                    fondo = publicacion.categoria.color.copy(alpha = 0.12f),
-                    textoColor = publicacion.categoria.color
+                PublicationTag(
+                    text = publication.categoria.etiqueta,
+                    background = publication.categoria.color.copy(alpha = 0.12f),
+                    textColor = publication.categoria.color
                 )
-                EtiquetaFeed(
-                    texto = publicacion.estado,
-                    fondo = colorEstado(publicacion.estado).copy(alpha = 0.13f),
-                    textoColor = colorEstado(publicacion.estado),
+                PublicationTag(
+                    text = publication.estado,
+                    background = reportStatusColor(publication.estado).copy(alpha = 0.13f),
+                    textColor = reportStatusColor(publication.estado),
                     modifier = Modifier.padding(start = 6.dp)
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
-                    text = "${publicacion.distancia} · ${publicacion.antiguedad}",
-                    color = GrisSecundario,
+                    text = "${publication.distancia} · ${publication.antiguedad}",
+                    color = DesignSystem.Colors.ReportMutedText,
                     fontSize = 10.sp
                 )
             }
             Text(
-                text = publicacion.titulo,
+                text = publication.titulo,
                 modifier = Modifier.padding(top = 8.dp),
-                color = Color(0xFF202326),
+                color = DesignSystem.Colors.ReportTitleText,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = publicacion.descripcion,
+                text = publication.descripcion,
                 modifier = Modifier.padding(top = 4.dp),
-                color = Color(0xFF777D82),
+                color = DesignSystem.Colors.ReportDescriptionText,
                 fontSize = 12.sp,
                 lineHeight = 17.sp,
                 maxLines = 2,
@@ -337,15 +336,15 @@ private fun TarjetaPublicacion(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ContadorPublicacion(
-                    icono = Icons.Filled.ThumbUp,
-                    cantidad = publicacion.votosImportante,
-                    descripcion = "Me gusta"
+                PublicationCounter(
+                    icon = Icons.Filled.ThumbUp,
+                    count = publication.votosImportante,
+                    description = "Me gusta"
                 )
-                ContadorPublicacion(
-                    icono = Icons.Filled.ChatBubbleOutline,
-                    cantidad = publicacion.cantidadComentarios,
-                    descripcion = "Comentarios"
+                PublicationCounter(
+                    icon = Icons.Filled.ChatBubbleOutline,
+                    count = publication.cantidadComentarios,
+                    description = "Comentarios"
                 )
             }
             Row(
@@ -357,12 +356,12 @@ private fun TarjetaPublicacion(
                 Surface(
                     modifier = Modifier.size(27.dp),
                     shape = CircleShape,
-                    color = AzulOscuro
+                    color = DesignSystem.Colors.PrimaryDark
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = publicacion.inicialesReportante,
-                            color = Color.White,
+                            text = publication.inicialesReportante,
+                            color = DesignSystem.Colors.White,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -374,21 +373,21 @@ private fun TarjetaPublicacion(
                         .padding(start = 8.dp)
                 ) {
                     Text(
-                        text = publicacion.nombreReportante,
-                        color = Color(0xFF3F4346),
+                        text = publication.nombreReportante,
+                        color = DesignSystem.Colors.ReportAuthorText,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = "Residente",
-                        color = GrisSecundario,
+                        color = DesignSystem.Colors.ReportMutedText,
                         fontSize = 10.sp
                     )
                 }
                 Text(
-                    text = publicacion.ubicacion,
+                    text = publication.ubicacion,
                     modifier = Modifier.weight(1f),
-                    color = GrisSecundario,
+                    color = DesignSystem.Colors.ReportMutedText,
                     fontSize = 10.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -399,56 +398,56 @@ private fun TarjetaPublicacion(
 }
 
 @Composable
-private fun ContadorPublicacion(
-    icono: androidx.compose.ui.graphics.vector.ImageVector,
-    cantidad: Int,
-    descripcion: String
+private fun PublicationCounter(
+    icon: ImageVector,
+    count: Int,
+    description: String
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            imageVector = icono,
-            contentDescription = descripcion,
-            tint = GrisSecundario,
+            imageVector = icon,
+            contentDescription = description,
+            tint = DesignSystem.Colors.ReportMutedText,
             modifier = Modifier.size(15.dp)
         )
         Text(
-            text = cantidad.toString(),
+            text = count.toString(),
             modifier = Modifier.padding(start = 4.dp),
-            color = Color(0xFF565A5D),
+            color = DesignSystem.Colors.ReportCounterText,
             fontSize = 10.sp,
             fontWeight = FontWeight.Medium
         )
         Text(
-            text = descripcion,
+            text = description,
             modifier = Modifier.padding(start = 4.dp),
-            color = GrisSecundario,
+            color = DesignSystem.Colors.ReportMutedText,
             fontSize = 10.sp
         )
     }
 }
 
 @Composable
-private fun EtiquetaFeed(
-    texto: String,
-    fondo: Color,
-    textoColor: Color,
+private fun PublicationTag(
+    text: String,
+    background: Color,
+    textColor: Color,
     modifier: Modifier = Modifier
 ) {
     Text(
-        text = texto,
+        text = text,
         modifier = modifier
             .clip(CircleShape)
-            .background(fondo)
+            .background(background)
             .padding(horizontal = 7.dp, vertical = 3.dp),
-        color = textoColor,
+        color = textColor,
         fontSize = 9.sp,
         fontWeight = FontWeight.SemiBold
     )
 }
 
-private fun colorEstado(estado: String): Color = when (estado) {
+private fun reportStatusColor(status: String): Color = when (status) {
     "Verificado" -> Color(0xFF25A56A)
     "Pendiente" -> Color(0xFFC68A1A)
     "Resuelto" -> Color(0xFF3F819C)
-    else -> GrisSecundario
+    else -> DesignSystem.Colors.ReportMutedText
 }

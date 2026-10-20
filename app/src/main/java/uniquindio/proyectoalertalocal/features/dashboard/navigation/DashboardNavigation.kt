@@ -5,178 +5,148 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.features.home.HomeScreen
-import uniquindio.proyectoalertalocal.features.home.EditResidenceScreen
 import uniquindio.proyectoalertalocal.features.moderator.ModeratorDashboardScreen
 import uniquindio.proyectoalertalocal.features.moderator.ModeratorReportDetailScreen
 import uniquindio.proyectoalertalocal.features.notifications.NotificationsScreen
-import uniquindio.proyectoalertalocal.features.profile.EditProfileScreen
-import uniquindio.proyectoalertalocal.features.profile.ProfileDashboardScreen
 import uniquindio.proyectoalertalocal.features.report.create.CreateReportScreen
 import uniquindio.proyectoalertalocal.features.report.detail.ReportDetailScreen
-import uniquindio.proyectoalertalocal.features.report.list.FeedScreen
-import uniquindio.proyectoalertalocal.features.report.list.MisReportesScreen
+import uniquindio.proyectoalertalocal.features.report.list.MyReportsScreen
+import uniquindio.proyectoalertalocal.features.report.list.ReportListScreen
+import uniquindio.proyectoalertalocal.features.user.profile.EditProfileScreen
+import uniquindio.proyectoalertalocal.features.user.profile.EditResidenceScreen
+import uniquindio.proyectoalertalocal.features.user.profile.ProfileDashboardScreen
 
 @Composable
 fun DashboardNavigation(
-    controlador: NavHostController,
-    espacioInterior: PaddingValues,
-    esModerador: Boolean,
-    alCerrarSesion: () -> Unit,
-    alMostrarMensaje: (String) -> Unit
+    navController: NavHostController,
+    innerPadding: PaddingValues,
+    role: UserRole,
+    onLogout: () -> Unit,
+    onShowMessage: (String) -> Unit
 ) {
-    val modifier = Modifier
-        .fillMaxSize()
-        .padding(espacioInterior)
-
-    if (esModerador) {
-        NavHost(
-            navController = controlador,
-            startDestination = ModeratorDashboardRoute,
-            modifier = modifier
-        ) {
-            dashboardDestinations(
-                controlador = controlador,
-                alCerrarSesion = alCerrarSesion,
-                alMostrarMensaje = alMostrarMensaje
-            )
-        }
-    } else {
-        NavHost(
-            navController = controlador,
-            startDestination = DashboardHomeRoute,
-            modifier = modifier
-        ) {
-            dashboardDestinations(
-                controlador = controlador,
-                alCerrarSesion = alCerrarSesion,
-                alMostrarMensaje = alMostrarMensaje
-            )
-        }
-    }
-}
-
-private fun NavGraphBuilder.dashboardDestinations(
-    controlador: NavHostController,
-    alCerrarSesion: () -> Unit,
-    alMostrarMensaje: (String) -> Unit
-) {
-    composable<ModeratorDashboardRoute> {
-        ModeratorDashboardScreen(
-            onBack = alCerrarSesion,
-            onShowMessage = alMostrarMensaje,
-            onOpenDetail = { reportId ->
-                controlador.navigate(ModeratorReportDetailRoute(reportId))
-            },
-            onOpenProfile = {
-                controlador.navigate(ProfileRoute)
-            }
-        )
-    }
-
-    composable<ModeratorReportDetailRoute> { entrada ->
-        val reportId = entrada.toRoute<ModeratorReportDetailRoute>().reportId
-
-        ModeratorReportDetailScreen(
-            reportId = reportId,
-            onBack = { controlador.popBackStack() }
-        )
-    }
-
-    composable<DashboardHomeRoute> {
-        HomeScreen(
-            onCreateReport = {
-                controlador.navigate(CreateReportRoute)
-            },
-            onEditAddress = {
-                controlador.navigate(EditResidenceRoute)
-            },
-            onOpenNotifications = {
-                controlador.navigate(NotificationsRoute)
-            },
-            onShowMessage = alMostrarMensaje
-        )
-    }
-
-    composable<EditResidenceRoute> {
-        EditResidenceScreen(
-            onBack = { controlador.popBackStack() },
-            onConfirm = { complemento ->
-                alMostrarMensaje("Dirección confirmada: $complemento")
-                controlador.popBackStack()
-            }
-        )
-    }
-
-    composable<AlertsRoute> {
-        FeedScreen(
-            onOpenPublication = { id ->
-                controlador.navigate(PublicationDetailRoute(id))
-            },
-            onOpenNotifications = {
-                controlador.navigate(NotificationsRoute)
-            },
-            onShowMessage = alMostrarMensaje
-        )
-    }
-
-    composable<CreateReportRoute> {
-        CreateReportScreen(
-            onBack = { controlador.popBackStack() },
-            onSubmit = {
-                alMostrarMensaje(
-                    "Formulario de demostración: el reporte no se publicó."
-                )
-                controlador.navigate(AlertsRoute) {
-                    popUpTo<DashboardHomeRoute>()
-                    launchSingleTop = true
+    NavHost(
+        navController = navController,
+        startDestination = when (role) {
+            UserRole.RESIDENT -> DashboardRoutes.Home
+            UserRole.MODERATOR -> DashboardRoutes.ModeratorHome
+        },
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+    ) {
+        composable<DashboardRoutes.ModeratorHome> {
+            ModeratorDashboardScreen(
+                onBack = onLogout,
+                onShowMessage = onShowMessage,
+                onOpenDetail = { reportId ->
+                    navController.navigate(DashboardRoutes.ModeratorReportDetail(reportId))
+                },
+                onOpenProfile = {
+                    navController.navigate(DashboardRoutes.Profile)
                 }
-            },
-            onShowMessage = alMostrarMensaje
-        )
-    }
+            )
+        }
 
-    composable<MyReportsRoute> {
-        MisReportesScreen(
-            onBack = { controlador.popBackStack() }
-        )
-    }
+        composable<DashboardRoutes.ModeratorReportDetail> { backStackEntry ->
+            val reportId =
+                backStackEntry.toRoute<DashboardRoutes.ModeratorReportDetail>().reportId
 
-    composable<ProfileRoute> {
-        ProfileDashboardScreen(
-            onBack = { controlador.popBackStack() },
-            onEditProfile = {
-                controlador.navigate(EditProfileRoute)
-            }
-        )
-    }
+            ModeratorReportDetailScreen(
+                reportId = reportId,
+                onBack = { navController.popBackStack() }
+            )
+        }
 
-    composable<EditProfileRoute> {
-        EditProfileScreen(
-            onBack = { controlador.popBackStack() },
-            onShowMessage = alMostrarMensaje
-        )
-    }
+        composable<DashboardRoutes.Home> {
+            HomeScreen(
+                onCreateReport = {
+                    navController.navigate(DashboardRoutes.CreateReport)
+                },
+                onEditAddress = {
+                    navController.navigate(DashboardRoutes.EditResidence)
+                },
+                onOpenNotifications = {
+                    navController.navigate(DashboardRoutes.Notifications)
+                },
+                onShowMessage = onShowMessage
+            )
+        }
 
-    composable<NotificationsRoute> {
-        NotificationsScreen(
-            onBack = { controlador.popBackStack() }
-        )
-    }
+        composable<DashboardRoutes.EditResidence> {
+            EditResidenceScreen(
+                onBack = { navController.popBackStack() },
+                onConfirm = { complement ->
+                    onShowMessage("Dirección confirmada: $complement")
+                    navController.popBackStack()
+                }
+            )
+        }
 
-    composable<PublicationDetailRoute> { entrada ->
-        val publicationId =
-            entrada.toRoute<PublicationDetailRoute>().publicationId
+        composable<DashboardRoutes.Alerts> {
+            ReportListScreen(
+                onOpenPublication = { publicationId ->
+                    navController.navigate(DashboardRoutes.PublicationDetail(publicationId))
+                },
+                onOpenNotifications = {
+                    navController.navigate(DashboardRoutes.Notifications)
+                },
+                onShowMessage = onShowMessage
+            )
+        }
 
-        ReportDetailScreen(
-            publicationId = publicationId,
-            onBack = { controlador.popBackStack() },
-            onShowMessage = alMostrarMensaje
-        )
+        composable<DashboardRoutes.CreateReport> {
+            CreateReportScreen(
+                onBack = { navController.popBackStack() },
+                onSubmit = {
+                    onShowMessage("Formulario de demostración: el reporte no se publicó.")
+                    navController.navigate(DashboardRoutes.Alerts) {
+                        popUpTo<DashboardRoutes.Home>()
+                        launchSingleTop = true
+                    }
+                },
+                onShowMessage = onShowMessage
+            )
+        }
+
+        composable<DashboardRoutes.MyReports> {
+            MyReportsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<DashboardRoutes.Profile> {
+            ProfileDashboardScreen(
+                onBack = { navController.popBackStack() },
+                onEditProfile = {
+                    navController.navigate(DashboardRoutes.EditProfile)
+                }
+            )
+        }
+
+        composable<DashboardRoutes.EditProfile> {
+            EditProfileScreen(
+                onBack = { navController.popBackStack() },
+                onShowMessage = onShowMessage
+            )
+        }
+
+        composable<DashboardRoutes.Notifications> {
+            NotificationsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<DashboardRoutes.PublicationDetail> { backStackEntry ->
+            val publicationId =
+                backStackEntry.toRoute<DashboardRoutes.PublicationDetail>().publicationId
+
+            ReportDetailScreen(
+                publicationId = publicationId,
+                onBack = { navController.popBackStack() },
+                onShowMessage = onShowMessage
+            )
+        }
     }
 }

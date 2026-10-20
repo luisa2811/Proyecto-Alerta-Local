@@ -6,23 +6,23 @@ enum class VistaAlertas {
 }
 
 data class HomeUiState(
-    val categoriaSeleccionada: CategoriaAlerta? = null,
-    val proximidadSeleccionada: String = "Cerca de mí",
-    val vistaSeleccionada: VistaAlertas = VistaAlertas.MAPA,
-    val alertas: List<AlertUiModel> = alertasDemostrativas(),
-    val alertaSeleccionadaId: String? = "seguridad-1"
+    val selectedCategory: CategoriaAlerta? = null,
+    val selectedProximity: String = "Cerca de mí",
+    val selectedView: VistaAlertas = VistaAlertas.MAPA,
+    val alerts: List<AlertUiModel> = demoAlerts(),
+    val selectedAlertId: String? = "seguridad-1"
 ) {
-    val alertasFiltradas: List<AlertUiModel>
-        get() = categoriaSeleccionada?.let { categoria ->
-            alertas.filter { it.categoria == categoria }
-        } ?: alertas
+    val filteredAlerts: List<AlertUiModel>
+        get() = selectedCategory?.let { category ->
+            alerts.filter { it.categoria == category }
+        } ?: alerts
 
-    val alertaSeleccionada: AlertUiModel?
-        get() = alertasFiltradas.firstOrNull { it.id == alertaSeleccionadaId }
-            ?: alertasFiltradas.firstOrNull()
+    val selectedAlert: AlertUiModel?
+        get() = filteredAlerts.firstOrNull { it.id == selectedAlertId }
+            ?: filteredAlerts.firstOrNull()
 }
 
-fun alertasDemostrativas(): List<AlertUiModel> = listOf(
+fun demoAlerts(): List<AlertUiModel> = listOf(
     AlertUiModel(
         id = "seguridad-1",
         titulo = "Intento de robo en la Cra 15 con Calle 8",

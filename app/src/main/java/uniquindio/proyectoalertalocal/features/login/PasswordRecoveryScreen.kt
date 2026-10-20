@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -61,17 +62,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
 import uniquindio.proyectoalertalocal.R
-
-private val RecoveryBackground = Color(0xFFFAF9F6)
-private val RecoveryNavy = Color(0xFF05284B)
-private val RecoveryText = Color(0xFF263442)
-private val RecoveryMuted = Color(0xFF747A80)
-private val RecoveryAccent = Color(0xFFB53D0A)
-private val RecoverySurface = Color.White
-private val RecoveryField = Color(0xFFF4F2EF)
-private val RecoveryGreen = Color(0xFF16835B)
+import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 
 @Composable
 fun PasswordRecoveryScreen(
@@ -91,7 +84,7 @@ fun PasswordRecoveryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(RecoveryBackground)
+            .background(DesignSystem.Colors.Background)
             .statusBarsPadding()
     ) {
         RecoveryHeader(
@@ -149,10 +142,10 @@ private fun RecoveryHeader(title: String, onBack: () -> Unit) {
     ScreenHeader(
         title = title,
         onBack = onBack,
-        modifier = Modifier.background(RecoveryBackground),
-        titleColor = RecoveryNavy,
-        backButtonColor = Color.White,
-        backIconColor = RecoveryNavy
+        modifier = Modifier.background(DesignSystem.Colors.Background),
+        titleColor = DesignSystem.Colors.RecoveryNavy,
+        backButtonColor = DesignSystem.Colors.White,
+        backIconColor = DesignSystem.Colors.RecoveryNavy
     )
 }
 
@@ -169,7 +162,7 @@ private fun EmailStep(
     Spacer(Modifier.height(18.dp))
     Text(
         text = "¿Olvidaste tu contraseña?",
-        color = RecoveryNavy,
+        color = DesignSystem.Colors.RecoveryNavy,
         fontSize = 23.sp,
         lineHeight = 28.sp,
         fontWeight = FontWeight.Bold,
@@ -178,7 +171,7 @@ private fun EmailStep(
     Spacer(Modifier.height(5.dp))
     Text(
         text = "Ingresa el correo electrónico asociado a tu cuenta de Alerta Local y te enviaremos un código de seguridad de 6 dígitos para restablecerla.",
-        color = RecoveryMuted,
+        color = DesignSystem.Colors.TextSecondary,
         fontSize = 13.sp,
         lineHeight = 19.sp,
         textAlign = TextAlign.Center
@@ -191,8 +184,8 @@ private fun EmailStep(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Correo electrónico", color = RecoveryNavy, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            Text("Requerido", color = RecoveryText, fontSize = 11.sp)
+            Text("Correo electrónico", color = DesignSystem.Colors.RecoveryNavy, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text("Requerido", color = DesignSystem.Colors.TextPrimary, fontSize = 11.sp)
         }
         Spacer(Modifier.height(6.dp))
         RecoveryTextField(
@@ -205,7 +198,7 @@ private fun EmailStep(
                 Icon(
                     imageVector = Icons.Outlined.Close,
                     contentDescription = "Limpiar correo",
-                    tint = RecoveryMuted,
+                    tint = DesignSystem.Colors.TextSecondary,
                     modifier = Modifier
                         .size(20.dp)
                         .clickable { onEmailChange("") }
@@ -228,13 +221,13 @@ private fun EmailStep(
     Spacer(Modifier.height(18.dp))
     ProtectionNotice()
     Spacer(Modifier.height(24.dp))
-    Text("¿Recordaste tu contraseña?", color = RecoveryMuted, fontSize = 13.sp)
+    Text("¿Recordaste tu contraseña?", color = DesignSystem.Colors.TextSecondary, fontSize = 13.sp)
     Text(
         text = "Iniciar sesión  ↗",
         modifier = Modifier
             .padding(top = 4.dp)
             .clickable(onClick = onBackToLogin),
-        color = RecoveryAccent,
+        color = DesignSystem.Colors.RecoveryAccent,
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold
     )
@@ -266,15 +259,15 @@ private fun CodeStep(
                 .fillMaxWidth(0.67f)
                 .height(5.dp)
                 .clip(CircleShape)
-                .background(RecoveryNavy)
+                .background(DesignSystem.Colors.RecoveryNavy)
         )
     }
     Spacer(Modifier.height(18.dp))
-    Text("Revisa tu correo", color = RecoveryNavy, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    Text("Revisa tu correo", color = DesignSystem.Colors.RecoveryNavy, fontSize = 24.sp, fontWeight = FontWeight.Bold)
     Spacer(Modifier.height(4.dp))
     Text(
         text = "Hemos enviado un código de 6 dígitos para proteger tu cuenta de vecindario a:",
-        color = RecoveryMuted,
+        color = DesignSystem.Colors.TextSecondary,
         fontSize = 15.sp,
         lineHeight = 21.sp,
         textAlign = TextAlign.Center
@@ -283,15 +276,15 @@ private fun CodeStep(
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(RecoveryField)
+            .background(DesignSystem.Colors.RecoveryField)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Outlined.Email, contentDescription = null, tint = RecoveryNavy, modifier = Modifier.size(16.dp))
+        Icon(Icons.Outlined.Email, contentDescription = null, tint = DesignSystem.Colors.RecoveryNavy, modifier = Modifier.size(16.dp))
         Text(
             text = email,
             modifier = Modifier.padding(start = 7.dp),
-            color = RecoveryNavy,
+            color = DesignSystem.Colors.RecoveryNavy,
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -300,11 +293,11 @@ private fun CodeStep(
             modifier = Modifier
                 .padding(start = 12.dp)
                 .clickable(onClick = onChangeEmail),
-            color = RecoveryAccent,
+            color = DesignSystem.Colors.RecoveryAccent,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium
         )
-        Icon(Icons.Outlined.Edit, contentDescription = null, tint = RecoveryAccent, modifier = Modifier.size(14.dp))
+        Icon(Icons.Outlined.Edit, contentDescription = null, tint = DesignSystem.Colors.RecoveryAccent, modifier = Modifier.size(14.dp))
     }
     Spacer(Modifier.height(18.dp))
 
@@ -314,16 +307,16 @@ private fun CodeStep(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Código de 6 dígitos", color = RecoveryText, fontSize = 13.sp)
-            Text("▣ Cifrado local", color = RecoveryAccent, fontSize = 11.sp)
+            Text("Código de 6 dígitos", color = DesignSystem.Colors.TextPrimary, fontSize = 13.sp)
+            Text("▣ Cifrado local", color = DesignSystem.Colors.RecoveryAccent, fontSize = 11.sp)
         }
         Spacer(Modifier.height(10.dp))
         SixDigitCodeInput(code = code, onCodeChange = onCodeChange)
         Spacer(Modifier.height(18.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Outlined.AccessTime, contentDescription = null, tint = RecoveryMuted, modifier = Modifier.size(15.dp))
-            Text("  ¿No recibiste el código?  ", color = RecoveryMuted, fontSize = 12.sp)
-            Text("00:54", color = RecoveryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Icon(Icons.Outlined.AccessTime, contentDescription = null, tint = DesignSystem.Colors.TextSecondary, modifier = Modifier.size(15.dp))
+            Text("  ¿No recibiste el código?  ", color = DesignSystem.Colors.TextSecondary, fontSize = 12.sp)
+            Text("00:54", color = DesignSystem.Colors.RecoveryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
         Text(
             text = "↻ Reenviar código",
@@ -362,11 +355,11 @@ private fun NewPasswordStep(
     Spacer(Modifier.height(14.dp))
     StepBadge(step = 3, label = "Finalizar acceso")
     Spacer(Modifier.height(12.dp))
-    Text("Crear nueva contraseña", color = RecoveryNavy, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    Text("Crear nueva contraseña", color = DesignSystem.Colors.RecoveryNavy, fontSize = 24.sp, fontWeight = FontWeight.Bold)
     Spacer(Modifier.height(6.dp))
     Text(
         text = "Tu nueva contraseña debe ser diferente a las contraseñas utilizadas anteriormente para garantizar la seguridad de tu cuenta.",
-        color = RecoveryMuted,
+        color = DesignSystem.Colors.TextSecondary,
         fontSize = 13.sp,
         lineHeight = 19.sp,
         textAlign = TextAlign.Center
@@ -390,7 +383,7 @@ private fun NewPasswordStep(
                 Icon(
                     imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
                     contentDescription = "Mostrar u ocultar contraseña",
-                    tint = RecoveryMuted,
+                    tint = DesignSystem.Colors.TextSecondary,
                     modifier = Modifier
                         .size(21.dp)
                         .clickable(onClick = onTogglePasswordVisibility)
@@ -415,7 +408,7 @@ private fun NewPasswordStep(
                 Icon(
                     imageVector = if (confirmVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
                     contentDescription = "Mostrar u ocultar confirmación",
-                    tint = RecoveryMuted,
+                    tint = DesignSystem.Colors.TextSecondary,
                     modifier = Modifier
                         .size(21.dp)
                         .clickable(onClick = onToggleConfirmVisibility)
@@ -430,12 +423,12 @@ private fun NewPasswordStep(
             Icon(
                 imageVector = if (passwordsMatch) Icons.Outlined.CheckCircle else Icons.Outlined.Info,
                 contentDescription = null,
-                tint = if (passwordsMatch) RecoveryGreen else RecoveryMuted,
+                tint = if (passwordsMatch) DesignSystem.Colors.RecoveryGreen else DesignSystem.Colors.TextSecondary,
                 modifier = Modifier.size(17.dp)
             )
             Text(
                 text = if (passwordsMatch) " Las contraseñas coinciden" else " Las contraseñas deben coincidir",
-                color = if (passwordsMatch) RecoveryGreen else RecoveryMuted,
+                color = if (passwordsMatch) DesignSystem.Colors.RecoveryGreen else DesignSystem.Colors.TextSecondary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -453,14 +446,14 @@ private fun NewPasswordStep(
     NoticeCard(
         icon = Icons.Outlined.Devices,
         message = "Cierre preventivo de sesiones. Al cambiar tu contraseña, se cerrarán las sesiones activas en otros dispositivos por tu seguridad.",
-        iconTint = RecoveryNavy
+        iconTint = DesignSystem.Colors.RecoveryNavy
     )
     Text(
         text = "← Volver a iniciar sesión",
         modifier = Modifier
             .padding(top = 22.dp)
             .clickable(onClick = onFinish),
-        color = RecoveryNavy,
+        color = DesignSystem.Colors.RecoveryNavy,
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold
     )
@@ -480,18 +473,18 @@ private fun RecoveryProgress(currentStep: Int) {
                     modifier = Modifier
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(if (step <= currentStep) RecoveryNavy else Color(0xFFEAE9E6)),
+                        .background(if (step <= currentStep) DesignSystem.Colors.RecoveryNavy else Color(0xFFEAE9E6)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = step.toString(),
-                        color = if (step <= currentStep) Color.White else RecoveryMuted,
+                        color = if (step <= currentStep) DesignSystem.Colors.White else DesignSystem.Colors.TextSecondary,
                         fontSize = 12.sp
                     )
                 }
                 Text(
                     text = listOf("Correo", "Código", "Clave")[step - 1],
-                    color = if (step == currentStep) RecoveryNavy else RecoveryMuted,
+                    color = if (step == currentStep) DesignSystem.Colors.RecoveryNavy else DesignSystem.Colors.TextSecondary,
                     fontSize = 11.sp
                 )
             }
@@ -529,10 +522,10 @@ private fun StepBadge(step: Int, label: String) {
             .padding(horizontal = 12.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(Modifier.size(7.dp).clip(CircleShape).background(RecoveryAccent))
+        Box(Modifier.size(7.dp).clip(CircleShape).background(DesignSystem.Colors.RecoveryAccent))
         Text(
             text = "  PASO $step DE 3  •  $label",
-            color = RecoveryText,
+            color = DesignSystem.Colors.TextPrimary,
             fontSize = 10.sp
         )
     }
@@ -545,7 +538,7 @@ private fun RecoveryCard(content: @Composable ColumnScope.() -> Unit) {
             .fillMaxWidth()
             .shadow(8.dp, RoundedCornerShape(20.dp))
             .clip(RoundedCornerShape(20.dp))
-            .background(RecoverySurface)
+            .background(DesignSystem.Colors.White)
             .padding(18.dp),
         content = content
     )
@@ -557,7 +550,7 @@ private fun RecoveryTextField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     keyboardType: KeyboardType,
-    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    leadingIcon: ImageVector,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailingContent: @Composable (() -> Unit)? = null
 ) {
@@ -566,24 +559,24 @@ private fun RecoveryTextField(
             .fillMaxWidth()
             .height(48.dp)
             .clip(RoundedCornerShape(13.dp))
-            .background(RecoveryField)
+            .background(DesignSystem.Colors.RecoveryField)
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(leadingIcon, contentDescription = null, tint = RecoveryMuted, modifier = Modifier.size(19.dp))
+        Icon(leadingIcon, contentDescription = null, tint = DesignSystem.Colors.TextSecondary, modifier = Modifier.size(19.dp))
         Spacer(Modifier.width(10.dp))
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.weight(1f),
             singleLine = true,
-            textStyle = TextStyle(color = RecoveryText, fontSize = 14.sp),
+            textStyle = TextStyle(color = DesignSystem.Colors.TextPrimary, fontSize = 14.sp),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             visualTransformation = visualTransformation,
             decorationBox = { field ->
                 Box {
                     if (value.isEmpty()) {
-                        Text(placeholder, color = RecoveryMuted, fontSize = 13.sp)
+                        Text(placeholder, color = DesignSystem.Colors.TextSecondary, fontSize = 13.sp)
                     }
                     field()
                 }
@@ -618,12 +611,12 @@ private fun SixDigitCodeInput(code: String, onCodeChange: (String) -> Unit) {
                                 .weight(1f)
                                 .height(50.dp)
                                 .clip(RoundedCornerShape(13.dp))
-                                .background(RecoveryField),
+                                .background(DesignSystem.Colors.RecoveryField),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = digit,
-                                color = RecoveryNavy,
+                                color = DesignSystem.Colors.RecoveryNavy,
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -634,7 +627,7 @@ private fun SixDigitCodeInput(code: String, onCodeChange: (String) -> Unit) {
                                         .padding(bottom = 7.dp)
                                         .width(27.dp)
                                         .height(2.dp)
-                                        .background(RecoveryAccent)
+                                        .background(DesignSystem.Colors.RecoveryAccent)
                                 )
                             }
                         }
@@ -648,9 +641,9 @@ private fun SixDigitCodeInput(code: String, onCodeChange: (String) -> Unit) {
 
 @Composable
 private fun NoticeCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     message: String,
-    iconTint: Color = RecoveryAccent
+    iconTint: Color = DesignSystem.Colors.RecoveryAccent
 ) {
     Row(
         modifier = Modifier
@@ -664,7 +657,7 @@ private fun NoticeCard(
         Text(
             text = message,
             modifier = Modifier.padding(start = 9.dp),
-            color = RecoveryMuted,
+            color = DesignSystem.Colors.TextSecondary,
             fontSize = 12.sp,
             lineHeight = 17.sp
         )
@@ -685,16 +678,16 @@ private fun ProtectionNotice() {
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color.White),
+                .background(DesignSystem.Colors.White),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Outlined.Shield, contentDescription = null, tint = RecoveryNavy, modifier = Modifier.size(21.dp))
+            Icon(Icons.Outlined.Shield, contentDescription = null, tint = DesignSystem.Colors.RecoveryNavy, modifier = Modifier.size(21.dp))
         }
         Column(Modifier.padding(start = 12.dp)) {
-            Text("Protección vecinal", color = RecoveryNavy, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Text("Protección vecinal", color = DesignSystem.Colors.RecoveryNavy, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             Text(
                 "Nunca solicitamos contraseñas por WhatsApp ni llamadas telefónicas.",
-                color = RecoveryMuted,
+                color = DesignSystem.Colors.TextSecondary,
                 fontSize = 12.sp,
                 lineHeight = 16.sp
             )
@@ -705,7 +698,7 @@ private fun ProtectionNotice() {
 @Composable
 private fun RecoveryButton(
     label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     onClick: () -> Unit,
     accent: Boolean = false
 ) {
@@ -716,8 +709,8 @@ private fun RecoveryButton(
             .height(50.dp),
         shape = RoundedCornerShape(28.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (accent) RecoveryAccent else RecoveryNavy,
-            contentColor = Color.White
+            containerColor = if (accent) DesignSystem.Colors.RecoveryAccent else DesignSystem.Colors.RecoveryNavy,
+            contentColor = DesignSystem.Colors.White
         )
     ) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -733,10 +726,10 @@ private fun PasswordLabel(label: String, valid: Boolean) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, color = RecoveryNavy, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        Text(label, color = DesignSystem.Colors.RecoveryNavy, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         Text(
             text = if (valid) "Válida" else "",
-            color = RecoveryGreen,
+            color = DesignSystem.Colors.RecoveryGreen,
             fontSize = 11.sp
         )
     }
@@ -753,7 +746,7 @@ private fun PasswordStrength(password: String) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("Nivel de seguridad", color = RecoveryText, fontSize = 11.sp)
+        Text("Nivel de seguridad", color = DesignSystem.Colors.TextPrimary, fontSize = 11.sp)
         Text(
             text = when (strength) {
                 3 -> "Fortaleza: Fuerte"
@@ -761,7 +754,7 @@ private fun PasswordStrength(password: String) {
                 1 -> "Fortaleza: Baja"
                 else -> "Fortaleza"
             },
-            color = if (strength == 3) RecoveryGreen else RecoveryMuted,
+            color = if (strength == 3) DesignSystem.Colors.RecoveryGreen else DesignSystem.Colors.TextSecondary,
             fontSize = 10.sp
         )
     }
@@ -795,7 +788,7 @@ private fun PasswordRequirements(password: String) {
             .fillMaxWidth()
             .padding(top = 10.dp)
             .clip(RoundedCornerShape(13.dp))
-            .background(RecoveryField)
+            .background(DesignSystem.Colors.RecoveryField)
             .padding(horizontal = 10.dp, vertical = 7.dp)
     ) {
         checks.forEach { (valid, label) ->
@@ -806,12 +799,12 @@ private fun PasswordRequirements(password: String) {
                 Icon(
                     imageVector = if (valid) Icons.Outlined.CheckCircle else Icons.Outlined.Check,
                     contentDescription = null,
-                    tint = if (valid) RecoveryGreen else RecoveryMuted,
+                    tint = if (valid) DesignSystem.Colors.RecoveryGreen else DesignSystem.Colors.TextSecondary,
                     modifier = Modifier.size(16.dp)
                 )
                 Text(
                     text = "  $label",
-                    color = if (valid) RecoveryNavy else RecoveryMuted,
+                    color = if (valid) DesignSystem.Colors.RecoveryNavy else DesignSystem.Colors.TextSecondary,
                     fontSize = 11.sp
                 )
             }

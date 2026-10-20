@@ -1,4 +1,4 @@
-package uniquindio.proyectoalertalocal.ui.theme
+package uniquindio.proyectoalertalocal.core.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

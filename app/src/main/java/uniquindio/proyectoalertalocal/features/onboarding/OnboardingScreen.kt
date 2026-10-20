@@ -20,18 +20,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.R
-
-private val AzulOscuro = Color(0xFF1E3043)
-private val Naranja = Color(0xFFE65B2F)
-private val Fondo = Color(0xFFFAF9F6)
 
 @Composable
 fun OnboardingScreen(
@@ -41,7 +37,7 @@ fun OnboardingScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Fondo)
+            .background(DesignSystem.Colors.Background)
             .padding(horizontal = 28.dp, vertical = 36.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -58,13 +54,13 @@ fun OnboardingScreen(
         Icon(
             imageVector = Icons.Filled.Groups,
             contentDescription = null,
-            tint = Naranja,
+            tint = DesignSystem.Colors.Accent,
             modifier = Modifier.size(56.dp)
         )
         Text(
             text = "Una comunidad más segura empieza aquí",
             modifier = Modifier.padding(top = 24.dp),
-            color = AzulOscuro,
+            color = DesignSystem.Colors.Primary,
             fontSize = 26.sp,
             lineHeight = 33.sp,
             fontWeight = FontWeight.Bold,
@@ -73,7 +69,7 @@ fun OnboardingScreen(
         Text(
             text = "Comparte alertas de tu barrio, conoce lo que ocurre cerca y ayuda a tus vecinos con información oportuna.",
             modifier = Modifier.padding(top = 14.dp),
-            color = Color(0xFF747B82),
+            color = DesignSystem.Colors.TextSecondary,
             fontSize = 15.sp,
             lineHeight = 23.sp,
             textAlign = TextAlign.Center
@@ -84,7 +80,7 @@ fun OnboardingScreen(
                 .padding(top = 38.dp)
                 .height(50.dp),
             shape = RoundedCornerShape(13.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AzulOscuro)
+            colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.Primary)
         ) {
             Text("Conocer la aplicación", fontWeight = FontWeight.SemiBold)
         }

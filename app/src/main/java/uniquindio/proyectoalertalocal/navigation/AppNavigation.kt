@@ -6,83 +6,67 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import kotlinx.serialization.Serializable
+import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.features.dashboard.MainScreen
+import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardRoutes
 import uniquindio.proyectoalertalocal.features.home.PreLoginHomeScreen
-import uniquindio.proyectoalertalocal.features.login.PantallaInicioSesion
+import uniquindio.proyectoalertalocal.features.login.LoginScreen
 import uniquindio.proyectoalertalocal.features.login.PasswordRecoveryScreen
 import uniquindio.proyectoalertalocal.features.onboarding.OnboardingScreen
 import uniquindio.proyectoalertalocal.features.register.RegisterScreen
-
-@Serializable
-data object OnboardingRoute
-
-@Serializable
-data object PublicHomeRoute
-
-@Serializable
-data object LoginRoute
-
-@Serializable
-data object RegisterRoute
-
-@Serializable
-data class PasswordRecoveryRoute(val email: String)
-
-@Serializable
-data class DashboardEntryRoute(val moderator: Boolean)
 
 @Composable
 fun AppNavigation(controlador: NavHostController = rememberNavController()) {
     NavHost(
         navController = controlador,
-        startDestination = OnboardingRoute
+        startDestination = AuthRoutes.Onboarding
     ) {
-        composable<OnboardingRoute> {
+        composable<AuthRoutes.Onboarding> {
             OnboardingScreen(
                 onContinue = {
-                    controlador.navigate(PublicHomeRoute) {
-                        popUpTo<OnboardingRoute> { inclusive = true }
+                    controlador.navigate(AuthRoutes.Home) {
+                        popUpTo<AuthRoutes.Onboarding> { inclusive = true }
                     }
                 }
             )
         }
-        composable<PublicHomeRoute> {
+        composable<AuthRoutes.Home> {
             PreLoginHomeScreen(
-                onLogin = { controlador.navigate(LoginRoute) },
-                onRegister = { controlador.navigate(RegisterRoute) }
+                onLogin = { controlador.navigate(AuthRoutes.Login) },
+                onRegister = { controlador.navigate(AuthRoutes.Register) }
             )
         }
-        composable<LoginRoute> {
-            PantallaInicioSesion(
+        composable<AuthRoutes.Login> {
+            LoginScreen(
                 onLoginSuccess = { rol ->
-                    controlador.navigate(DashboardEntryRoute(moderator = rol == "Moderador")) {
-                        popUpTo<PublicHomeRoute> { inclusive = true }
+                    val userRole = if (rol == "Moderador") UserRole.MODERATOR else UserRole.RESIDENT
+                    controlador.navigate(DashboardRoutes.Entry(role = userRole)) {
+                        popUpTo<AuthRoutes.Home> { inclusive = true }
                     }
                 },
                 onForgotPasswordClick = { correo ->
-                    controlador.navigate(PasswordRecoveryRoute(email = correo))
+                    controlador.navigate(AuthRoutes.PasswordRecovery(email = correo))
                 },
-                onRegisterClick = { controlador.navigate(RegisterRoute) }
+                onRegisterClick = { controlador.navigate(AuthRoutes.Register) }
             )
         }
-        composable<RegisterRoute> {
+        composable<AuthRoutes.Register> {
             RegisterScreen(onLoginClick = { controlador.popBackStack() })
         }
-        composable<PasswordRecoveryRoute> { entrada ->
-            val ruta = entrada.toRoute<PasswordRecoveryRoute>()
+        composable<AuthRoutes.PasswordRecovery> { entrada ->
+            val ruta = entrada.toRoute<AuthRoutes.PasswordRecovery>()
             PasswordRecoveryScreen(
                 initialEmail = ruta.email,
                 onBackToLogin = { controlador.popBackStack() }
             )
         }
-        composable<DashboardEntryRoute> { entrada ->
-            val esModerador = entrada.toRoute<DashboardEntryRoute>().moderator
+        composable<DashboardRoutes.Entry> { entrada ->
+            val role = entrada.toRoute<DashboardRoutes.Entry>().role
             MainScreen(
-                esModerador = esModerador,
-                alCerrarSesion = {
-                    controlador.navigate(LoginRoute) {
-                        popUpTo<DashboardEntryRoute> { inclusive = true }
+                role = role,
+                onLogout = {
+                    controlador.navigate(AuthRoutes.Login) {
+                        popUpTo<DashboardRoutes.Entry> { inclusive = true }
                     }
                 }
             )

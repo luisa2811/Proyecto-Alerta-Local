@@ -1,7 +1,8 @@
-package uniquindio.proyectoalertalocal.ui.components
+package uniquindio.proyectoalertalocal.core.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 
 @Composable
 fun ScreenHeader(
@@ -28,10 +30,10 @@ fun ScreenHeader(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
-    titleColor: Color = Color(0xFF202833),
-    subtitleColor: Color = Color(0xFF687385),
-    backButtonColor: Color = Color(0xFFF0EFEC),
-    backIconColor: Color = Color(0xFF203D58),
+    titleColor: Color = DesignSystem.Colors.ResidenceText,
+    subtitleColor: Color = DesignSystem.Colors.ResidenceSecondaryText,
+    backButtonColor: Color = DesignSystem.Colors.FilterSurface,
+    backIconColor: Color = DesignSystem.Colors.Primary,
     trailingContent: (@Composable () -> Unit)? = null
 ) {
     Row(
@@ -57,7 +59,7 @@ fun ScreenHeader(
                 )
             }
         }
-        androidx.compose.foundation.layout.Column(
+        Column(
             modifier = Modifier
                 .weight(1f)
                 .padding(start = 12.dp, end = 8.dp)

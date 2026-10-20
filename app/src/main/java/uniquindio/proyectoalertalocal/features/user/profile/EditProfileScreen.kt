@@ -1,4 +1,4 @@
-package uniquindio.proyectoalertalocal.features.profile
+package uniquindio.proyectoalertalocal.features.user.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
@@ -36,45 +36,41 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
-import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
-
-private val Fondo = Color(0xFFF9F9FD)
-private val Tinta = Color(0xFF17191F)
-private val Azul = Color(0xFF064A9B)
-private val AzulClaro = Color(0xFFD9E5FA)
-private val Tarjeta = Color(0xFFF1F1F5)
-private val Dorado = Color(0xFF684900)
+import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 
 @Composable
 fun EditProfileScreen(
     onBack: () -> Unit,
     onShowMessage: (String) -> Unit = {},
-    modeloVista: EditProfileViewModel = viewModel()
+    viewModel: EditProfileViewModel = viewModel()
 ) {
-    val estado by modeloVista.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Fondo)
+            .background(DesignSystem.Colors.Background)
     ) {
         ScreenHeader(
             title = "Editar mis datos",
             onBack = onBack,
-            titleColor = Tinta,
+            titleColor = DesignSystem.Colors.TextPrimary,
             trailingContent = {
                 Image(
                     painter = painterResource(R.drawable.logo_alerta_local),
@@ -93,7 +89,7 @@ fun EditProfileScreen(
                 .padding(horizontal = 23.dp)
                 .padding(bottom = 24.dp)
         ) {
-            ProfilePhoto(initials = estado.initials)
+            ProfilePhoto(initials = uiState.initials)
             Spacer(Modifier.height(24.dp))
 
             SectionTitle(
@@ -104,25 +100,25 @@ fun EditProfileScreen(
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 PersonalField(
                     label = "NOMBRE COMPLETO",
-                    value = estado.fullName,
+                    value = uiState.fullName,
                     icon = Icons.Filled.Badge,
-                    onValueChange = modeloVista::changeFullName
+                    onValueChange = viewModel::changeFullName
                 )
                 PersonalField(
                     label = "CORREO ELECTRÓNICO",
-                    value = estado.email,
+                    value = uiState.email,
                     icon = Icons.Filled.AlternateEmail,
-                    verified = estado.emailVerified,
+                    verified = uiState.emailVerified,
                     keyboardType = KeyboardType.Email,
-                    onValueChange = modeloVista::changeEmail
+                    onValueChange = viewModel::changeEmail
                 )
                 PersonalField(
                     label = "TELÉFONO MÓVIL",
-                    value = estado.phone,
+                    value = uiState.phone,
                     icon = Icons.Filled.Phone,
-                    verified = estado.phoneVerified,
+                    verified = uiState.phoneVerified,
                     keyboardType = KeyboardType.Phone,
-                    onValueChange = modeloVista::changePhone
+                    onValueChange = viewModel::changePhone
                 )
             }
 
@@ -133,10 +129,10 @@ fun EditProfileScreen(
             )
             Spacer(Modifier.height(14.dp))
             LocationCard(
-                address = estado.address,
-                neighborhood = estado.neighborhood,
-                onAddressChange = modeloVista::changeAddress,
-                onNeighborhoodChange = modeloVista::changeNeighborhood
+                address = uiState.address,
+                neighborhood = uiState.neighborhood,
+                onAddressChange = viewModel::changeAddress,
+                onNeighborhoodChange = viewModel::changeNeighborhood
             )
 
             Spacer(Modifier.height(24.dp))
@@ -146,13 +142,13 @@ fun EditProfileScreen(
             )
             Spacer(Modifier.height(14.dp))
             PrivacyCard(
-                showName = estado.displayNameInReports,
-                onToggle = modeloVista::toggleDisplayNameInReports
+                showName = uiState.displayNameInReports,
+                onToggle = viewModel::toggleDisplayNameInReports
             )
 
             Spacer(Modifier.height(28.dp))
             Surface(
-                color = Dorado,
+                color = DesignSystem.Colors.ProfileGold,
                 shape = RoundedCornerShape(12.dp),
                 shadowElevation = 3.dp,
                 modifier = Modifier
@@ -169,12 +165,12 @@ fun EditProfileScreen(
                     Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = DesignSystem.Colors.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
                         text = "Guardar cambios",
-                        color = Color.White,
+                        color = DesignSystem.Colors.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(start = 8.dp)
@@ -207,7 +203,7 @@ private fun ProfilePhoto(initials: String) {
                 modifier = Modifier
                     .size(96.dp)
                     .clip(CircleShape)
-                    .background(AzulClaro),
+                    .background(DesignSystem.Colors.ProfileLightBlue),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -218,7 +214,7 @@ private fun ProfilePhoto(initials: String) {
                 )
             }
             Surface(
-                color = Dorado,
+                color = DesignSystem.Colors.ProfileGold,
                 shape = CircleShape,
                 shadowElevation = 3.dp,
                 modifier = Modifier.size(34.dp)
@@ -227,7 +223,7 @@ private fun ProfilePhoto(initials: String) {
                     Icon(
                         imageVector = Icons.Filled.CameraAlt,
                         contentDescription = "Actualizar foto de perfil",
-                        tint = Color.White,
+                        tint = DesignSystem.Colors.White,
                         modifier = Modifier.size(19.dp)
                     )
                 }
@@ -245,18 +241,18 @@ private fun ProfilePhoto(initials: String) {
 @Composable
 private fun SectionTitle(
     title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector
+    icon: ImageVector
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Azul,
+            tint = DesignSystem.Colors.ProfileBlue,
             modifier = Modifier.size(17.dp)
         )
         Text(
             text = title,
-            color = Tinta,
+            color = DesignSystem.Colors.TextPrimary,
             fontSize = 15.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(start = 4.dp)
@@ -268,7 +264,7 @@ private fun SectionTitle(
 private fun PersonalField(
     label: String,
     value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     verified: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
     onValueChange: (String) -> Unit
@@ -277,7 +273,7 @@ private fun PersonalField(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Tarjeta)
+            .background(DesignSystem.Colors.ProfileCard)
             .padding(horizontal = 16.dp, vertical = 9.dp)
     ) {
         Row(
@@ -295,7 +291,7 @@ private fun PersonalField(
                 Row(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(AzulClaro)
+                        .background(DesignSystem.Colors.ProfileLightBlue)
                         .padding(horizontal = 8.dp, vertical = 3.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -326,7 +322,7 @@ private fun PersonalField(
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-                textStyle = androidx.compose.ui.text.TextStyle(
+                textStyle = TextStyle(
                     color = Color(0xFF22232A),
                     fontSize = 15.sp
                 ),
@@ -374,13 +370,13 @@ private fun LocationCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(AzulClaro),
+                    .background(DesignSystem.Colors.ProfileLightBlue),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Filled.LocationOn,
                     contentDescription = null,
-                    tint = Azul,
+                    tint = DesignSystem.Colors.ProfileBlue,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -394,7 +390,7 @@ private fun LocationCard(
                     onValueChange = onAddressChange,
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    textStyle = androidx.compose.ui.text.TextStyle(
+                    textStyle = TextStyle(
                         color = Color(0xFF292A31),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
@@ -419,7 +415,7 @@ private fun LocationCard(
                         .fillMaxWidth()
                         .padding(top = 2.dp),
                     singleLine = true,
-                    textStyle = androidx.compose.ui.text.TextStyle(
+                    textStyle = TextStyle(
                         color = Color(0xFF555963),
                         fontSize = 12.sp
                     ),
@@ -444,7 +440,7 @@ private fun LocationCard(
                 .fillMaxWidth()
                 .height(44.dp)
                 .clip(RoundedCornerShape(13.dp))
-                .background(AzulClaro)
+                .background(DesignSystem.Colors.ProfileLightBlue)
                 .padding(horizontal = 13.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -481,7 +477,7 @@ private fun LocationCard(
             Icon(
                 imageVector = Icons.Filled.Shield,
                 contentDescription = null,
-                tint = Dorado,
+                tint = DesignSystem.Colors.ProfileGold,
                 modifier = Modifier.size(17.dp)
             )
             Text(

@@ -33,27 +33,25 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
 import uniquindio.proyectoalertalocal.R
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.features.report.CategoriaPublicacion
-import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
-
-private val AzulOscuro = Color(0xFF1E3043)
-private val Naranja = Color(0xFFE65B2F)
-private val FondoPantalla = Color(0xFFFAF9F6)
-private val Borde = Color(0xFFE5E3DF)
+import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 
 @Composable
 fun CreateReportScreen(
@@ -61,14 +59,14 @@ fun CreateReportScreen(
     onSubmit: () -> Unit,
     onShowMessage: (String) -> Unit,
     modifier: Modifier = Modifier,
-    modeloVista: CreateReportViewModel = viewModel()
+    viewModel: CreateReportViewModel = viewModel()
 ) {
-    val estado = modeloVista.uiState.collectAsState().value
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(FondoPantalla)
+            .background(DesignSystem.Colors.Background)
     ) {
         ScreenHeader(
             title = "Nuevo reporte",
@@ -115,24 +113,24 @@ fun CreateReportScreen(
                         CategoriaPublicacion.INFRAESTRUCTURA,
                         CategoriaPublicacion.MASCOTAS,
                         CategoriaPublicacion.COMUNIDAD
-                    ).forEach { opcion ->
-                        val seleccionada = opcion == estado.categoria
+                    ).forEach { category ->
+                        val isSelected = category == uiState.category
                         Surface(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .clickable { modeloVista.seleccionarCategoria(opcion) },
+                                .clickable { viewModel.selectCategory(category) },
                             shape = CircleShape,
-                            color = if (seleccionada) AzulOscuro else Color(0xFFF0EFEC)
+                            color = if (isSelected) DesignSystem.Colors.PrimaryDark else DesignSystem.Colors.FilterSurface
                         ) {
                             Text(
-                                text = opcion.etiqueta,
+                                text = category.etiqueta,
                                 modifier = Modifier.padding(
                                     horizontal = 15.dp,
                                     vertical = 8.dp
                                 ),
-                                color = if (seleccionada) Color.White else Color(0xFF4F5254),
+                                color = if (isSelected) DesignSystem.Colors.White else Color(0xFF4F5254),
                                 fontSize = 11.sp,
-                                fontWeight = if (seleccionada) {
+                                fontWeight = if (isSelected) {
                                     FontWeight.SemiBold
                                 } else {
                                     FontWeight.Normal
@@ -143,19 +141,19 @@ fun CreateReportScreen(
                     }
                 }
 
-                CampoReporte(
-                    etiqueta = "Título",
-                    valor = estado.titulo,
-                    indicacion = "Ej: Poste de luz apagado",
-                    alCambiar = modeloVista::cambiarTitulo,
+                ReportField(
+                    label = "Título",
+                    value = uiState.title,
+                    placeholder = "Ej: Poste de luz apagado",
+                    onValueChange = viewModel::changeTitle,
                     modifier = Modifier.padding(top = 17.dp)
                 )
-                CampoReporte(
-                    etiqueta = "Descripción",
-                    valor = estado.descripcion,
-                    indicacion = "Cuenta qué pasó, cuándo y cualquier detalle útil...",
-                    alCambiar = modeloVista::cambiarDescripcion,
-                    multilinea = true,
+                ReportField(
+                    label = "Descripción",
+                    value = uiState.description,
+                    placeholder = "Cuenta qué pasó, cuándo y cualquier detalle útil...",
+                    onValueChange = viewModel::changeDescription,
+                    multiline = true,
                     modifier = Modifier.padding(top = 17.dp)
                 )
 
@@ -175,8 +173,8 @@ fun CreateReportScreen(
                             onShowMessage("La selección de ubicación estará disponible próximamente.")
                         },
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
-                    border = BorderStroke(1.dp, Borde)
+                    color = DesignSystem.Colors.White,
+                    border = BorderStroke(1.dp, DesignSystem.Colors.Border)
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -185,7 +183,7 @@ fun CreateReportScreen(
                         Icon(
                             imageVector = Icons.Filled.LocationOn,
                             contentDescription = "Seleccionar ubicación",
-                            tint = Color(0xFF787B7D),
+                            tint = DesignSystem.Colors.TextSecondary,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
@@ -209,7 +207,7 @@ fun CreateReportScreen(
                     )
                     Text(
                         text = " (al menos 1)",
-                        color = Color(0xFF999B9C),
+                        color = DesignSystem.Colors.Placeholder,
                         fontSize = 11.sp
                     )
                 }
@@ -224,13 +222,13 @@ fun CreateReportScreen(
                                 onShowMessage("La carga de fotos se implementará más adelante.")
                             },
                         shape = RoundedCornerShape(11.dp),
-                        color = Color(0xFFF0EFEC)
+                        color = DesignSystem.Colors.FilterSurface
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Filled.CameraAlt,
                                 contentDescription = "Agregar foto",
-                                tint = Color(0xFFAAAAA7),
+                                tint = DesignSystem.Colors.Placeholder,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
@@ -246,7 +244,7 @@ fun CreateReportScreen(
                         Icon(
                             imageVector = Icons.Filled.Add,
                             contentDescription = "Agregar foto",
-                            tint = Color(0xFF9B9B98),
+                            tint = DesignSystem.Colors.Placeholder,
                             modifier = Modifier.size(23.dp)
                         )
                     }
@@ -262,8 +260,8 @@ fun CreateReportScreen(
                 .height(48.dp),
             shape = RoundedCornerShape(13.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Naranja,
-                contentColor = Color.White
+                containerColor = DesignSystem.Colors.AccentDark,
+                contentColor = DesignSystem.Colors.White
             )
         ) {
             Text(
@@ -276,17 +274,17 @@ fun CreateReportScreen(
 }
 
 @Composable
-private fun CampoReporte(
-    etiqueta: String,
-    valor: String,
-    indicacion: String,
-    alCambiar: (String) -> Unit,
-    multilinea: Boolean = false,
+private fun ReportField(
+    label: String,
+    value: String,
+    placeholder: String,
+    onValueChange: (String) -> Unit,
+    multiline: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = etiqueta,
+            text = label,
             color = Color(0xFF444648),
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium
@@ -295,39 +293,39 @@ private fun CampoReporte(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)
-                .height(if (multilinea) 100.dp else 43.dp)
+                .height(if (multiline) 100.dp else 43.dp)
                 .clip(RoundedCornerShape(11.dp))
-                .background(Color.White)
+                .background(DesignSystem.Colors.White)
                 .border(
-                    BorderStroke(1.dp, Borde),
+                    BorderStroke(1.dp, DesignSystem.Colors.Border),
                     RoundedCornerShape(11.dp)
                 )
-                .padding(horizontal = 13.dp, vertical = if (multilinea) 12.dp else 0.dp),
-            verticalAlignment = if (multilinea) Alignment.Top else Alignment.CenterVertically
+                .padding(horizontal = 13.dp, vertical = if (multiline) 12.dp else 0.dp),
+            verticalAlignment = if (multiline) Alignment.Top else Alignment.CenterVertically
         ) {
             BasicTextField(
-                value = valor,
-                onValueChange = alCambiar,
+                value = value,
+                onValueChange = onValueChange,
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = !multilinea,
-                textStyle = androidx.compose.ui.text.TextStyle(
+                singleLine = !multiline,
+                textStyle = TextStyle(
                     color = Color(0xFF343638),
                     fontSize = 13.sp,
                     lineHeight = 19.sp
                 ),
-                decorationBox = { contenido ->
+                decorationBox = { innerTextField ->
                     Box {
-                        if (valor.isEmpty()) {
+                        if (value.isEmpty()) {
                             Text(
-                                text = indicacion,
-                                color = Color(0xFFADAEAD),
+                                text = placeholder,
+                                color = DesignSystem.Colors.Placeholder,
                                 fontSize = 12.sp,
                                 lineHeight = 18.sp,
-                                maxLines = if (multilinea) 2 else 1,
+                                maxLines = if (multiline) 2 else 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
-                        contenido()
+                        innerTextField()
                     }
                 }
             )

@@ -1,4 +1,4 @@
-package uniquindio.proyectoalertalocal.features.profile
+package uniquindio.proyectoalertalocal.features.user.profile
 
 data class ProfileDashboardUiState(
     val initials: String = "MJ",

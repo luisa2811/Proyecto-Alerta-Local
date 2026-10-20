@@ -11,33 +11,33 @@ class ReportDetailViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ReportDetailUiState())
     val uiState: StateFlow<ReportDetailUiState> = _uiState.asStateFlow()
 
-    fun cargarPublicacion(publicationId: String) {
-        val publicacion = publicacionesDemostrativas.firstOrNull { it.id == publicationId }
+    fun loadPublication(publicationId: String) {
+        val publication = publicacionesDemostrativas.firstOrNull { it.id == publicationId }
             ?: publicacionesDemostrativas.first()
-        if (_uiState.value.publicacion.id != publicacion.id) {
-            _uiState.value = ReportDetailUiState(publicacion = publicacion)
+        if (_uiState.value.publication.id != publication.id) {
+            _uiState.value = ReportDetailUiState(publication = publication)
         }
     }
 
-    fun alternarImportancia() {
-        _uiState.update { estado ->
-            val importante = !estado.importante
-            estado.copy(
-                importante = importante,
-                votosImportante = estado.votosImportante + if (importante) 1 else -1
+    fun toggleImportance() {
+        _uiState.update { currentState ->
+            val isImportant = !currentState.isImportant
+            currentState.copy(
+                isImportant = isImportant,
+                importantVotes = currentState.importantVotes + if (isImportant) 1 else -1
             )
         }
     }
 
-    fun cambiarComentario(comentario: String) {
-        _uiState.update { it.copy(comentario = comentario) }
+    fun changeComment(comment: String) {
+        _uiState.update { it.copy(comment = comment) }
     }
 
-    fun enviarComentario(): Boolean {
-        val comentario = _uiState.value.comentario
-        if (comentario.isBlank()) return false
+    fun sendComment(): Boolean {
+        val comment = _uiState.value.comment
+        if (comment.isBlank()) return false
 
-        _uiState.update { it.copy(comentario = "") }
+        _uiState.update { it.copy(comment = "") }
         return true
     }
 }

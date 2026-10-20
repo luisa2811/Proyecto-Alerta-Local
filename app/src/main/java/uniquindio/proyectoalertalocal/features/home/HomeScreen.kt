@@ -41,12 +41,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,19 +54,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
-
-private val AzulOscuro = Color(0xFF1E3043)
-private val Naranja = Color(0xFFF45B35)
-private val Fondo = Color(0xFFF7F7F5)
-private val TextoSecundario = Color(0xFF858B91)
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 
 @Composable
 fun HomeScreen(
@@ -76,49 +72,49 @@ fun HomeScreen(
     onEditAddress: () -> Unit,
     onOpenNotifications: () -> Unit,
     onShowMessage: (String) -> Unit,
-    modeloVista: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = viewModel()
 ) {
-    val estado by modeloVista.estado.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Fondo)
+            .background(DesignSystem.Colors.Background)
     ) {
-        EncabezadoInicio(
+        HomeHeader(
             onEditLocation = onEditAddress,
             onOpenNotifications = onOpenNotifications
         )
-        FiltrosCategorias(
-            categoriaSeleccionada = estado.categoriaSeleccionada,
-            alSeleccionarCategoria = modeloVista::seleccionarCategoria
+        CategoryFilters(
+            selectedCategory = uiState.selectedCategory,
+            onCategorySelect = viewModel::selectCategory
         )
-        FilaControles(
-            proximidad = estado.proximidadSeleccionada,
-            vistaSeleccionada = estado.vistaSeleccionada,
-            alSeleccionarProximidad = modeloVista::seleccionarProximidad,
-            alSeleccionarVista = modeloVista::seleccionarVista
+        ViewControls(
+            proximity = uiState.selectedProximity,
+            selectedView = uiState.selectedView,
+            onProximitySelect = viewModel::selectProximity,
+            onViewSelect = viewModel::selectView
         )
 
-        when (estado.vistaSeleccionada) {
-            VistaAlertas.MAPA -> MapaSimulado(
-                alertas = estado.alertasFiltradas,
-                alertaSeleccionada = estado.alertaSeleccionada,
-                alSeleccionarAlerta = modeloVista::seleccionarAlerta,
-                alCrearReporte = onCreateReport,
-                alComoLlegar = {
+        when (uiState.selectedView) {
+            VistaAlertas.MAPA -> DemoMap(
+                alerts = uiState.filteredAlerts,
+                selectedAlert = uiState.selectedAlert,
+                onAlertSelect = viewModel::selectAlert,
+                onCreateReport = onCreateReport,
+                onGetDirections = {
                     onShowMessage("La función Cómo llegar estará disponible próximamente.")
                 },
-                alDetalleProvisional = {
+                onOpenTemporaryDetail = {
                     onShowMessage("El detalle de las alertas será agregado por el equipo responsable.")
                 },
-                modificador = Modifier
+                modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             )
 
-            VistaAlertas.LISTA -> ListaAlertas(
-                alertas = estado.alertasFiltradas,
+            VistaAlertas.LISTA -> AlertList(
+                alerts = uiState.filteredAlerts,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -128,7 +124,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun EncabezadoInicio(
+private fun HomeHeader(
     onEditLocation: () -> Unit,
     onOpenNotifications: () -> Unit
 ) {
@@ -151,7 +147,7 @@ private fun EncabezadoInicio(
                 Text(
                     text = "Alerta Local",
                     modifier = Modifier.padding(start = 10.dp),
-                    color = Color(0xFF17191C),
+                    color = DesignSystem.Colors.HeaderText,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -167,7 +163,7 @@ private fun EncabezadoInicio(
                 Icon(
                     imageVector = Icons.Filled.Place,
                     contentDescription = "Ubicación simulada",
-                    tint = Naranja,
+                    tint = DesignSystem.Colors.HomeAccent,
                     modifier = Modifier.size(15.dp)
                 )
                 Text(
@@ -179,14 +175,14 @@ private fun EncabezadoInicio(
                 )
                 Text(
                     text = " · Cra 15 #8-42",
-                    color = TextoSecundario,
+                    color = DesignSystem.Colors.HomeSecondaryText,
                     fontSize = 12.sp,
                     maxLines = 1
                 )
                 Icon(
                     imageVector = Icons.Filled.Edit,
                     contentDescription = "Editar ubicación de demostración",
-                    tint = AzulOscuro,
+                    tint = DesignSystem.Colors.PrimaryDark,
                     modifier = Modifier
                         .padding(start = 7.dp)
                         .size(15.dp)
@@ -200,13 +196,13 @@ private fun EncabezadoInicio(
                     .size(42.dp)
                     .clickable(onClick = onOpenNotifications),
                 shape = CircleShape,
-                color = Color(0xFFF1F2F2)
+                color = DesignSystem.Colors.NotificationSurface
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Filled.NotificationsNone,
                         contentDescription = "Abrir notificaciones",
-                        tint = AzulOscuro,
+                        tint = DesignSystem.Colors.PrimaryDark,
                         modifier = Modifier.size(23.dp)
                     )
                 }
@@ -216,18 +212,18 @@ private fun EncabezadoInicio(
                     .align(Alignment.TopEnd)
                     .padding(top = 8.dp, end = 8.dp)
                     .size(8.dp)
-                    .background(Naranja, CircleShape)
+                    .background(DesignSystem.Colors.HomeAccent, CircleShape)
             )
         }
     }
 }
 
 @Composable
-private fun FiltrosCategorias(
-    categoriaSeleccionada: CategoriaAlerta?,
-    alSeleccionarCategoria: (CategoriaAlerta?) -> Unit
+private fun CategoryFilters(
+    selectedCategory: CategoriaAlerta?,
+    onCategorySelect: (CategoriaAlerta?) -> Unit
 ) {
-    val categorias = listOf(null) + CategoriaAlerta.entries
+    val categories = listOf(null) + CategoriaAlerta.entries
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -235,22 +231,22 @@ private fun FiltrosCategorias(
             .padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        categorias.forEach { categoria ->
-            val seleccionada = categoria == categoriaSeleccionada
-            val etiqueta = categoria?.etiqueta ?: "Todos"
+        categories.forEach { category ->
+            val isSelected = category == selectedCategory
+            val label = category?.etiqueta ?: "Todos"
             Surface(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .clickable { alSeleccionarCategoria(categoria) },
+                    .clickable { onCategorySelect(category) },
                 shape = CircleShape,
-                color = if (seleccionada) AzulOscuro else Color(0xFFF0F0EF)
+                color = if (isSelected) DesignSystem.Colors.PrimaryDark else DesignSystem.Colors.FilterSurface
             ) {
                 Text(
-                    text = etiqueta,
+                    text = label,
                     modifier = Modifier.padding(horizontal = 15.dp, vertical = 7.dp),
-                    color = if (seleccionada) Color.White else Color(0xFF55585B),
+                    color = if (isSelected) DesignSystem.Colors.White else Color(0xFF55585B),
                     fontSize = 12.sp,
-                    fontWeight = if (seleccionada) FontWeight.SemiBold else FontWeight.Normal
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                 )
             }
         }
@@ -258,14 +254,14 @@ private fun FiltrosCategorias(
 }
 
 @Composable
-private fun FilaControles(
-    proximidad: String,
-    vistaSeleccionada: VistaAlertas,
-    alSeleccionarProximidad: (String) -> Unit,
-    alSeleccionarVista: (VistaAlertas) -> Unit
+private fun ViewControls(
+    proximity: String,
+    selectedView: VistaAlertas,
+    onProximitySelect: (String) -> Unit,
+    onViewSelect: (VistaAlertas) -> Unit
 ) {
-    var menuAbierto by remember { mutableStateOf(false) }
-    val opcionesProximidad = listOf("Cerca de mí", "En mi zona", "Toda la ciudad")
+    var isMenuOpen by remember { mutableStateOf(false) }
+    val proximityOptions = listOf("Cerca de mí", "En mi zona", "Toda la ciudad")
 
     Row(
         modifier = Modifier
@@ -276,7 +272,7 @@ private fun FilaControles(
     ) {
         Box {
             OutlinedButton(
-                onClick = { menuAbierto = true },
+                onClick = { isMenuOpen = true },
                 contentPadding = PaddingValues(horizontal = 11.dp, vertical = 5.dp),
                 shape = RoundedCornerShape(10.dp)
             ) {
@@ -284,25 +280,25 @@ private fun FilaControles(
                     imageVector = Icons.Filled.FilterList,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = TextoSecundario
+                    tint = DesignSystem.Colors.HomeSecondaryText
                 )
                 Text(
-                    text = proximidad,
+                    text = proximity,
                     modifier = Modifier.padding(start = 6.dp),
                     color = Color(0xFF4F5356),
                     fontSize = 12.sp
                 )
             }
             DropdownMenu(
-                expanded = menuAbierto,
-                onDismissRequest = { menuAbierto = false }
+                expanded = isMenuOpen,
+                onDismissRequest = { isMenuOpen = false }
             ) {
-                opcionesProximidad.forEach { opcion ->
+                proximityOptions.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(opcion) },
+                        text = { Text(option) },
                         onClick = {
-                            alSeleccionarProximidad(opcion)
-                            menuAbierto = false
+                            onProximitySelect(option)
+                            isMenuOpen = false
                         }
                     )
                 }
@@ -312,53 +308,53 @@ private fun FilaControles(
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFF0F0EF))
+                .background(DesignSystem.Colors.FilterSurface)
                 .padding(3.dp)
         ) {
-            OpcionVista("Lista", VistaAlertas.LISTA, vistaSeleccionada, alSeleccionarVista)
-            OpcionVista("Mapa", VistaAlertas.MAPA, vistaSeleccionada, alSeleccionarVista)
+            ViewOption("Lista", VistaAlertas.LISTA, selectedView, onViewSelect)
+            ViewOption("Mapa", VistaAlertas.MAPA, selectedView, onViewSelect)
         }
     }
 }
 
 @Composable
-private fun OpcionVista(
-    etiqueta: String,
-    vista: VistaAlertas,
-    vistaSeleccionada: VistaAlertas,
-    alSeleccionar: (VistaAlertas) -> Unit
+private fun ViewOption(
+    label: String,
+    view: VistaAlertas,
+    selectedView: VistaAlertas,
+    onSelect: (VistaAlertas) -> Unit
 ) {
-    val seleccionada = vista == vistaSeleccionada
+    val isSelected = view == selectedView
     Surface(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .clickable { alSeleccionar(vista) },
+            .clickable { onSelect(view) },
         shape = RoundedCornerShape(8.dp),
-        color = if (seleccionada) Color.White else Color.Transparent,
-        shadowElevation = if (seleccionada) 1.dp else 0.dp
+        color = if (isSelected) DesignSystem.Colors.White else Color.Transparent,
+        shadowElevation = if (isSelected) 1.dp else 0.dp
     ) {
         Text(
-            text = etiqueta,
+            text = label,
             modifier = Modifier.padding(horizontal = 13.dp, vertical = 6.dp),
-            color = if (seleccionada) AzulOscuro else Color(0xFF73777B),
+            color = if (isSelected) DesignSystem.Colors.PrimaryDark else DesignSystem.Colors.TextSecondary,
             fontSize = 12.sp,
-            fontWeight = if (seleccionada) FontWeight.SemiBold else FontWeight.Normal
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
 }
 
 @Composable
-private fun MapaSimulado(
-    alertas: List<AlertUiModel>,
-    alertaSeleccionada: AlertUiModel?,
-    alSeleccionarAlerta: (String) -> Unit,
-    alCrearReporte: () -> Unit,
-    alComoLlegar: () -> Unit,
-    alDetalleProvisional: () -> Unit,
-    modificador: Modifier = Modifier
+private fun DemoMap(
+    alerts: List<AlertUiModel>,
+    selectedAlert: AlertUiModel?,
+    onAlertSelect: (String) -> Unit,
+    onCreateReport: () -> Unit,
+    onGetDirections: () -> Unit,
+    onOpenTemporaryDetail: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(
-        modifier = modificador
+        modifier = modifier
             .padding(top = 8.dp)
             .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
     ) {
@@ -376,7 +372,7 @@ private fun MapaSimulado(
                 .padding(start = 10.dp, top = 10.dp)
                 .background(Color(0xEFFFFFFF), RoundedCornerShape(6.dp))
                 .padding(horizontal = 7.dp, vertical = 4.dp),
-            color = AzulOscuro,
+            color = DesignSystem.Colors.PrimaryDark,
             fontSize = 8.sp,
             fontWeight = FontWeight.Bold
         )
@@ -388,7 +384,7 @@ private fun MapaSimulado(
                 .padding(start = maxWidth * 0.28f, top = maxHeight * 0.12f)
                 .background(Color(0xD91C1C1C), RoundedCornerShape(4.dp))
                 .padding(horizontal = 7.dp, vertical = 3.dp),
-            color = Color.White,
+            color = DesignSystem.Colors.White,
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -397,7 +393,7 @@ private fun MapaSimulado(
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .padding(start = 10.dp, top = maxHeight * 0.08f),
-            color = Color(0xFF75818B),
+            color = DesignSystem.Colors.TextSecondary,
             fontSize = 10.sp,
             fontWeight = FontWeight.Medium
         )
@@ -406,25 +402,25 @@ private fun MapaSimulado(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .padding(end = 10.dp, top = maxHeight * 0.25f),
-            color = Color(0xFF75818B),
+            color = DesignSystem.Colors.TextSecondary,
             fontSize = 10.sp,
             fontWeight = FontWeight.Medium
         )
 
-        alertas.forEach { alerta ->
-            MarcadorAlerta(
-                alerta = alerta,
-                seleccionado = alerta.id == alertaSeleccionada?.id,
-                alSeleccionar = { alSeleccionarAlerta(alerta.id) },
+        alerts.forEach { alert ->
+            AlertMarker(
+                alert = alert,
+                isSelected = alert.id == selectedAlert?.id,
+                onSelect = { onAlertSelect(alert.id) },
                 modifier = Modifier.offset(
-                    x = maxWidth * alerta.posicionX - 17.dp,
-                    y = maxHeight * alerta.posicionY - 17.dp
+                    x = maxWidth * alert.posicionX - 17.dp,
+                    y = maxHeight * alert.posicionY - 17.dp
                 )
             )
         }
 
         Button(
-            onClick = alCrearReporte,
+            onClick = onCreateReport,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .padding(end = 15.dp)
@@ -434,8 +430,8 @@ private fun MapaSimulado(
             shape = CircleShape,
             contentPadding = PaddingValues(0.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Naranja,
-                contentColor = Color.White
+                containerColor = DesignSystem.Colors.HomeAccent,
+                contentColor = DesignSystem.Colors.White
             )
         ) {
             Icon(
@@ -445,11 +441,11 @@ private fun MapaSimulado(
             )
         }
 
-        alertaSeleccionada?.let { alerta ->
-            TarjetaAlertaSeleccionada(
-                alerta = alerta,
-                alComoLlegar = alComoLlegar,
-                alAbrirDetalle = alDetalleProvisional,
+        selectedAlert?.let { alert ->
+            SelectedAlertCard(
+                alert = alert,
+                onGetDirections = onGetDirections,
+                onOpenDetail = onOpenTemporaryDetail,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
@@ -460,8 +456,8 @@ private fun MapaSimulado(
 }
 
 @Composable
-private fun ListaAlertas(
-    alertas: List<AlertUiModel>,
+private fun AlertList(
+    alerts: List<AlertUiModel>,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -469,22 +465,22 @@ private fun ListaAlertas(
         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(alertas, key = { it.id }) { alerta ->
-            TarjetaAlertaLista(
-                alerta = alerta
+        items(alerts, key = { it.id }) { alert ->
+            AlertListCard(
+                alert = alert
             )
         }
     }
 }
 
 @Composable
-private fun TarjetaAlertaLista(
-    alerta: AlertUiModel
+private fun AlertListCard(
+    alert: AlertUiModel
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = DesignSystem.Colors.White,
         shadowElevation = 2.dp
     ) {
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
@@ -492,30 +488,30 @@ private fun TarjetaAlertaLista(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Etiqueta(
-                    texto = alerta.categoria.etiqueta,
-                    fondo = alerta.categoria.color.copy(alpha = 0.12f),
-                    colorTexto = alerta.categoria.color
+                Tag(
+                    text = alert.categoria.etiqueta,
+                    background = alert.categoria.color.copy(alpha = 0.12f),
+                    textColor = alert.categoria.color
                 )
-                if (alerta.verificada) {
+                if (alert.verificada) {
                     Spacer(modifier = Modifier.width(6.dp))
                     Row(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(Color(0xFFD7F7E9))
+                            .background(DesignSystem.Colors.VerifiedBackground)
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Check,
                             contentDescription = null,
-                            tint = Color(0xFF00875A),
+                            tint = DesignSystem.Colors.VerifiedGreen,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             text = "Verificado",
                             modifier = Modifier.padding(start = 3.dp),
-                            color = Color(0xFF00875A),
+                            color = DesignSystem.Colors.VerifiedGreen,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -523,23 +519,23 @@ private fun TarjetaAlertaLista(
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = "${alerta.distancia} · ${alerta.antiguedad}",
-                    color = TextoSecundario,
+                    text = "${alert.distancia} · ${alert.antiguedad}",
+                    color = DesignSystem.Colors.HomeSecondaryText,
                     fontSize = 10.sp
                 )
             }
 
             Text(
-                text = alerta.titulo,
+                text = alert.titulo,
                 modifier = Modifier.padding(top = 8.dp),
-                color = Color(0xFF202326),
+                color = DesignSystem.Colors.ReportTitleText,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = alerta.descripcion,
+                text = alert.descripcion,
                 modifier = Modifier.padding(top = 4.dp),
-                color = Color(0xFF777D82),
+                color = DesignSystem.Colors.ReportDescriptionText,
                 fontSize = 12.sp,
                 lineHeight = 17.sp
             )
@@ -551,15 +547,15 @@ private fun TarjetaAlertaLista(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ContadorAlerta(
-                    icono = Icons.Filled.ThumbUp,
-                    cantidad = alerta.meGusta,
-                    descripcion = "Me gusta"
+                AlertCounter(
+                    icon = Icons.Filled.ThumbUp,
+                    count = alert.meGusta,
+                    description = "Me gusta"
                 )
-                ContadorAlerta(
-                    icono = Icons.Filled.ChatBubbleOutline,
-                    cantidad = alerta.cantidadComentarios,
-                    descripcion = "Comentarios"
+                AlertCounter(
+                    icon = Icons.Filled.ChatBubbleOutline,
+                    count = alert.cantidadComentarios,
+                    description = "Comentarios"
                 )
             }
 
@@ -572,12 +568,12 @@ private fun TarjetaAlertaLista(
                 Box(
                     modifier = Modifier
                         .size(27.dp)
-                        .background(AzulOscuro, CircleShape),
+                        .background(DesignSystem.Colors.PrimaryDark, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = alerta.inicialesReportante,
-                        color = Color.White,
+                        text = alert.inicialesReportante,
+                        color = DesignSystem.Colors.White,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -588,21 +584,21 @@ private fun TarjetaAlertaLista(
                         .padding(start = 8.dp)
                 ) {
                     Text(
-                        text = alerta.nombreReportante,
-                        color = Color(0xFF3F4346),
+                        text = alert.nombreReportante,
+                        color = DesignSystem.Colors.ReportAuthorText,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = alerta.rolReportante,
-                        color = TextoSecundario,
+                        text = alert.rolReportante,
+                        color = DesignSystem.Colors.HomeSecondaryText,
                         fontSize = 10.sp
                     )
                 }
                 Text(
-                    text = alerta.ubicacion,
+                    text = alert.ubicacion,
                     modifier = Modifier.weight(1f),
-                    color = TextoSecundario,
+                    color = DesignSystem.Colors.HomeSecondaryText,
                     fontSize = 10.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -614,42 +610,42 @@ private fun TarjetaAlertaLista(
 }
 
 @Composable
-private fun ContadorAlerta(
-    icono: androidx.compose.ui.graphics.vector.ImageVector,
-    cantidad: Int,
-    descripcion: String
+private fun AlertCounter(
+    icon: ImageVector,
+    count: Int,
+    description: String
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            imageVector = icono,
-            contentDescription = descripcion,
-            tint = TextoSecundario,
+            imageVector = icon,
+            contentDescription = description,
+            tint = DesignSystem.Colors.HomeSecondaryText,
             modifier = Modifier.size(15.dp)
         )
         Text(
-            text = cantidad.toString(),
+            text = count.toString(),
             modifier = Modifier.padding(start = 4.dp),
-            color = Color(0xFF565A5D),
+            color = DesignSystem.Colors.ReportCounterText,
             fontSize = 10.sp,
             fontWeight = FontWeight.Medium
         )
         Text(
-            text = descripcion,
+            text = description,
             modifier = Modifier.padding(start = 4.dp),
-            color = TextoSecundario,
+            color = DesignSystem.Colors.HomeSecondaryText,
             fontSize = 10.sp
         )
     }
 }
 
 @Composable
-private fun MarcadorAlerta(
-    alerta: AlertUiModel,
-    seleccionado: Boolean,
-    alSeleccionar: () -> Unit,
+private fun AlertMarker(
+    alert: AlertUiModel,
+    isSelected: Boolean,
+    onSelect: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val icono = when (alerta.categoria) {
+    val icon = when (alert.categoria) {
         CategoriaAlerta.SEGURIDAD -> Icons.Filled.Warning
         CategoriaAlerta.EMERGENCIAS -> Icons.Filled.LocalHospital
         CategoriaAlerta.INFRAESTRUCTURA -> Icons.Filled.Build
@@ -658,33 +654,33 @@ private fun MarcadorAlerta(
     Box(
         modifier = modifier
             .size(36.dp)
-            .shadow(if (seleccionado) 5.dp else 2.dp, CircleShape)
-            .background(Color.White, CircleShape)
+            .shadow(if (isSelected) 5.dp else 2.dp, CircleShape)
+            .background(DesignSystem.Colors.White, CircleShape)
             .padding(3.dp)
-            .background(alerta.categoria.color, CircleShape)
-            .clickable(onClick = alSeleccionar),
+            .background(alert.categoria.color, CircleShape)
+            .clickable(onClick = onSelect),
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = icono,
-            contentDescription = "Alerta ${alerta.categoria.etiqueta}: ${alerta.titulo}",
-            tint = Color.White,
+            imageVector = icon,
+            contentDescription = "Alerta ${alert.categoria.etiqueta}: ${alert.titulo}",
+            tint = DesignSystem.Colors.White,
             modifier = Modifier.size(20.dp)
         )
     }
 }
 
 @Composable
-private fun TarjetaAlertaSeleccionada(
-    alerta: AlertUiModel,
-    alComoLlegar: () -> Unit,
-    alAbrirDetalle: () -> Unit,
+private fun SelectedAlertCard(
+    alert: AlertUiModel,
+    onGetDirections: () -> Unit,
+    onOpenDetail: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(18.dp),
-        color = Color.White,
+        color = DesignSystem.Colors.White,
         shadowElevation = 8.dp
     ) {
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp)) {
@@ -693,7 +689,7 @@ private fun TarjetaAlertaSeleccionada(
                     .align(Alignment.CenterHorizontally)
                     .width(36.dp)
                     .height(4.dp)
-                    .background(Color(0xFFD5D5D3), CircleShape)
+                    .background(DesignSystem.Colors.Border, CircleShape)
             )
             Row(
                 modifier = Modifier
@@ -701,30 +697,30 @@ private fun TarjetaAlertaSeleccionada(
                     .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Etiqueta(
-                    texto = alerta.categoria.etiqueta,
-                    fondo = alerta.categoria.color.copy(alpha = 0.12f),
-                    colorTexto = alerta.categoria.color
+                Tag(
+                    text = alert.categoria.etiqueta,
+                    background = alert.categoria.color.copy(alpha = 0.12f),
+                    textColor = alert.categoria.color
                 )
-                if (alerta.verificada) {
+                if (alert.verificada) {
                     Spacer(modifier = Modifier.width(6.dp))
                     Row(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(Color(0xFFD7F7E9))
+                            .background(DesignSystem.Colors.VerifiedBackground)
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Check,
                             contentDescription = null,
-                            tint = Color(0xFF00875A),
+                            tint = DesignSystem.Colors.VerifiedGreen,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             text = "Verificado",
                             modifier = Modifier.padding(start = 3.dp),
-                            color = Color(0xFF00875A),
+                            color = DesignSystem.Colors.VerifiedGreen,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -732,26 +728,26 @@ private fun TarjetaAlertaSeleccionada(
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = "${alerta.distancia} · ${alerta.antiguedad}",
-                    color = TextoSecundario,
+                    text = "${alert.distancia} · ${alert.antiguedad}",
+                    color = DesignSystem.Colors.HomeSecondaryText,
                     fontSize = 10.sp,
                     maxLines = 1
                 )
             }
 
             Text(
-                text = alerta.titulo,
+                text = alert.titulo,
                 modifier = Modifier.padding(top = 7.dp),
-                color = Color(0xFF202326),
+                color = DesignSystem.Colors.ReportTitleText,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = alerta.descripcion,
+                text = alert.descripcion,
                 modifier = Modifier.padding(top = 4.dp),
-                color = Color(0xFF777D82),
+                color = DesignSystem.Colors.ReportDescriptionText,
                 fontSize = 11.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -766,35 +762,35 @@ private fun TarjetaAlertaSeleccionada(
                 Box(
                     modifier = Modifier
                         .size(25.dp)
-                        .background(AzulOscuro, CircleShape),
+                        .background(DesignSystem.Colors.PrimaryDark, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = alerta.inicialesReportante,
-                        color = Color.White,
+                        text = alert.inicialesReportante,
+                        color = DesignSystem.Colors.White,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
                 Text(
-                    text = alerta.nombreReportante,
+                    text = alert.nombreReportante,
                     modifier = Modifier.padding(start = 7.dp),
-                    color = Color(0xFF3F4346),
+                    color = DesignSystem.Colors.ReportAuthorText,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = " · ${alerta.rolReportante}",
-                    color = Color(0xFF9A9EA1),
+                    text = " · ${alert.rolReportante}",
+                    color = DesignSystem.Colors.Placeholder,
                     fontSize = 10.sp,
                     maxLines = 1
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = alerta.ubicacion,
-                    color = TextoSecundario,
+                    text = alert.ubicacion,
+                    color = DesignSystem.Colors.HomeSecondaryText,
                     fontSize = 9.sp,
                     maxLines = 1
                 )
@@ -805,7 +801,7 @@ private fun TarjetaAlertaSeleccionada(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedButton(
-                    onClick = alComoLlegar,
+                    onClick = onGetDirections,
                     modifier = Modifier
                         .weight(1f)
                         .height(38.dp),
@@ -816,26 +812,26 @@ private fun TarjetaAlertaSeleccionada(
                         imageVector = Icons.Filled.Navigation,
                         contentDescription = null,
                         modifier = Modifier.size(15.dp),
-                        tint = AzulOscuro
+                        tint = DesignSystem.Colors.PrimaryDark
                     )
                     Text(
                         text = "Cómo llegar",
                         modifier = Modifier.padding(start = 5.dp),
-                        color = AzulOscuro,
+                        color = DesignSystem.Colors.PrimaryDark,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
                 Button(
-                    onClick = alAbrirDetalle,
+                    onClick = onOpenDetail,
                     modifier = Modifier
                         .weight(1f)
                         .height(38.dp),
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
                     shape = RoundedCornerShape(9.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AzulOscuro,
-                        contentColor = Color.White
+                        containerColor = DesignSystem.Colors.PrimaryDark,
+                        contentColor = DesignSystem.Colors.White
                     )
                 ) {
                     Text(
@@ -857,18 +853,18 @@ private fun TarjetaAlertaSeleccionada(
 }
 
 @Composable
-private fun Etiqueta(
-    texto: String,
-    fondo: Color,
-    colorTexto: Color
+private fun Tag(
+    text: String,
+    background: Color,
+    textColor: Color
 ) {
     Text(
-        text = texto,
+        text = text,
         modifier = Modifier
             .clip(CircleShape)
-            .background(fondo)
+            .background(background)
             .padding(horizontal = 8.dp, vertical = 4.dp),
-        color = colorTexto,
+        color = textColor,
         fontSize = 10.sp,
         fontWeight = FontWeight.SemiBold
     )

@@ -1,4 +1,4 @@
-package uniquindio.proyectoalertalocal.features.profile
+package uniquindio.proyectoalertalocal.features.user.profile
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

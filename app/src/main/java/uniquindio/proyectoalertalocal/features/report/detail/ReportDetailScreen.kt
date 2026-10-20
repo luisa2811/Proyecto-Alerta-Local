@@ -35,22 +35,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import uniquindio.proyectoalertalocal.ui.components.ScreenHeader
-
-private val AzulOscuro = Color(0xFF1E3043)
-private val Naranja = Color(0xFFE65B2F)
-private val Fondo = Color(0xFFFAF9F6)
-private val Gris = Color(0xFF85898C)
+import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 
 @Composable
 fun ReportDetailScreen(
@@ -58,19 +56,19 @@ fun ReportDetailScreen(
     onBack: () -> Unit,
     onShowMessage: (String) -> Unit,
     modifier: Modifier = Modifier,
-    modeloVista: ReportDetailViewModel = viewModel()
+    viewModel: ReportDetailViewModel = viewModel()
 ) {
-    val estado = modeloVista.uiState.collectAsState().value
-    val publicacion = estado.publicacion
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val publication = uiState.publication
 
     LaunchedEffect(publicationId) {
-        modeloVista.cargarPublicacion(publicationId)
+        viewModel.loadPublication(publicationId)
     }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(DesignSystem.Colors.White)
     ) {
         ScreenHeader(
             title = "Detalle del reporte",
@@ -86,7 +84,7 @@ fun ReportDetailScreen(
                             onShowMessage("Más opciones estarán disponibles próximamente.")
                         }
                         .padding(8.dp),
-                    tint = AzulOscuro
+                    tint = DesignSystem.Colors.PrimaryDark
                 )
             }
         )
@@ -97,7 +95,7 @@ fun ReportDetailScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
-            FotoDemostrativa(
+            DemonstrationPhoto(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(190.dp)
@@ -107,45 +105,45 @@ fun ReportDetailScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                EtiquetaDetalle(
-                    texto = publicacion.categoria.etiqueta,
-                    fondo = publicacion.categoria.color.copy(alpha = 0.13f),
-                    textoColor = publicacion.categoria.color
+                DetailTag(
+                    text = publication.categoria.etiqueta,
+                    background = publication.categoria.color.copy(alpha = 0.13f),
+                    textColor = publication.categoria.color
                 )
-                if (publicacion.estado == "Verificado") {
+                if (publication.estado == "Verificado") {
                     Row(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(Color(0xFFDDF8E9))
+                            .background(DesignSystem.Colors.VerifiedBackground)
                             .padding(horizontal = 9.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Check,
                             contentDescription = null,
-                            tint = Color(0xFF15945A),
+                            tint = DesignSystem.Colors.DetailVerifiedGreen,
                             modifier = Modifier.size(13.dp)
                         )
                         Text(
                             text = "Verificado",
                             modifier = Modifier.padding(start = 4.dp),
-                            color = Color(0xFF15945A),
+                            color = DesignSystem.Colors.DetailVerifiedGreen,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
                 } else {
-                    EtiquetaDetalle(
-                        texto = publicacion.estado,
-                        fondo = Color(0xFFFFF1D8),
-                        textoColor = Color(0xFFB47A11)
+                    DetailTag(
+                        text = publication.estado,
+                        background = Color(0xFFFFF1D8),
+                        textColor = Color(0xFFB47A11)
                     )
                 }
             }
             Text(
-                text = publicacion.titulo,
+                text = publication.titulo,
                 modifier = Modifier.padding(top = 12.dp),
-                color = Color(0xFF242628),
+                color = DesignSystem.Colors.ReportTitleText,
                 fontSize = 19.sp,
                 lineHeight = 24.sp,
                 fontWeight = FontWeight.Bold
@@ -154,29 +152,29 @@ fun ReportDetailScreen(
                 modifier = Modifier.padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Avatar(publicacion.inicialesReportante)
+                Avatar(publication.inicialesReportante)
                 Text(
                     text = "Publicado por ",
                     modifier = Modifier.padding(start = 8.dp),
-                    color = Gris,
+                    color = DesignSystem.Colors.TextSecondary,
                     fontSize = 11.sp
                 )
                 Text(
-                    text = publicacion.nombreReportante,
-                    color = Color(0xFF494D50),
+                    text = publication.nombreReportante,
+                    color = DesignSystem.Colors.ReportAuthorText,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = " · ${publicacion.antiguedad}",
-                    color = Gris,
+                    text = " · ${publication.antiguedad}",
+                    color = Color(0xFF55595C),
                     fontSize = 11.sp
                 )
             }
             Text(
-                text = publicacion.descripcion,
+                text = publication.descripcion,
                 modifier = Modifier.padding(top = 14.dp),
-                color = Color(0xFF55595C),
+                color = DesignSystem.Colors.TextSecondary,
                 fontSize = 12.sp,
                 lineHeight = 19.sp
             )
@@ -189,7 +187,7 @@ fun ReportDetailScreen(
                         onShowMessage("La ubicación del reporte es solo ilustrativa.")
                     },
                 shape = RoundedCornerShape(12.dp),
-                color = Color(0xFFF3F4F5)
+                color = DesignSystem.Colors.FilterSurface
             ) {
                 Row(
                     modifier = Modifier.padding(12.dp),
@@ -211,7 +209,7 @@ fun ReportDetailScreen(
                     }
                     Column(modifier = Modifier.padding(start = 11.dp)) {
                         Text(
-                            text = publicacion.ubicacion,
+                            text = publication.ubicacion,
                             color = Color(0xFF363A3D),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -221,7 +219,7 @@ fun ReportDetailScreen(
                         Text(
                             text = "Ver ubicación exacta en el mapa",
                             modifier = Modifier.padding(top = 4.dp),
-                            color = Gris,
+                            color = DesignSystem.Colors.TextSecondary,
                             fontSize = 10.sp
                         )
                     }
@@ -236,14 +234,14 @@ fun ReportDetailScreen(
             ) {
                 OutlinedButton(
                     onClick = {
-                        modeloVista.alternarImportancia()
+                        viewModel.toggleImportance()
                     },
                     modifier = Modifier
                         .weight(1f)
                         .height(38.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Naranja
+                        contentColor = DesignSystem.Colors.AccentDark
                     )
                 ) {
                     Icon(
@@ -252,7 +250,7 @@ fun ReportDetailScreen(
                         modifier = Modifier.size(17.dp)
                     )
                     Text(
-                        text = "Es importante · ${estado.votosImportante}",
+                        text = "Es importante · ${uiState.importantVotes}",
                         modifier = Modifier.padding(start = 5.dp),
                         fontSize = 11.sp
                     )
@@ -278,17 +276,17 @@ fun ReportDetailScreen(
                 modifier = Modifier.padding(top = 16.dp)
             )
             Text(
-                text = "Comentarios · ${publicacion.cantidadComentarios}",
+                text = "Comentarios · ${publication.cantidadComentarios}",
                 modifier = Modifier.padding(top = 14.dp),
-                color = Color(0xFF34383A),
+                color = DesignSystem.Colors.TextPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
-            ComentarioDemostrativo(
-                iniciales = if (publicacion.id == "publicacion-seguridad-1") "CR" else "LP",
-                nombre = if (publicacion.id == "publicacion-seguridad-1") "Carlos R." else "Laura P.",
-                tiempo = "hace 1 h",
-                texto = if (publicacion.id == "publicacion-seguridad-1") {
+            DemonstrationComment(
+                initials = if (publication.id == "publicacion-seguridad-1") "CR" else "LP",
+                name = if (publication.id == "publicacion-seguridad-1") "Carlos R." else "Laura P.",
+                time = "hace 1 h",
+                text = if (publication.id == "publicacion-seguridad-1") {
                     "Yo también escuché la moto rondando. Buena idea avisar a la policía."
                 } else {
                     "Gracias por compartir la información con el barrio."
@@ -300,34 +298,34 @@ fun ReportDetailScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(DesignSystem.Colors.White)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             BasicTextField(
-                value = estado.comentario,
-                onValueChange = modeloVista::cambiarComentario,
+                value = uiState.comment,
+                onValueChange = viewModel::changeComment,
                 modifier = Modifier
                     .weight(1f)
                     .height(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFF2F3F4))
+                    .background(DesignSystem.Colors.FilterSurface)
                     .padding(horizontal = 14.dp, vertical = 11.dp),
                 singleLine = true,
-                textStyle = androidx.compose.ui.text.TextStyle(
-                    color = Color(0xFF35393B),
+                textStyle = TextStyle(
+                    color = DesignSystem.Colors.TextPrimary,
                     fontSize = 12.sp
                 ),
-                decorationBox = { campo ->
+                decorationBox = { field ->
                     Box {
-                        if (estado.comentario.isEmpty()) {
+                        if (uiState.comment.isEmpty()) {
                             Text(
                                 text = "Añade información adicional...",
-                                color = Color(0xFFA0A3A5),
+                                color = DesignSystem.Colors.Placeholder,
                                 fontSize = 11.sp
                             )
                         }
-                        campo()
+                        field()
                     }
                 }
             )
@@ -336,20 +334,20 @@ fun ReportDetailScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .clickable {
-                        if (modeloVista.enviarComentario()) {
+                        if (viewModel.sendComment()) {
                             onShowMessage("Comentario de demostración; no se envió.")
                         } else {
                             onShowMessage("Escribe un comentario para continuar.")
                         }
                     },
                 shape = CircleShape,
-                color = AzulOscuro
+                color = DesignSystem.Colors.PrimaryDark
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Send,
                         contentDescription = "Enviar comentario de demostración",
-                        tint = Color.White,
+                        tint = DesignSystem.Colors.White,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -359,7 +357,7 @@ fun ReportDetailScreen(
 }
 
 @Composable
-private fun FotoDemostrativa(modifier: Modifier = Modifier) {
+private fun DemonstrationPhoto(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
@@ -369,7 +367,7 @@ private fun FotoDemostrativa(modifier: Modifier = Modifier) {
         Icon(
             imageVector = Icons.Filled.CameraAlt,
             contentDescription = "Espacio de foto demostrativo",
-            tint = Color(0xFFAAA9A5),
+            tint = DesignSystem.Colors.Placeholder,
             modifier = Modifier.size(48.dp)
         )
         Text(
@@ -380,21 +378,21 @@ private fun FotoDemostrativa(modifier: Modifier = Modifier) {
                 .clip(CircleShape)
                 .background(Color(0xAA333333))
                 .padding(horizontal = 9.dp, vertical = 5.dp),
-            color = Color.White,
+            color = DesignSystem.Colors.White,
             fontSize = 10.sp
         )
     }
 }
 
 @Composable
-private fun EtiquetaDetalle(texto: String, fondo: Color, textoColor: Color) {
+private fun DetailTag(text: String, background: Color, textColor: Color) {
     Text(
-        text = texto,
+        text = text,
         modifier = Modifier
             .clip(CircleShape)
-            .background(fondo)
+            .background(background)
             .padding(horizontal = 9.dp, vertical = 5.dp),
-        color = textoColor,
+        color = textColor,
         fontSize = 11.sp,
         fontWeight = FontWeight.SemiBold
     )
@@ -405,12 +403,12 @@ private fun Avatar(iniciales: String) {
     Surface(
         modifier = Modifier.size(25.dp),
         shape = CircleShape,
-        color = AzulOscuro
+        color = DesignSystem.Colors.PrimaryDark
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = iniciales,
-                color = Color.White,
+                color = DesignSystem.Colors.White,
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -419,11 +417,11 @@ private fun Avatar(iniciales: String) {
 }
 
 @Composable
-private fun ComentarioDemostrativo(
-    iniciales: String,
-    nombre: String,
-    tiempo: String,
-    texto: String,
+private fun DemonstrationComment(
+    initials: String,
+    name: String,
+    time: String,
+    text: String,
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.Top) {
@@ -434,7 +432,7 @@ private fun ComentarioDemostrativo(
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text(
-                    text = iniciales,
+                    text = initials,
                     color = Color(0xFF9C6814),
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Medium
@@ -444,19 +442,19 @@ private fun ComentarioDemostrativo(
         Column(modifier = Modifier.padding(start = 9.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = nombre,
-                    color = Color(0xFF414547),
+                    text = name,
+                    color = DesignSystem.Colors.TextPrimary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = " · $tiempo",
-                    color = Color(0xFFA0A3A5),
+                    text = " · $time",
+                    color = DesignSystem.Colors.Placeholder,
                     fontSize = 10.sp
                 )
             }
             Text(
-                text = texto,
+                text = text,
                 modifier = Modifier.padding(top = 4.dp),
                 color = Color(0xFF626669),
                 fontSize = 11.sp,
