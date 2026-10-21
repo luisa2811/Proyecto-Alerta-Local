@@ -1,13 +1,9 @@
 package uniquindio.proyectoalertalocal.features.dashboard.navigation
 
 import kotlinx.serialization.Serializable
-import uniquindio.proyectoalertalocal.domain.model.UserRole
 
 @Serializable
 sealed class DashboardRoutes {
-    @Serializable
-    data class Entry(val role: UserRole) : DashboardRoutes()
-
     @Serializable
     data object ModeratorHome : DashboardRoutes()
 
