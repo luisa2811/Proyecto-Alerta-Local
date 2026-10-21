@@ -12,7 +12,7 @@ import androidx.navigation.toRoute
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.features.home.HomeScreen
 import uniquindio.proyectoalertalocal.features.moderator.ModeratorDashboardScreen
-import uniquindio.proyectoalertalocal.features.moderator.ModeratorReportDetailScreen
+import uniquindio.proyectoalertalocal.features.moderator.detail.ModeratorReportDetailScreen
 import uniquindio.proyectoalertalocal.features.notifications.NotificationsScreen
 import uniquindio.proyectoalertalocal.features.report.create.CreateReportScreen
 import uniquindio.proyectoalertalocal.features.report.detail.ReportDetailScreen

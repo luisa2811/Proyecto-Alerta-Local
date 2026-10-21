@@ -1,4 +1,4 @@
-package uniquindio.proyectoalertalocal.features.moderator
+package uniquindio.proyectoalertalocal.features.moderator.detail
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.features.moderator.ModerationStatus
+import uniquindio.proyectoalertalocal.features.moderator.demoReports
+import uniquindio.proyectoalertalocal.features.moderator.demoResolutions
 
 @Composable
 fun ModeratorReportDetailScreen(
