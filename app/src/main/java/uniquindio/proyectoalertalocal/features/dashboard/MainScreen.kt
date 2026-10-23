@@ -33,7 +33,8 @@ fun MainScreen(
     val destinations = DashboardDestination.entries.filter { role in it.roles }
     val showBottomBar = role == UserRole.RESIDENT &&
         currentDestination?.hasRoute<DashboardRoutes.CreateReport>() != true &&
-        currentDestination?.hasRoute<DashboardRoutes.PublicationDetail>() != true &&
+        currentDestination?.hasRoute<DashboardRoutes.ReportDetail>() != true &&
+        currentDestination?.hasRoute<DashboardRoutes.EditReport>() != true &&
         currentDestination?.hasRoute<DashboardRoutes.EditProfile>() != true &&
         currentDestination?.hasRoute<DashboardRoutes.EditResidence>() != true
 

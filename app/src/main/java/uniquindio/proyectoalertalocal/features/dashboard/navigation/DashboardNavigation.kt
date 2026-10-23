@@ -90,8 +90,8 @@ fun DashboardNavigation(
 
         composable<DashboardRoutes.Alerts> {
             ReportListScreen(
-                onOpenPublication = { publicationId ->
-                    navController.navigate(DashboardRoutes.PublicationDetail(publicationId))
+                onOpenPublication = { reportId ->
+                    navController.navigate(DashboardRoutes.ReportDetail(reportId))
                 },
                 onOpenNotifications = {
                     navController.navigate(DashboardRoutes.Notifications)
@@ -138,12 +138,12 @@ fun DashboardNavigation(
             NotificationsScreen(onBack = { navController.popBackStack() })
         }
 
-        composable<DashboardRoutes.PublicationDetail> { backStackEntry ->
-            val publicationId =
-                backStackEntry.toRoute<DashboardRoutes.PublicationDetail>().publicationId
+        composable<DashboardRoutes.ReportDetail> { backStackEntry ->
+            val reportId =
+                backStackEntry.toRoute<DashboardRoutes.ReportDetail>().reportId
 
             ReportDetailScreen(
-                publicationId = publicationId,
+                publicationId = reportId,
                 onBack = { navController.popBackStack() },
                 onShowMessage = onShowMessage
             )

@@ -6,7 +6,11 @@ import uniquindio.proyectoalertalocal.domain.model.Notification
 interface NotificationRepository {
     fun observeByUser(userId: String): Flow<List<Notification>>
 
+    suspend fun findById(id: String): Notification?
+
     suspend fun save(notification: Notification)
 
-    suspend fun markAsRead(id: String)
+    suspend fun setRead(id: String, read: Boolean)
+
+    suspend fun markAllAsRead(userId: String)
 }

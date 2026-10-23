@@ -4,6 +4,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import uniquindio.proyectoalertalocal.domain.model.Comment
@@ -16,6 +17,8 @@ class CommentRepositoryImpl @Inject constructor() : CommentRepository {
     override fun observeByReport(reportId: String): Flow<List<Comment>> =
         mutableComments.map { comments -> comments.filter { it.reportId == reportId } }
 
+    override fun observeAll(): Flow<List<Comment>> = mutableComments.asStateFlow()
+
     override suspend fun save(comment: Comment) {
         mutableComments.update { currentComments ->
             val existingIndex = currentComments.indexOfFirst { it.id == comment.id }
@@ -24,6 +27,12 @@ class CommentRepositoryImpl @Inject constructor() : CommentRepository {
             } else {
                 currentComments.toMutableList().apply { set(existingIndex, comment) }
             }
+        }
+    }
+
+    override suspend fun deleteByReport(reportId: String) {
+        mutableComments.update { currentComments ->
+            currentComments.filterNot { it.reportId == reportId }
         }
     }
 }

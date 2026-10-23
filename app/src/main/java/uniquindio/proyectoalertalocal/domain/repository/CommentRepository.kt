@@ -6,5 +6,9 @@ import uniquindio.proyectoalertalocal.domain.model.Comment
 interface CommentRepository {
     fun observeByReport(reportId: String): Flow<List<Comment>>
 
+    fun observeAll(): Flow<List<Comment>>
+
     suspend fun save(comment: Comment)
+
+    suspend fun deleteByReport(reportId: String)
 }

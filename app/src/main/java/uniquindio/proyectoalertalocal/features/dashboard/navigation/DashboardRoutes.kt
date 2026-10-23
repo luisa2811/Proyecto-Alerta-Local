@@ -35,5 +35,8 @@ sealed class DashboardRoutes {
     data object Notifications : DashboardRoutes()
 
     @Serializable
-    data class PublicationDetail(val publicationId: String) : DashboardRoutes()
+    data class ReportDetail(val reportId: String) : DashboardRoutes()
+
+    @Serializable
+    data class EditReport(val reportId: String) : DashboardRoutes()
 }

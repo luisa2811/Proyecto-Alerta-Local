@@ -31,6 +31,8 @@ object DesignSystem {
         val ReportAuthorText = Color(0xFF3F4346)
         val ReportCounterText = Color(0xFF565A5D)
         val ReportMutedText = Color(0xFF96999C)
+        val ReportEmergency = Color(0xFFE89A21)
+        val ReportCommunity = Color(0xFF36A278)
         val NotificationSurface = Color(0xFFF1F2F2)
         val DetailVerifiedGreen = Color(0xFF15945A)
         val HomeSecondaryText = Color(0xFF858B91)
