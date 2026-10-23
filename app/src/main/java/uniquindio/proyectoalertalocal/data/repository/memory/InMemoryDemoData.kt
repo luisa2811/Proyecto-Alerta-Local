@@ -360,7 +360,7 @@ internal object InMemoryDemoData {
             userId = "resident-maria",
             title = "¡Nuevo logro!",
             message = "Obtuviste la insignia ${Badge.FIRST_REPORT.displayName}.",
-            reportId = "report-theft-001",
+            reportId = null,
             createdAt = now.minus(Duration.ofDays(1)),
             isRead = true
         ),
