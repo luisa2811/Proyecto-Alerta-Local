@@ -13,17 +13,29 @@ class LoginUserUseCase @Inject constructor(
     suspend operator fun invoke(
         email: String,
         password: String,
-        moderatorCode: String
+        moderatorCode: String,
+        selectedRole: UserRole
     ): Result<User> {
         val user = userRepository.findByEmail(email)
-            ?: return Result.failure(Exception("Correo o contraseña incorrectos"))
+            ?: return Result.failure(IllegalArgumentException("Correo o contraseña incorrectos."))
 
         if (user.password != password) {
-            return Result.failure(Exception("Correo o contraseña incorrectos"))
+            return Result.failure(IllegalArgumentException("Correo o contraseña incorrectos."))
         }
 
-        if (user.role == UserRole.MODERATOR && user.moderatorCode != moderatorCode) {
-            return Result.failure(Exception("Código de moderador inválido"))
+        if (user.role != selectedRole) {
+            val message = when {
+                user.role == UserRole.MODERATOR && selectedRole == UserRole.RESIDENT ->
+                    "Esta cuenta es de moderador. Selecciona el rol Moderador."
+                selectedRole == UserRole.MODERATOR ->
+                    "No tiene permisos para acceder como moderador."
+                else -> "Correo o contraseña incorrectos."
+            }
+            return Result.failure(IllegalArgumentException(message))
+        }
+
+        if (selectedRole == UserRole.MODERATOR && user.moderatorCode != moderatorCode) {
+            return Result.failure(IllegalArgumentException("Código de moderador inválido."))
         }
 
         sessionRepository.saveSession(userId = user.id, role = user.role)

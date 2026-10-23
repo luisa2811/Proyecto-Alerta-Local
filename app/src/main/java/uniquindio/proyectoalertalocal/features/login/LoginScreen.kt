@@ -51,22 +51,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.theme.ProyectoAlertaLocalTheme
+import uniquindio.proyectoalertalocal.domain.model.UserRole
 
 @Composable
 fun LoginScreen(
     onForgotPasswordClick: (String) -> Unit = {},
     onRegisterClick: () -> Unit = {},
     onLoginSuccess: (String) -> Unit = {},
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarState = remember { SnackbarHostState() }
@@ -98,7 +100,7 @@ fun LoginScreen(
             onPasswordChange = viewModel::changePassword,
             onModeratorCodeChange = viewModel::changeModeratorCode,
             onRoleChange = viewModel::changeRole,
-            onLoginAttempt = { onLoginSuccess(uiState.selectedRole) },
+            onLoginAttempt = viewModel::attemptLogin,
             onForgotPassword = { onForgotPasswordClick(uiState.email) },
             onCreateAccount = onRegisterClick,
             modifier = Modifier.padding(innerPadding)
@@ -112,7 +114,7 @@ private fun LoginContent(
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onModeratorCodeChange: (String) -> Unit,
-    onRoleChange: (String) -> Unit,
+    onRoleChange: (UserRole) -> Unit,
     onLoginAttempt: () -> Unit,
     onForgotPassword: () -> Unit,
     onCreateAccount: () -> Unit,
@@ -154,7 +156,8 @@ private fun LoginContent(
             value = uiState.email,
             onValueChange = onEmailChange,
             placeholder = "nombre@correo.com",
-            keyboardType = KeyboardType.Email
+            keyboardType = KeyboardType.Email,
+            errorMessage = uiState.emailError
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -167,7 +170,7 @@ private fun LoginContent(
             hideText = true
         )
 
-        if (uiState.selectedRole == "Moderador") {
+        if (uiState.selectedRole == UserRole.MODERATOR) {
             Spacer(modifier = Modifier.height(16.dp))
             FormField(
                 label = "Código de credencial de moderador",
@@ -218,10 +221,11 @@ private fun LoginContent(
             colors = ButtonDefaults.buttonColors(
                 containerColor = DesignSystem.Colors.PrimaryDark,
                 contentColor = DesignSystem.Colors.White
-            )
+            ),
+            enabled = uiState.isLoginEnabled
         ) {
             Text(
-                text = if (uiState.selectedRole == "Moderador") {
+                text = if (uiState.selectedRole == UserRole.MODERATOR) {
                     "Acceder como moderador"
                 } else {
                     "Iniciar sesión"
@@ -230,7 +234,7 @@ private fun LoginContent(
             )
         }
 
-        if (uiState.selectedRole == "Residente") {
+        if (uiState.selectedRole == UserRole.RESIDENT) {
             DecorativeSeparator(modifier = Modifier.padding(top = 25.dp))
 
             val registerText = buildAnnotatedString {
@@ -270,8 +274,8 @@ private fun AlertLocalLogo() {
 }
 @Composable
 private fun RoleSelector(
-    selectedRole: String,
-    onRoleSelect: (String) -> Unit
+    selectedRole: UserRole,
+    onRoleSelect: (UserRole) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -284,14 +288,14 @@ private fun RoleSelector(
     ) {
         RoleOption(
             name = "Residente",
-            selected = selectedRole == "Residente",
-            onSelect = { onRoleSelect("Residente") },
+            selected = selectedRole == UserRole.RESIDENT,
+            onSelect = { onRoleSelect(UserRole.RESIDENT) },
             modifier = Modifier.weight(1f)
         )
         RoleOption(
             name = "Moderador",
-            selected = selectedRole == "Moderador",
-            onSelect = { onRoleSelect("Moderador") },
+            selected = selectedRole == UserRole.MODERATOR,
+            onSelect = { onRoleSelect(UserRole.MODERATOR) },
             modifier = Modifier.weight(1f)
         )
     }
@@ -343,7 +347,8 @@ private fun FormField(
     placeholder: String,
     keyboardType: KeyboardType,
     hideText: Boolean = false,
-    required: Boolean = false
+    required: Boolean = false,
+    errorMessage: String? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -415,6 +420,17 @@ private fun FormField(
                 }
             )
         }
+    }
+    if (errorMessage != null) {
+        Text(
+            text = errorMessage,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 2.dp, top = 5.dp),
+            color = DesignSystem.Colors.Accent,
+            fontSize = 12.sp,
+            textAlign = TextAlign.Start
+        )
     }
 }
 
