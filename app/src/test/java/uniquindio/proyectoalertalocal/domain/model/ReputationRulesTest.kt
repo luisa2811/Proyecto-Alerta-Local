@@ -9,6 +9,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniquindio.proyectoalertalocal.data.repository.memory.InMemoryDemoData
+import org.junit.Assert.assertNull
 
 class ReputationRulesTest {
 
@@ -215,11 +216,19 @@ class ReputationRulesTest {
 
         InMemoryDemoData.notifications.forEach { notification ->
             val reportId = notification.reportId
+
+            if (notification.title == "¡Nuevo logro!") {
+                assertNull(
+                    "La notificación de logro ${notification.id} no debe referenciar un reporte",
+                    reportId
+                )
+                return@forEach
+            }
+
             assertNotNull(
                 "La notificación ${notification.id} no referencia un reporte",
                 reportId
             )
-
             val report = reportsById[reportId]
             assertNotNull(
                 "La notificación ${notification.id} apunta a un reporte inexistente",
