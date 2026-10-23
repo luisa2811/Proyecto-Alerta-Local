@@ -35,4 +35,10 @@ class ReportRepositoryImpl @Inject constructor() : ReportRepository {
             }
         }
     }
+
+    override suspend fun delete(id: String) {
+        mutableReports.update { currentReports ->
+            currentReports.filterNot { it.id == id }
+        }
+    }
 }

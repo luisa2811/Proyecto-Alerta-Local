@@ -2,7 +2,10 @@ package uniquindio.proyectoalertalocal.data.repository.memory
 
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import uniquindio.proyectoalertalocal.domain.model.User
 import uniquindio.proyectoalertalocal.domain.repository.UserRepository
@@ -13,6 +16,11 @@ class UserRepositoryImpl @Inject constructor() : UserRepository {
 
     override suspend fun findById(id: String): User? =
         mutableUsers.value.firstOrNull { it.id == id }
+
+    override fun observeById(id: String): Flow<User?> =
+        mutableUsers.map { users -> users.firstOrNull { it.id == id } }
+
+    override fun observeAll(): Flow<List<User>> = mutableUsers.asStateFlow()
 
     override suspend fun findByEmail(email: String): User? =
         mutableUsers.value.firstOrNull { it.email.equals(email, ignoreCase = true) }

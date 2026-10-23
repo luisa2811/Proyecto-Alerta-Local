@@ -7,11 +7,13 @@ import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
 import uniquindio.proyectoalertalocal.data.repository.memory.CommentRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.memory.NotificationRepositoryImpl
+import uniquindio.proyectoalertalocal.data.repository.memory.PasswordRecoveryRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.memory.ReportRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.memory.SessionRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.memory.UserRepositoryImpl
 import uniquindio.proyectoalertalocal.domain.repository.CommentRepository
 import uniquindio.proyectoalertalocal.domain.repository.NotificationRepository
+import uniquindio.proyectoalertalocal.domain.repository.PasswordRecoveryRepository
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
 import uniquindio.proyectoalertalocal.domain.repository.UserRepository
@@ -42,6 +44,12 @@ abstract class RepositoryModule {
     abstract fun bindNotificationRepository(
         implementation: NotificationRepositoryImpl
     ): NotificationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPasswordRecoveryRepository(
+        implementation: PasswordRecoveryRepositoryImpl
+    ): PasswordRecoveryRepository
 
     @Binds
     @Singleton

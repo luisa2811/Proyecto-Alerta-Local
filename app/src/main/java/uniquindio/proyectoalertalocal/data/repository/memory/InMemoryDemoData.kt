@@ -2,18 +2,22 @@ package uniquindio.proyectoalertalocal.data.repository.memory
 
 import java.time.Duration
 import java.time.Instant
-import uniquindio.proyectoalertalocal.domain.model.BadgeKind
+import uniquindio.proyectoalertalocal.domain.model.Badge
 import uniquindio.proyectoalertalocal.domain.model.Comment
 import uniquindio.proyectoalertalocal.domain.model.Notification
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.model.User
-import uniquindio.proyectoalertalocal.domain.model.UserBadge
+import uniquindio.proyectoalertalocal.domain.model.UserLevel
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 
 internal object InMemoryDemoData {
-    private val now = Instant.now()
+    /**
+     * Instante de referencia de los datos de ejemplo. Lo usa también la prueba de reputación
+     * para calcular exactamente con el mismo "ahora" y no depender de la fecha de ejecución.
+     */
+    internal val now: Instant = Instant.now()
 
     val users = listOf(
         User(
@@ -24,23 +28,13 @@ internal object InMemoryDemoData {
             role = UserRole.RESIDENT,
             phone = "+57 312 456 7890",
             address = "Cra 15 #8-42, Chapinero Central · Apto 302",
-            neighborhood = "Sector Los Rosales (Cuadrante 4B)",
+            neighborhood = "Los Rosales",
             emailVerified = true,
             phoneVerified = true,
             displayNameInReports = true,
             memberSince = now.minus(Duration.ofDays(580)),
-            guardianLevel = "Nivel Guardián",
-            points = 820,
-            pointsToHero = 1200,
-            activeReports = 7,
-            completedReports = 23,
-            reportsToVerify = 3,
-            badges = listOf(
-                UserBadge("Primer reporte", BadgeKind.STAR),
-                UserBadge("10 verificados", BadgeKind.CHECK),
-                UserBadge("Voz activa", BadgeKind.CHAT),
-                UserBadge("Héroe (bloqueado)", BadgeKind.LOCKED)
-            )
+            earnedBadges = setOf(Badge.FIRST_REPORT),
+            notifiedLevel = UserLevel.COLLABORATOR
         ),
         User(
             id = "resident-carlos",
@@ -49,49 +43,70 @@ internal object InMemoryDemoData {
             password = "Residente123!",
             role = UserRole.RESIDENT,
             address = "Calle 9 con Cra 14",
-            neighborhood = "La Esperanza"
+            neighborhood = "La Esperanza",
+            earnedBadges = setOf(Badge.FIRST_REPORT),
+            notifiedLevel = UserLevel.COLLABORATOR
         ),
         User(
             id = "resident-ana",
             name = "Ana Torres",
             email = "ana@alertalocal.test",
             password = "Residente123!",
-            role = UserRole.RESIDENT
+            role = UserRole.RESIDENT,
+            neighborhood = "Los Rosales",
+            earnedBadges = setOf(Badge.FIRST_REPORT, Badge.NEIGHBORHOOD_VOICE),
+            notifiedLevel = UserLevel.COLLABORATOR
         ),
         User(
             id = "resident-julian",
             name = "Julián Mora",
             email = "julian@alertalocal.test",
             password = "Residente123!",
-            role = UserRole.RESIDENT
+            role = UserRole.RESIDENT,
+            neighborhood = "Los Rosales",
+            earnedBadges = setOf(Badge.FIRST_REPORT),
+            notifiedLevel = UserLevel.NOVICE
         ),
         User(
             id = "resident-laura",
             name = "Laura Peña",
             email = "laura@alertalocal.test",
             password = "Residente123!",
-            role = UserRole.RESIDENT
+            role = UserRole.RESIDENT,
+            neighborhood = "La Esperanza",
+            displayNameInReports = false,
+            earnedBadges = setOf(Badge.FIRST_REPORT),
+            notifiedLevel = UserLevel.NOVICE
         ),
         User(
             id = "resident-andres",
             name = "Andrés T.",
             email = "andres@alertalocal.test",
             password = "Residente123!",
-            role = UserRole.RESIDENT
+            role = UserRole.RESIDENT,
+            neighborhood = "Los Rosales",
+            earnedBadges = setOf(Badge.FIRST_REPORT),
+            notifiedLevel = UserLevel.NOVICE
         ),
         User(
             id = "resident-pedro",
             name = "Pedro G.",
             email = "pedro@alertalocal.test",
             password = "Residente123!",
-            role = UserRole.RESIDENT
+            role = UserRole.RESIDENT,
+            neighborhood = "La Esperanza",
+            earnedBadges = setOf(Badge.FIRST_REPORT),
+            notifiedLevel = UserLevel.NOVICE
         ),
         User(
             id = "resident-sofia",
             name = "Sofía M.",
             email = "sofia@alertalocal.test",
             password = "Residente123!",
-            role = UserRole.RESIDENT
+            role = UserRole.RESIDENT,
+            neighborhood = "Los Rosales",
+            earnedBadges = setOf(Badge.FIRST_REPORT),
+            notifiedLevel = UserLevel.NOVICE
         ),
         User(
             id = "moderator-comuna-4",
@@ -113,9 +128,12 @@ internal object InMemoryDemoData {
             status = ReportStatus.VERIFIED,
             authorId = "resident-maria",
             location = "Cra 15 #8-42, Chapinero Central",
+            neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(2)),
-            supportCount = 28,
-            distanceMeters = 300
+            distanceMeters = 300,
+            supportedBy = supporters(28, 1),
+            reviewedBy = "moderator-comuna-4",
+            reviewedAt = now.minus(Duration.ofHours(1))
         ),
         Report(
             id = "report-medical-001",
@@ -125,9 +143,12 @@ internal object InMemoryDemoData {
             status = ReportStatus.VERIFIED,
             authorId = "resident-carlos",
             location = "Calle 9 con Cra 14",
+            neighborhood = "La Esperanza",
             createdAt = now.minus(Duration.ofMinutes(15)),
-            supportCount = 18,
-            distanceMeters = 450
+            distanceMeters = 450,
+            supportedBy = supporters(17, 29) + "resident-maria",
+            reviewedBy = "moderator-comuna-4",
+            reviewedAt = now.minus(Duration.ofMinutes(5))
         ),
         Report(
             id = "report-lighting-001",
@@ -137,9 +158,10 @@ internal object InMemoryDemoData {
             status = ReportStatus.PENDING,
             authorId = "resident-carlos",
             location = "Calle 10 con Cra 14, esquina",
+            neighborhood = "La Esperanza",
             createdAt = now.minus(Duration.ofHours(5)),
-            supportCount = 14,
-            distanceMeters = 850
+            distanceMeters = 850,
+            supportedBy = supporters(13, 46) + "resident-maria"
         ),
         Report(
             id = "report-lighting-repaired-001",
@@ -149,9 +171,12 @@ internal object InMemoryDemoData {
             status = ReportStatus.VERIFIED,
             authorId = "resident-laura",
             location = "Parque Central",
+            neighborhood = "La Esperanza",
             createdAt = now.minus(Duration.ofDays(1)),
-            supportCount = 0,
-            distanceMeters = 0
+            distanceMeters = 0,
+            supportedBy = emptySet(),
+            reviewedBy = "moderator-comuna-4",
+            reviewedAt = now.minus(Duration.ofHours(20))
         ),
         Report(
             id = "report-pothole-001",
@@ -161,9 +186,12 @@ internal object InMemoryDemoData {
             status = ReportStatus.VERIFIED,
             authorId = "resident-andres",
             location = "Calle 45 con Cra 12, vía principal",
+            neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(5)),
-            supportCount = 11,
-            distanceMeters = 900
+            distanceMeters = 900,
+            supportedBy = supporters(10, 59) + "resident-maria",
+            reviewedBy = "moderator-comuna-4",
+            reviewedAt = now.minus(Duration.ofHours(3))
         ),
         Report(
             id = "report-vehicle-001",
@@ -173,9 +201,12 @@ internal object InMemoryDemoData {
             status = ReportStatus.REJECTED,
             authorId = "resident-julian",
             location = "Calle 10 #14-20",
+            neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(2)),
-            supportCount = 8,
             distanceMeters = 750,
+            supportedBy = supporters(8, 69),
+            reviewedBy = "moderator-comuna-4",
+            reviewedAt = now.minus(Duration.ofMinutes(90)),
             rejectionReason = "Reporte duplicado."
         ),
         Report(
@@ -186,9 +217,14 @@ internal object InMemoryDemoData {
             status = ReportStatus.RESOLVED,
             authorId = "resident-ana",
             location = "Parque La Esperanza",
-            createdAt = now.minus(Duration.ofDays(1)),
-            supportCount = 41,
+            neighborhood = "Los Rosales",
+            createdAt = now.minus(Duration.ofHours(1)),
             distanceMeters = 1200,
+            supportedBy = supporters(41, 77),
+            reviewedBy = "moderator-comuna-4",
+            reviewedAt = now.minus(Duration.ofMinutes(50)),
+            resolvedBy = "moderator-comuna-4",
+            resolvedAt = now.minus(Duration.ofMinutes(45)),
             resolutionNote = "La familia y los vecinos confirmaron el reencuentro."
         ),
         Report(
@@ -199,9 +235,14 @@ internal object InMemoryDemoData {
             status = ReportStatus.RESOLVED,
             authorId = "resident-julian",
             location = "Parque Central Los Rosales",
+            neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofDays(2)),
-            supportCount = 9,
             distanceMeters = 400,
+            supportedBy = supporters(9, 118),
+            reviewedBy = "moderator-comuna-4",
+            reviewedAt = now.minus(Duration.ofHours(36)),
+            resolvedBy = "moderator-comuna-4",
+            resolvedAt = now.minus(Duration.ofHours(24)),
             resolutionNote = "Solucionado y cerrado con cuadrilla comunitaria y aseo."
         ),
         Report(
@@ -212,9 +253,10 @@ internal object InMemoryDemoData {
             status = ReportStatus.PENDING,
             authorId = "resident-pedro",
             location = "Parque Norte, Calle 12 con Av. Principal",
+            neighborhood = "La Esperanza",
             createdAt = now.minus(Duration.ofHours(5)),
-            supportCount = 18,
-            distanceMeters = 0
+            distanceMeters = 0,
+            supportedBy = supporters(18, 127)
         ),
         Report(
             id = "report-cat-found-001",
@@ -224,9 +266,14 @@ internal object InMemoryDemoData {
             status = ReportStatus.RESOLVED,
             authorId = "resident-sofia",
             location = "Cra 14 #32-10",
+            neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(1)),
-            supportCount = 8,
             distanceMeters = 0,
+            supportedBy = supporters(8, 145),
+            reviewedBy = "moderator-comuna-4",
+            reviewedAt = now.minus(Duration.ofMinutes(50)),
+            resolvedBy = "moderator-comuna-4",
+            resolvedAt = now.minus(Duration.ofMinutes(45)),
             resolutionNote = "Reunido con su dueño exitosamente tras contacto vecinal en el punto de encuentro."
         ),
         Report(
@@ -237,9 +284,12 @@ internal object InMemoryDemoData {
             status = ReportStatus.REJECTED,
             authorId = "resident-maria",
             location = "Parque del barrio",
+            neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofDays(1)),
-            supportCount = 0,
             distanceMeters = 0,
+            supportedBy = emptySet(),
+            reviewedBy = "moderator-comuna-4",
+            reviewedAt = now.minus(Duration.ofHours(20)),
             rejectionReason = "No incluía ubicación exacta."
         ),
         Report(
@@ -250,9 +300,10 @@ internal object InMemoryDemoData {
             status = ReportStatus.PENDING,
             authorId = "resident-ana",
             location = "Cra 16 con Calle 7",
+            neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(3)),
-            supportCount = 14,
-            distanceMeters = 600
+            distanceMeters = 600,
+            supportedBy = supporters(14, 153)
         )
     )
 
@@ -273,12 +324,15 @@ internal object InMemoryDemoData {
         )
     )
 
+    /**
+     * Cada notificación referencia un reporte del usuario que la recibe.
+     */
     val notifications = listOf(
         Notification(
             id = "notification-1",
             userId = "resident-maria",
             title = "Nuevo comentario",
-            message = "Carlos R. comentó en tu reporte \"Intento de robo en la Cra 15\"",
+            message = "Carlos R. comentó en tu reporte \"Intento de robo en la Cra 15 con Calle 8\"",
             reportId = "report-theft-001",
             createdAt = now.minus(Duration.ofHours(1)),
             isRead = false
@@ -287,9 +341,9 @@ internal object InMemoryDemoData {
             id = "notification-2",
             userId = "resident-maria",
             title = "Reporte verificado",
-            message = "Un moderador verificó tu reporte \"Poste de luz apagado\"",
-            reportId = "report-lighting-001",
-            createdAt = now.minus(Duration.ofHours(3)),
+            message = "Un moderador verificó tu reporte \"Intento de robo en la Cra 15 con Calle 8\"",
+            reportId = "report-theft-001",
+            createdAt = now.minus(Duration.ofHours(1)),
             isRead = true
         ),
         Notification(
@@ -304,19 +358,73 @@ internal object InMemoryDemoData {
         Notification(
             id = "notification-4",
             userId = "resident-maria",
-            title = "Nuevo logro desbloqueado",
-            message = "¡Nuevo logro desbloqueado! 10 publicaciones verificadas",
+            title = "¡Nuevo logro!",
+            message = "Obtuviste la insignia ${Badge.FIRST_REPORT.displayName}.",
+            reportId = "report-theft-001",
             createdAt = now.minus(Duration.ofDays(1)),
             isRead = true
         ),
         Notification(
             id = "notification-5",
-            userId = "resident-maria",
-            title = "Nuevo comentario",
-            message = "Laura P. comentó en \"Perro perdido, raza mestiza\"",
+            userId = "resident-carlos",
+            title = "Reporte verificado",
+            message = "Un moderador verificó tu reporte \"Persona requiere asistencia médica\"",
+            reportId = "report-medical-001",
+            createdAt = now.minus(Duration.ofMinutes(10)),
+            isRead = false
+        ),
+        Notification(
+            id = "notification-6",
+            userId = "resident-ana",
+            title = "Reporte resuelto",
+            message = "Tu reporte \"Perro perdido, raza mestiza, collar azul\" fue marcado como resuelto.",
             reportId = "report-dog-lost-001",
-            createdAt = now.minus(Duration.ofDays(1)),
+            createdAt = now.minus(Duration.ofMinutes(40)),
+            isRead = true
+        ),
+        Notification(
+            id = "notification-7",
+            userId = "resident-julian",
+            title = "Reporte rechazado",
+            message = "Tu reporte \"Vehículo sospechoso en la cuadra\" fue rechazado: Reporte duplicado.",
+            reportId = "report-vehicle-001",
+            createdAt = now.minus(Duration.ofMinutes(90)),
+            isRead = false
+        ),
+        Notification(
+            id = "notification-8",
+            userId = "resident-julian",
+            title = "Reporte resuelto",
+            message = "Tu reporte \"Acumulación de basuras en el parque infantil\" fue marcado como resuelto.",
+            reportId = "report-trash-001",
+            createdAt = now.minus(Duration.ofHours(24)),
+            isRead = true
+        ),
+        Notification(
+            id = "notification-9",
+            userId = "resident-sofia",
+            title = "Reporte resuelto",
+            message = "Tu reporte \"Gato encontrado cerca al parque\" fue marcado como resuelto.",
+            reportId = "report-cat-found-001",
+            createdAt = now.minus(Duration.ofMinutes(45)),
+            isRead = false
+        ),
+        Notification(
+            id = "notification-10",
+            userId = "resident-laura",
+            title = "Reporte verificado",
+            message = "Un moderador verificó tu reporte \"Luminaria reparada en el parque\"",
+            reportId = "report-lighting-repaired-001",
+            createdAt = now.minus(Duration.ofHours(20)),
             isRead = true
         )
     )
+
+    /**
+     * Vecinos sintéticos que no inician sesión: cada reporte usa un rango propio para que
+     * ningún identificador se repita entre reportes.
+     */
+    private fun supporters(count: Int, firstIndex: Int): Set<String> =
+        (firstIndex until firstIndex + count)
+            .mapTo(LinkedHashSet()) { "neighbor-${it.toString().padStart(2, '0')}" }
 }

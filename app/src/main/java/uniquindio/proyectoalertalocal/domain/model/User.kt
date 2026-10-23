@@ -15,25 +15,9 @@ data class User(
     val phoneVerified: Boolean = false,
     val displayNameInReports: Boolean = true,
     val memberSince: Instant? = null,
-    val guardianLevel: String? = null,
-    val points: Int = 0,
-    val pointsToHero: Int = 0,
-    val activeReports: Int = 0,
-    val completedReports: Int = 0,
-    val reportsToVerify: Int = 0,
-    val badges: List<UserBadge> = emptyList(),
+    val complement: String? = null,
+    val earnedBadges: Set<Badge> = emptySet(),
+    val notifiedLevel: UserLevel = UserLevel.NOVICE,
     val moderatorCode: String? = null,
     val assignedCommune: String? = null
 )
-
-data class UserBadge(
-    val title: String,
-    val kind: BadgeKind
-)
-
-enum class BadgeKind {
-    STAR,
-    CHECK,
-    CHAT,
-    LOCKED
-}

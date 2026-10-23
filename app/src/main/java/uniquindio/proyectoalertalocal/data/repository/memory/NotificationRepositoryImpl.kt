@@ -16,6 +16,9 @@ class NotificationRepositoryImpl @Inject constructor() : NotificationRepository 
     override fun observeByUser(userId: String): Flow<List<Notification>> =
         mutableNotifications.map { notifications -> notifications.filter { it.userId == userId } }
 
+    override suspend fun findById(id: String): Notification? =
+        mutableNotifications.value.firstOrNull { it.id == id }
+
     override suspend fun save(notification: Notification) {
         mutableNotifications.update { currentNotifications ->
             val existingIndex = currentNotifications.indexOfFirst { it.id == notification.id }
@@ -27,10 +30,18 @@ class NotificationRepositoryImpl @Inject constructor() : NotificationRepository 
         }
     }
 
-    override suspend fun markAsRead(id: String) {
+    override suspend fun setRead(id: String, read: Boolean) {
         mutableNotifications.update { currentNotifications ->
             currentNotifications.map { notification ->
-                if (notification.id == id) notification.copy(isRead = true) else notification
+                if (notification.id == id) notification.copy(isRead = read) else notification
+            }
+        }
+    }
+
+    override suspend fun markAllAsRead(userId: String) {
+        mutableNotifications.update { currentNotifications ->
+            currentNotifications.map { notification ->
+                if (notification.userId == userId) notification.copy(isRead = true) else notification
             }
         }
     }
