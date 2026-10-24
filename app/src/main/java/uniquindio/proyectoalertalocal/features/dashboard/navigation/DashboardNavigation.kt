@@ -109,14 +109,16 @@ fun DashboardNavigation(
         composable<DashboardRoutes.CreateReport> {
             CreateReportScreen(
                 onBack = { navController.popBackStack() },
-                onSubmit = {
-                    onShowMessage("Formulario de demostración: el reporte no se publicó.")
-                    navController.navigate(DashboardRoutes.Alerts) {
+                onShowMessage = onShowMessage,
+                onPublished = {
+                    navController.navigate(DashboardRoutes.MyReports) {
                         popUpTo<DashboardRoutes.Home>()
                         launchSingleTop = true
                     }
                 },
-                onShowMessage = onShowMessage
+                onOpenReport = { reportId ->
+                    navController.navigate(DashboardRoutes.ReportDetail(reportId))
+                }
             )
         }
 

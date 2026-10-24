@@ -1,9 +1,23 @@
 package uniquindio.proyectoalertalocal.features.report.create
 
-import uniquindio.proyectoalertalocal.features.report.CategoriaPublicacion
+import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.domain.model.Report
+import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 
 data class CreateReportUiState(
-    val category: CategoriaPublicacion = CategoriaPublicacion.SEGURIDAD,
+    val category: ReportCategory? = null,
     val title: String = "",
-    val description: String = ""
+    val description: String = "",
+    val location: String = "",
+    val isFormValid: Boolean = false,
+    val result: RequestResult? = null,
+    val similarReports: List<Report> = emptyList(),
+    val currentUserId: String? = null,
+    val navigation: CreateReportNavigation? = null,
+    val isPublishing: Boolean = false
 )
+
+sealed interface CreateReportNavigation {
+    data object ToMyReports : CreateReportNavigation
+    data class ToReportDetail(val reportId: String) : CreateReportNavigation
+}
