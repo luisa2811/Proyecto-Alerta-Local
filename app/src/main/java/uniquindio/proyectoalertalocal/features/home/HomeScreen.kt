@@ -1,4 +1,5 @@
 package uniquindio.proyectoalertalocal.features.home
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,24 +19,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.ThumbUp
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -58,13 +57,22 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
+import uniquindio.proyectoalertalocal.core.component.color
+import uniquindio.proyectoalertalocal.core.component.icon
+import uniquindio.proyectoalertalocal.core.component.label
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.util.toRelativeTime
+import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
+import uniquindio.proyectoalertalocal.domain.model.ReportCategory
+import uniquindio.proyectoalertalocal.domain.model.ReportStatus
+import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 
 @Composable
 fun HomeScreen(
@@ -72,7 +80,8 @@ fun HomeScreen(
     onEditAddress: () -> Unit,
     onOpenNotifications: () -> Unit,
     onShowMessage: (String) -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    onOpenReportDetail: (String) -> Unit = {},
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -96,29 +105,57 @@ fun HomeScreen(
             onViewSelect = viewModel::selectView
         )
 
-        when (uiState.selectedView) {
-            VistaAlertas.MAPA -> DemoMap(
-                alerts = uiState.filteredAlerts,
-                selectedAlert = uiState.selectedAlert,
-                onAlertSelect = viewModel::selectAlert,
-                onCreateReport = onCreateReport,
-                onGetDirections = {
-                    onShowMessage("La función Cómo llegar estará disponible próximamente.")
-                },
-                onOpenTemporaryDetail = {
-                    onShowMessage("El detalle de las alertas será agregado por el equipo responsable.")
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            )
+        when {
+            uiState.reports.isEmpty() -> {
+                EmptyState(
+                    message = "Aún no hay alertas en tu barrio.",
+                    actionLabel = "Crear un reporte",
+                    onAction = onCreateReport,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                )
+            }
 
-            VistaAlertas.LISTA -> AlertList(
-                alerts = uiState.filteredAlerts,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            )
+            uiState.filteredReports.isEmpty() -> {
+                EmptyState(
+                    message = "No hay alertas con estos filtros.",
+                    actionLabel = null,
+                    onAction = null,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                )
+            }
+
+            uiState.selectedView == HomeView.MAP -> {
+                DemoMap(
+                    reports = uiState.filteredReports,
+                    selectedAlert = uiState.selectedAlert,
+                    onAlertSelect = viewModel::selectAlert,
+                    onCreateReport = onCreateReport,
+                    onGetDirections = {
+                        onShowMessage("La función Cómo llegar estará disponible próximamente.")
+                    },
+                    onOpenDetail = { reportId ->
+                        onOpenReportDetail(reportId)
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                )
+            }
+
+            uiState.selectedView == HomeView.LIST -> {
+                AlertList(
+                    reports = uiState.filteredReports,
+                    featuredReport = uiState.featuredReport,
+                    onOpenDetail = onOpenReportDetail,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                )
+            }
         }
     }
 }
@@ -220,10 +257,10 @@ private fun HomeHeader(
 
 @Composable
 private fun CategoryFilters(
-    selectedCategory: CategoriaAlerta?,
-    onCategorySelect: (CategoriaAlerta?) -> Unit
+    selectedCategory: ReportCategory?,
+    onCategorySelect: (ReportCategory?) -> Unit
 ) {
-    val categories = listOf(null) + CategoriaAlerta.entries
+    val categories = listOf(null) + ReportCategory.entries
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -233,7 +270,7 @@ private fun CategoryFilters(
     ) {
         categories.forEach { category ->
             val isSelected = category == selectedCategory
-            val label = category?.etiqueta ?: "Todos"
+            val label = category?.label() ?: "Todos"
             Surface(
                 modifier = Modifier
                     .clip(CircleShape)
@@ -253,15 +290,29 @@ private fun CategoryFilters(
     }
 }
 
+private fun ProximityFilter.label(): String = when (this) {
+    ProximityFilter.NEARBY -> "Cerca de mí"
+    ProximityFilter.ZONE -> "En mi zona"
+    ProximityFilter.CITY -> "Toda la ciudad"
+}
+
+private fun getAuthorInitials(authorName: String): String {
+    val words = authorName.trim().split("\\s+".toRegex()).filter { it.isNotEmpty() }
+    return when {
+        words.isEmpty() -> ""
+        words.size == 1 -> words[0].take(1).uppercase()
+        else -> (words[0].take(1) + words[1].take(1)).uppercase()
+    }
+}
+
 @Composable
 private fun ViewControls(
-    proximity: String,
-    selectedView: VistaAlertas,
-    onProximitySelect: (String) -> Unit,
-    onViewSelect: (VistaAlertas) -> Unit
+    proximity: ProximityFilter,
+    selectedView: HomeView,
+    onProximitySelect: (ProximityFilter) -> Unit,
+    onViewSelect: (HomeView) -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
-    val proximityOptions = listOf("Cerca de mí", "En mi zona", "Toda la ciudad")
 
     Row(
         modifier = Modifier
@@ -283,7 +334,7 @@ private fun ViewControls(
                     tint = DesignSystem.Colors.HomeSecondaryText
                 )
                 Text(
-                    text = proximity,
+                    text = proximity.label(),
                     modifier = Modifier.padding(start = 6.dp),
                     color = Color(0xFF4F5356),
                     fontSize = 12.sp
@@ -293,9 +344,9 @@ private fun ViewControls(
                 expanded = isMenuOpen,
                 onDismissRequest = { isMenuOpen = false }
             ) {
-                proximityOptions.forEach { option ->
+                ProximityFilter.entries.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(option) },
+                        text = { Text(option.label()) },
                         onClick = {
                             onProximitySelect(option)
                             isMenuOpen = false
@@ -311,8 +362,8 @@ private fun ViewControls(
                 .background(DesignSystem.Colors.FilterSurface)
                 .padding(3.dp)
         ) {
-            ViewOption("Lista", VistaAlertas.LISTA, selectedView, onViewSelect)
-            ViewOption("Mapa", VistaAlertas.MAPA, selectedView, onViewSelect)
+            ViewOption("Lista", HomeView.LIST, selectedView, onViewSelect)
+            ViewOption("Mapa", HomeView.MAP, selectedView, onViewSelect)
         }
     }
 }
@@ -320,9 +371,9 @@ private fun ViewControls(
 @Composable
 private fun ViewOption(
     label: String,
-    view: VistaAlertas,
-    selectedView: VistaAlertas,
-    onSelect: (VistaAlertas) -> Unit
+    view: HomeView,
+    selectedView: HomeView,
+    onSelect: (HomeView) -> Unit
 ) {
     val isSelected = view == selectedView
     Surface(
@@ -344,15 +395,53 @@ private fun ViewOption(
 }
 
 @Composable
+private fun EmptyState(
+    message: String,
+    actionLabel: String?,
+    onAction: (() -> Unit)?,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = message,
+            color = DesignSystem.Colors.TextSecondary,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center
+        )
+        if (actionLabel != null && onAction != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onAction,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = DesignSystem.Colors.PrimaryDark,
+                    contentColor = DesignSystem.Colors.White
+                )
+            ) {
+                Text(text = actionLabel)
+            }
+        }
+    }
+}
+
+@Composable
 private fun DemoMap(
-    alerts: List<AlertUiModel>,
-    selectedAlert: AlertUiModel?,
+    reports: List<ReportSummary>,
+    selectedAlert: ReportSummary?,
     onAlertSelect: (String) -> Unit,
     onCreateReport: () -> Unit,
     onGetDirections: () -> Unit,
-    onOpenTemporaryDetail: () -> Unit,
+    onOpenDetail: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val mapPositionsX = floatArrayOf(0.34f, 0.51f, 0.77f, 0.25f, 0.67f, 0.40f, 0.82f, 0.20f)
+    val mapPositionsY = floatArrayOf(0.20f, 0.42f, 0.38f, 0.53f, 0.56f, 0.70f, 0.25f, 0.35f)
+
     BoxWithConstraints(
         modifier = modifier
             .padding(top = 8.dp)
@@ -407,14 +496,16 @@ private fun DemoMap(
             fontWeight = FontWeight.Medium
         )
 
-        alerts.forEach { alert ->
+        reports.forEachIndexed { index, summary ->
+            val posX = mapPositionsX[index % mapPositionsX.size]
+            val posY = mapPositionsY[index % mapPositionsY.size]
             AlertMarker(
-                alert = alert,
-                isSelected = alert.id == selectedAlert?.id,
-                onSelect = { onAlertSelect(alert.id) },
+                summary = summary,
+                isSelected = summary.report.id == selectedAlert?.report?.id,
+                onSelect = { onAlertSelect(summary.report.id) },
                 modifier = Modifier.offset(
-                    x = maxWidth * alert.posicionX - 17.dp,
-                    y = maxHeight * alert.posicionY - 17.dp
+                    x = maxWidth * posX - 17.dp,
+                    y = maxHeight * posY - 17.dp
                 )
             )
         }
@@ -441,11 +532,11 @@ private fun DemoMap(
             )
         }
 
-        selectedAlert?.let { alert ->
+        selectedAlert?.let { summary ->
             SelectedAlertCard(
-                alert = alert,
+                summary = summary,
                 onGetDirections = onGetDirections,
-                onOpenDetail = onOpenTemporaryDetail,
+                onOpenDetail = { onOpenDetail(summary.report.id) },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
@@ -457,7 +548,9 @@ private fun DemoMap(
 
 @Composable
 private fun AlertList(
-    alerts: List<AlertUiModel>,
+    reports: List<ReportSummary>,
+    featuredReport: ReportSummary?,
+    onOpenDetail: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -465,23 +558,69 @@ private fun AlertList(
         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(alerts, key = { it.id }) { alert ->
-            AlertListCard(
-                alert = alert
-            )
+        if (featuredReport != null) {
+            item(key = "featured-${featuredReport.report.id}") {
+                Column {
+                    Row(
+                        modifier = Modifier.padding(bottom = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = null,
+                            tint = DesignSystem.Colors.HomeAccent,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "Alerta destacada",
+                            modifier = Modifier.padding(start = 4.dp),
+                            color = DesignSystem.Colors.HeaderText,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    AlertListCard(
+                        summary = featuredReport,
+                        isFeatured = true,
+                        onOpenDetail = { onOpenDetail(featuredReport.report.id) }
+                    )
+                }
+            }
+        }
+
+        itemsIndexed(
+            items = reports,
+            key = { _, summary -> summary.report.id }
+        ) { _, summary ->
+            if (summary.report.id != featuredReport?.report?.id) {
+                AlertListCard(
+                    summary = summary,
+                    isFeatured = false,
+                    onOpenDetail = { onOpenDetail(summary.report.id) }
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun AlertListCard(
-    alert: AlertUiModel
+    summary: ReportSummary,
+    isFeatured: Boolean = false,
+    onOpenDetail: () -> Unit
 ) {
+    val report = summary.report
+    val category = report.category
+    val severity = summary.severity
+    val status = report.status
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpenDetail),
         shape = RoundedCornerShape(16.dp),
         color = DesignSystem.Colors.White,
-        shadowElevation = 2.dp
+        shadowElevation = if (isFeatured) 4.dp else 2.dp
     ) {
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
             Row(
@@ -489,55 +628,63 @@ private fun AlertListCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Tag(
-                    text = alert.categoria.etiqueta,
-                    background = alert.categoria.color.copy(alpha = 0.12f),
-                    textColor = alert.categoria.color
+                    text = category.label(),
+                    background = category.color().copy(alpha = 0.12f),
+                    textColor = category.color()
                 )
-                if (alert.verificada) {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Row(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(DesignSystem.Colors.VerifiedBackground)
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Spacer(modifier = Modifier.width(6.dp))
+                Tag(
+                    text = severity.label(),
+                    background = severity.color().copy(alpha = 0.12f),
+                    textColor = severity.color()
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Row(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(status.color().copy(alpha = 0.12f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (status == ReportStatus.VERIFIED) {
                         Icon(
                             imageVector = Icons.Filled.Check,
                             contentDescription = null,
-                            tint = DesignSystem.Colors.VerifiedGreen,
+                            tint = status.color(),
                             modifier = Modifier.size(12.dp)
                         )
-                        Text(
-                            text = "Verificado",
-                            modifier = Modifier.padding(start = 3.dp),
-                            color = DesignSystem.Colors.VerifiedGreen,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Spacer(modifier = Modifier.width(3.dp))
                     }
+                    Text(
+                        text = status.label(),
+                        color = status.color(),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = "${alert.distancia} · ${alert.antiguedad}",
+                    text = "${report.distanceMeters} m · ${report.createdAt.toRelativeTime()}",
                     color = DesignSystem.Colors.HomeSecondaryText,
                     fontSize = 10.sp
                 )
             }
 
             Text(
-                text = alert.titulo,
+                text = report.title,
                 modifier = Modifier.padding(top = 8.dp),
                 color = DesignSystem.Colors.ReportTitleText,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = alert.descripcion,
+                text = report.description,
                 modifier = Modifier.padding(top = 4.dp),
                 color = DesignSystem.Colors.ReportDescriptionText,
                 fontSize = 12.sp,
-                lineHeight = 17.sp
+                lineHeight = 17.sp,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
             )
 
             Row(
@@ -549,12 +696,12 @@ private fun AlertListCard(
             ) {
                 AlertCounter(
                     icon = Icons.Filled.ThumbUp,
-                    count = alert.meGusta,
-                    description = "Me gusta"
+                    count = summary.supportCount,
+                    description = "Es importante"
                 )
                 AlertCounter(
                     icon = Icons.Filled.ChatBubbleOutline,
-                    count = alert.cantidadComentarios,
+                    count = summary.commentCount,
                     description = "Comentarios"
                 )
             }
@@ -565,6 +712,7 @@ private fun AlertListCard(
                     .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val initials = getAuthorInitials(summary.authorName)
                 Box(
                     modifier = Modifier
                         .size(27.dp)
@@ -572,7 +720,7 @@ private fun AlertListCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = alert.inicialesReportante,
+                        text = initials,
                         color = DesignSystem.Colors.White,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
@@ -584,19 +732,19 @@ private fun AlertListCard(
                         .padding(start = 8.dp)
                 ) {
                     Text(
-                        text = alert.nombreReportante,
+                        text = summary.authorName,
                         color = DesignSystem.Colors.ReportAuthorText,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = alert.rolReportante,
+                        text = "Residente",
                         color = DesignSystem.Colors.HomeSecondaryText,
                         fontSize = 10.sp
                     )
                 }
                 Text(
-                    text = alert.ubicacion,
+                    text = report.location,
                     modifier = Modifier.weight(1f),
                     color = DesignSystem.Colors.HomeSecondaryText,
                     fontSize = 10.sp,
@@ -604,7 +752,6 @@ private fun AlertListCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-
         }
     }
 }
@@ -640,16 +787,12 @@ private fun AlertCounter(
 
 @Composable
 private fun AlertMarker(
-    alert: AlertUiModel,
+    summary: ReportSummary,
     isSelected: Boolean,
     onSelect: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val icon = when (alert.categoria) {
-        CategoriaAlerta.SEGURIDAD -> Icons.Filled.Warning
-        CategoriaAlerta.EMERGENCIAS -> Icons.Filled.LocalHospital
-        CategoriaAlerta.INFRAESTRUCTURA -> Icons.Filled.Build
-    }
+    val category = summary.report.category
 
     Box(
         modifier = modifier
@@ -657,13 +800,13 @@ private fun AlertMarker(
             .shadow(if (isSelected) 5.dp else 2.dp, CircleShape)
             .background(DesignSystem.Colors.White, CircleShape)
             .padding(3.dp)
-            .background(alert.categoria.color, CircleShape)
+            .background(category.color(), CircleShape)
             .clickable(onClick = onSelect),
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = icon,
-            contentDescription = "Alerta ${alert.categoria.etiqueta}: ${alert.titulo}",
+            imageVector = category.icon(),
+            contentDescription = "Alerta ${category.label()}: ${summary.report.title}",
             tint = DesignSystem.Colors.White,
             modifier = Modifier.size(20.dp)
         )
@@ -672,11 +815,16 @@ private fun AlertMarker(
 
 @Composable
 private fun SelectedAlertCard(
-    alert: AlertUiModel,
+    summary: ReportSummary,
     onGetDirections: () -> Unit,
     onOpenDetail: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val report = summary.report
+    val category = report.category
+    val severity = summary.severity
+    val status = report.status
+
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(18.dp),
@@ -698,37 +846,43 @@ private fun SelectedAlertCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Tag(
-                    text = alert.categoria.etiqueta,
-                    background = alert.categoria.color.copy(alpha = 0.12f),
-                    textColor = alert.categoria.color
+                    text = category.label(),
+                    background = category.color().copy(alpha = 0.12f),
+                    textColor = category.color()
                 )
-                if (alert.verificada) {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Row(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(DesignSystem.Colors.VerifiedBackground)
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Spacer(modifier = Modifier.width(6.dp))
+                Tag(
+                    text = severity.label(),
+                    background = severity.color().copy(alpha = 0.12f),
+                    textColor = severity.color()
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Row(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(status.color().copy(alpha = 0.12f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (status == ReportStatus.VERIFIED) {
                         Icon(
                             imageVector = Icons.Filled.Check,
                             contentDescription = null,
-                            tint = DesignSystem.Colors.VerifiedGreen,
+                            tint = status.color(),
                             modifier = Modifier.size(12.dp)
                         )
-                        Text(
-                            text = "Verificado",
-                            modifier = Modifier.padding(start = 3.dp),
-                            color = DesignSystem.Colors.VerifiedGreen,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Spacer(modifier = Modifier.width(3.dp))
                     }
+                    Text(
+                        text = status.label(),
+                        color = status.color(),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = "${alert.distancia} · ${alert.antiguedad}",
+                    text = "${report.distanceMeters} m · ${report.createdAt.toRelativeTime()}",
                     color = DesignSystem.Colors.HomeSecondaryText,
                     fontSize = 10.sp,
                     maxLines = 1
@@ -736,7 +890,7 @@ private fun SelectedAlertCard(
             }
 
             Text(
-                text = alert.titulo,
+                text = report.title,
                 modifier = Modifier.padding(top = 7.dp),
                 color = DesignSystem.Colors.ReportTitleText,
                 fontSize = 13.sp,
@@ -745,7 +899,7 @@ private fun SelectedAlertCard(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = alert.descripcion,
+                text = report.description,
                 modifier = Modifier.padding(top = 4.dp),
                 color = DesignSystem.Colors.ReportDescriptionText,
                 fontSize = 11.sp,
@@ -759,6 +913,7 @@ private fun SelectedAlertCard(
                     .padding(top = 11.dp, bottom = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val initials = getAuthorInitials(summary.authorName)
                 Box(
                     modifier = Modifier
                         .size(25.dp)
@@ -766,14 +921,14 @@ private fun SelectedAlertCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = alert.inicialesReportante,
+                        text = initials,
                         color = DesignSystem.Colors.White,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
                 Text(
-                    text = alert.nombreReportante,
+                    text = summary.authorName,
                     modifier = Modifier.padding(start = 7.dp),
                     color = DesignSystem.Colors.ReportAuthorText,
                     fontSize = 10.sp,
@@ -782,14 +937,14 @@ private fun SelectedAlertCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = " · ${alert.rolReportante}",
+                    text = " · Residente",
                     color = DesignSystem.Colors.Placeholder,
                     fontSize = 10.sp,
                     maxLines = 1
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = alert.ubicacion,
+                    text = report.location,
                     color = DesignSystem.Colors.HomeSecondaryText,
                     fontSize = 9.sp,
                     maxLines = 1
