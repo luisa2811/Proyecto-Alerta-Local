@@ -122,8 +122,34 @@ fun DashboardNavigation(
             )
         }
 
+        composable<DashboardRoutes.EditReport> { backStackEntry ->
+            val reportId = backStackEntry.toRoute<DashboardRoutes.EditReport>().reportId
+            CreateReportScreen(
+                reportId = reportId,
+                onBack = { navController.popBackStack() },
+                onShowMessage = onShowMessage,
+                onPublished = {
+                    navController.navigate(DashboardRoutes.MyReports) {
+                        popUpTo<DashboardRoutes.Home>()
+                        launchSingleTop = true
+                    }
+                },
+                onOpenReport = { id ->
+                    navController.navigate(DashboardRoutes.ReportDetail(id))
+                }
+            )
+        }
+
         composable<DashboardRoutes.MyReports> {
-            MyReportsScreen(onBack = { navController.popBackStack() })
+            MyReportsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenReport = { reportId ->
+                    navController.navigate(DashboardRoutes.ReportDetail(reportId))
+                },
+                onCreateReport = {
+                    navController.navigate(DashboardRoutes.CreateReport)
+                }
+            )
         }
 
         composable<DashboardRoutes.Profile> {
@@ -153,7 +179,16 @@ fun DashboardNavigation(
             ReportDetailScreen(
                 reportId = reportId,
                 onBack = { navController.popBackStack() },
-                onShowMessage = onShowMessage
+                onShowMessage = onShowMessage,
+                onEdit = { id ->
+                    navController.navigate(DashboardRoutes.EditReport(id))
+                },
+                onDeleted = {
+                    navController.navigate(DashboardRoutes.MyReports) {
+                        popUpTo<DashboardRoutes.Home>()
+                        launchSingleTop = true
+                    }
+                }
             )
         }
     }

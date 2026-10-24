@@ -12,5 +12,20 @@ data class ReportDetailUiState(
     val errorMessage: String? = null,
     val commentError: String? = null,
     val isCommentValid: Boolean = false,
-    val actionResult: RequestResult? = null
-)
+    val actionResult: RequestResult? = null,
+    val currentUserId: String? = null,
+    val showResolveDialog: Boolean = false,
+    val resolveNote: String = "",
+    val showDeleteDialog: Boolean = false,
+    val isDeleted: Boolean = false,
+    val navigation: ReportDetailNavigation? = null
+) {
+    val isOwner: Boolean
+        get() = reportSummary?.report?.authorId != null &&
+            reportSummary.report.authorId == currentUserId
+}
+
+sealed interface ReportDetailNavigation {
+    data class ToEdit(val reportId: String) : ReportDetailNavigation
+    data object ToMyReports : ReportDetailNavigation
+}

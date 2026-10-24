@@ -67,15 +67,26 @@ fun CreateReportScreen(
     onPublished: () -> Unit,
     onOpenReport: (String) -> Unit,
     modifier: Modifier = Modifier,
+    reportId: String? = null,
     viewModel: CreateReportViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isEditing = uiState.editingReportId != null
+
+    LaunchedEffect(reportId) {
+        if (reportId != null) {
+            viewModel.loadForEdit(reportId)
+        }
+    }
 
     LaunchedEffect(uiState.result) {
         when (val result = uiState.result) {
             is RequestResult.Success -> {
                 onShowMessage(result.message)
                 viewModel.onResultShown()
+                if (isEditing) {
+                    onBack()
+                }
             }
             is RequestResult.Failure -> {
                 onShowMessage(result.errorMessage)
@@ -158,7 +169,7 @@ fun CreateReportScreen(
             .background(DesignSystem.Colors.Background)
     ) {
         ScreenHeader(
-            title = "Nuevo reporte",
+            title = if (isEditing) "Editar reporte" else "Nuevo reporte",
             onBack = onBack,
             titleColor = Color(0xFF282A2C),
             trailingContent = {
@@ -276,7 +287,7 @@ fun CreateReportScreen(
         }
 
         Button(
-            onClick = { viewModel.publish() },
+            onClick = { if (isEditing) viewModel.saveChanges() else viewModel.publish() },
             enabled = uiState.isFormValid && uiState.result !is RequestResult.Loading,
             modifier = Modifier
                 .fillMaxWidth()
@@ -288,7 +299,7 @@ fun CreateReportScreen(
             if (uiState.result is RequestResult.Loading) {
                 CircularProgressIndicator(modifier = Modifier.size(18.dp), color = DesignSystem.Colors.White, strokeWidth = 2.dp)
             } else {
-                Text(text = "Publicar reporte", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(text = if (isEditing) "Guardar cambios" else "Publicar reporte", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
