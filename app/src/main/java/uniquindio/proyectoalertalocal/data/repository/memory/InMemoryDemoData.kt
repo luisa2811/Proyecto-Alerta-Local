@@ -173,7 +173,7 @@ internal object InMemoryDemoData {
             location = "Parque Central",
             neighborhood = "La Esperanza",
             createdAt = now.minus(Duration.ofDays(1)),
-            distanceMeters = 0,
+            distanceMeters = 1300,
             supportedBy = emptySet(),
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofHours(20))
@@ -255,7 +255,7 @@ internal object InMemoryDemoData {
             location = "Parque Norte, Calle 12 con Av. Principal",
             neighborhood = "La Esperanza",
             createdAt = now.minus(Duration.ofHours(5)),
-            distanceMeters = 0,
+            distanceMeters = 1100,
             supportedBy = supporters(18, 127)
         ),
         Report(
@@ -268,7 +268,7 @@ internal object InMemoryDemoData {
             location = "Cra 14 #32-10",
             neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(1)),
-            distanceMeters = 0,
+            distanceMeters = 650,
             supportedBy = supporters(8, 145),
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofMinutes(50)),
@@ -286,7 +286,7 @@ internal object InMemoryDemoData {
             location = "Parque del barrio",
             neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofDays(1)),
-            distanceMeters = 0,
+            distanceMeters = 500,
             supportedBy = emptySet(),
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofHours(20)),
