@@ -3,7 +3,6 @@ package uniquindio.proyectoalertalocal.features.moderator.pending
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,9 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
@@ -32,11 +29,11 @@ import uniquindio.proyectoalertalocal.features.moderator.component.ModeratorTopB
 
 @Composable
 fun ModeratorPendingScreen(
-    onBack: () -> Unit,
     onShowMessage: (String) -> Unit,
     onOpenDetail: (String) -> Unit,
     onOpenProfile: () -> Unit,
     modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
     viewModel: ModeratorPendingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -66,7 +63,6 @@ fun ModeratorPendingScreen(
                 pendingCount = uiState.queue?.pending?.size ?: 0,
                 verifiedCount = uiState.queue?.verified?.size ?: 0,
                 rejectedCount = uiState.queue?.rejected?.size ?: 0,
-                onBack = onBack,
                 onOpenProfile = onOpenProfile,
                 onTabSelected = { tab -> 
                     if (tab is ModerationTab) viewModel.selectTab(tab)

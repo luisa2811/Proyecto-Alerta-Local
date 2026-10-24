@@ -37,23 +37,23 @@ import uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab
 
 @Composable
 fun ModeratorTopBar(
-    averageReviewMinutes: Long? = null,
     selectedTab: Any,
-    pendingCount: Int = 0,
-    verifiedCount: Int = 0,
-    rejectedCount: Int = 0,
-    onBack: () -> Unit,
     onOpenProfile: () -> Unit,
     onTabSelected: (Any) -> Unit,
     modifier: Modifier = Modifier,
+    averageReviewMinutes: Long? = null,
+    pendingCount: Int = 0,
+    verifiedCount: Int = 0,
+    rejectedCount: Int = 0,
+    onBack: (() -> Unit)? = null,
     title: String = "Moderation Queue",
     subtitle: String? = null,
     tabLabels: List<String> = listOf("Pendientes", "Verificadas", "Rechazadas"),
     tabCounts: List<Int> = listOf(pendingCount, verifiedCount, rejectedCount),
     tabs: List<Any> = listOf(
-        uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab.PENDING,
-        uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab.VERIFIED,
-        uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab.REJECTED
+        ModerationTab.PENDING,
+        ModerationTab.VERIFIED,
+        ModerationTab.REJECTED
     )
 ) {
     Column(
@@ -68,26 +68,28 @@ fun ModeratorTopBar(
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clickable(onClick = onBack),
-                shape = CircleShape,
-                color = Color.White.copy(alpha = 0.14f)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = DesignSystem.Colors.White,
-                        modifier = Modifier.size(20.dp)
-                    )
+            if (onBack != null) {
+                Surface(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clickable(onClick = onBack),
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.14f)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = DesignSystem.Colors.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 10.dp),
+                    .padding(start = if (onBack != null) 10.dp else 0.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
@@ -99,7 +101,7 @@ fun ModeratorTopBar(
                     contentScale = ContentScale.Crop
                 )
                 Text(
-                    text = "Moderation Queue",
+                    text = title,
                     modifier = Modifier.padding(start = 10.dp),
                     color = DesignSystem.Colors.White,
                     fontSize = 17.sp,
