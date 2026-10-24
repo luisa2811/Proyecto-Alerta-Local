@@ -47,6 +47,8 @@ import uniquindio.proyectoalertalocal.core.util.toRelativeTime
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
+import uniquindio.proyectoalertalocal.core.component.displayCode
+import uniquindio.proyectoalertalocal.core.component.label
 
 @Composable
 fun ModerationReportCard(
@@ -87,7 +89,7 @@ fun ModerationReportCard(
                     color = DesignSystem.Colors.ModeratorNavy.copy(alpha = 0.08f)
                 ) {
                     Text(
-                        text = "Prioridad ${summary.severity.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                        text = "Prioridad ${summary.severity.label()}",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         color = DesignSystem.Colors.ModeratorNavy,
                         fontSize = 10.sp,
@@ -197,7 +199,7 @@ fun ModerationReportCard(
                 if (original != null) {
                     TextButton(onClick = { onOpenDetail(original.id) }) {
                         Text(
-                            text = "Posible duplicado de ${original.id.takeLast(6).uppercase()}",
+                            text = "Posible duplicado de ${original.displayCode()}",
                             fontSize = 11.sp
                         )
                     }

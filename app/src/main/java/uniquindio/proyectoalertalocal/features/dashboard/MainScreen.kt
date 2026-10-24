@@ -6,7 +6,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,7 +37,7 @@ fun MainScreen(
 
     val badgeCounts = if (role == UserRole.MODERATOR) {
         val badgeViewModel: ModeratorBadgeViewModel = hiltViewModel()
-        val pendingCount by badgeViewModel.pendingCount.collectAsState()
+        val pendingCount by badgeViewModel.pendingCount.collectAsStateWithLifecycle()
         mapOf(DashboardDestination.MODERATOR_PENDING to pendingCount)
     } else {
         emptyMap()

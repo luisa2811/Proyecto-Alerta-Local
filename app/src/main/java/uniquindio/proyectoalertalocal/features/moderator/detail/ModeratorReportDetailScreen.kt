@@ -53,7 +53,7 @@ import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
-
+import uniquindio.proyectoalertalocal.core.component.displayCode
 @Composable
 fun ModeratorReportDetailScreen(
     reportId: String,
@@ -250,7 +250,7 @@ fun ModeratorReportDetailScreen(
                 if (!report.possibleDuplicateOf.isNullOrBlank()) {
                     val original = uiState.reportsById[report.possibleDuplicateOf]
                     Text(
-                        text = if (original != null) "Posible duplicado de ${original.id.takeLast(6).uppercase()}" else "Posible duplicado de reporte no disponible",
+                        text = if (original != null) "Posible duplicado de ${original.displayCode()}" else "El reporte original ya no está disponible.",
                         modifier = Modifier.padding(top = 8.dp),
                         color = DesignSystem.Colors.TextSecondary,
                         fontSize = 11.sp

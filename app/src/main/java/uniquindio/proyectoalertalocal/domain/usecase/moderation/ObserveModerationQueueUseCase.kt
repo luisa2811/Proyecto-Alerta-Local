@@ -10,6 +10,7 @@ import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.repository.CommentRepository
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
 import uniquindio.proyectoalertalocal.domain.repository.UserRepository
+import uniquindio.proyectoalertalocal.domain.model.ReportSeverity
 
 class ObserveModerationQueueUseCase @Inject constructor(
     private val reportRepository: ReportRepository,
@@ -28,7 +29,7 @@ class ObserveModerationQueueUseCase @Inject constructor(
             val pendingReports = reports
                 .filter { it.status == ReportStatus.PENDING }
                 .sortedWith(
-                    compareByDescending<Report> { severityOrder(it) }
+                    compareByDescending<Report> { ReportSeverity.fromVotes(it.supportedBy.size) }
                         .thenBy { it.createdAt }
                 )
 
@@ -62,13 +63,4 @@ class ObserveModerationQueueUseCase @Inject constructor(
         }
     }
 
-    private fun severityOrder(report: Report): Int {
-        val votes = report.supportedBy.size
-        return when {
-            votes >= 15 -> 3
-            votes >= 8 -> 2
-            votes >= 4 -> 1
-            else -> 0
-        }
-    }
 }

@@ -154,7 +154,7 @@ private fun Long?.formatTime(): String {
     if (this == null) return "Tiempo prom: —"
     if (this >= 60) {
         val hours = this / 60
-        return "Tiempo prom: ${hours}h"
+        return "Tiempo prom: $hours h"
     }
     return "Tiempo prom: ${this} min"
 }
