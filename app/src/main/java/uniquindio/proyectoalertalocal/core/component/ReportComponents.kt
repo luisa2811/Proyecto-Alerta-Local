@@ -25,7 +25,8 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -433,7 +434,7 @@ fun ReportCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 ReportCounter(
-                    icon = Icons.Filled.ThumbUp,
+                    icon = if (summary.supportedByCurrentUser) Icons.Filled.Star else Icons.Filled.StarBorder,
                     count = summary.supportCount,
                     description = "Es importante"
                 )
