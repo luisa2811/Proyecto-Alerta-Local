@@ -1,31 +1,19 @@
 package uniquindio.proyectoalertalocal.features.user.profile
 
+import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.domain.model.Badge
+
 data class ProfileDashboardUiState(
-    val initials: String = "MJ",
-    val fullName: String = "María Jiménez",
-    val memberSince: String = "Miembro desde marzo 2025",
-    val guardianLevel: String = "Nivel Guardián",
-    val points: Int = 820,
-    val pointsToHero: Int = 1200,
-    val activeReports: Int = 7,
-    val completedReports: Int = 23,
-    val reportsToVerify: Int = 3,
-    val badges: List<ProfileBadgeUiModel> = listOf(
-        ProfileBadgeUiModel("Primer reporte", BadgeKind.STAR),
-        ProfileBadgeUiModel("10 verificados", BadgeKind.CHECK),
-        ProfileBadgeUiModel("Voz activa", BadgeKind.CHAT),
-        ProfileBadgeUiModel("Héroe (bloqueado)", BadgeKind.LOCKED)
-    )
+    val fullName: String = "",
+    val memberSince: String? = null,
+    val levelName: String? = null,
+    val points: Int = 0,
+    val progress: Float = 0f,
+    val levelMessage: String? = null,
+    val activeReports: Int = 0,
+    val resolvedReports: Int = 0,
+    val pendingReports: Int = 0,
+    val earnedBadges: Set<Badge> = emptySet(),
+    val showBadges: Boolean = false,
+    val result: RequestResult? = null
 )
-
-data class ProfileBadgeUiModel(
-    val title: String,
-    val kind: BadgeKind
-)
-
-enum class BadgeKind {
-    STAR,
-    CHECK,
-    CHAT,
-    LOCKED
-}
