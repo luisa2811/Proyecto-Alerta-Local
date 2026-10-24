@@ -74,7 +74,10 @@ fun DashboardNavigation(
                 onOpenNotifications = {
                     navController.navigate(DashboardRoutes.Notifications)
                 },
-                onShowMessage = onShowMessage
+                onShowMessage = onShowMessage,
+                onOpenReportDetail = { reportId ->
+                    navController.navigate(DashboardRoutes.ReportDetail(reportId))
+                }
             )
         }
 
