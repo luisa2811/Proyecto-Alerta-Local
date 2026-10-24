@@ -186,7 +186,16 @@ fun DashboardNavigation(
         }
 
         composable<DashboardRoutes.Notifications> {
-            NotificationsScreen(onBack = { navController.popBackStack() })
+            NotificationsScreen(
+                onBack = { navController.popBackStack() },
+                onShowMessage = onShowMessage,
+                onOpenReport = { reportId ->
+                    navController.navigate(DashboardRoutes.ReportDetail(reportId))
+                },
+                onOpenProfile = {
+                    navController.navigate(DashboardRoutes.Profile)
+                }
+            )
         }
 
         composable<DashboardRoutes.ReportDetail> { backStackEntry ->
