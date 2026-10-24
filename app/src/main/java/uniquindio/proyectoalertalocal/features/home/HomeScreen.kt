@@ -25,8 +25,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ChatBubbleOutline
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FilterList
@@ -34,7 +32,6 @@ import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -53,25 +50,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniquindio.proyectoalertalocal.R
+import uniquindio.proyectoalertalocal.core.component.ReportCard
+import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
+import uniquindio.proyectoalertalocal.core.component.ReportEmptyState
+import uniquindio.proyectoalertalocal.core.component.ReportSeverityTag
+import uniquindio.proyectoalertalocal.core.component.ReportStatusTag
 import uniquindio.proyectoalertalocal.core.component.color
+import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.component.icon
 import uniquindio.proyectoalertalocal.core.component.label
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
-import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 
 @Composable
@@ -107,7 +107,7 @@ fun HomeScreen(
 
         when {
             uiState.reports.isEmpty() -> {
-                EmptyState(
+                ReportEmptyState(
                     message = "Aún no hay alertas en tu barrio.",
                     actionLabel = "Crear un reporte",
                     onAction = onCreateReport,
@@ -118,7 +118,7 @@ fun HomeScreen(
             }
 
             uiState.filteredReports.isEmpty() -> {
-                EmptyState(
+                ReportEmptyState(
                     message = "No hay alertas con estos filtros.",
                     actionLabel = null,
                     onAction = null,
@@ -290,21 +290,6 @@ private fun CategoryFilters(
     }
 }
 
-private fun ProximityFilter.label(): String = when (this) {
-    ProximityFilter.NEARBY -> "Cerca de mí"
-    ProximityFilter.ZONE -> "En mi zona"
-    ProximityFilter.CITY -> "Toda la ciudad"
-}
-
-private fun getAuthorInitials(authorName: String): String {
-    val words = authorName.trim().split("\\s+".toRegex()).filter { it.isNotEmpty() }
-    return when {
-        words.isEmpty() -> ""
-        words.size == 1 -> words[0].take(1).uppercase()
-        else -> (words[0].take(1) + words[1].take(1)).uppercase()
-    }
-}
-
 @Composable
 private fun ViewControls(
     proximity: ProximityFilter,
@@ -391,41 +376,6 @@ private fun ViewOption(
             fontSize = 12.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
         )
-    }
-}
-
-@Composable
-private fun EmptyState(
-    message: String,
-    actionLabel: String?,
-    onAction: (() -> Unit)?,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = message,
-            color = DesignSystem.Colors.TextSecondary,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
-        )
-        if (actionLabel != null && onAction != null) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = onAction,
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = DesignSystem.Colors.PrimaryDark,
-                    contentColor = DesignSystem.Colors.White
-                )
-            ) {
-                Text(text = actionLabel)
-            }
-        }
     }
 }
 
@@ -579,10 +529,10 @@ private fun AlertList(
                             fontWeight = FontWeight.Bold
                         )
                     }
-                    AlertListCard(
+                    ReportCard(
                         summary = featuredReport,
                         isFeatured = true,
-                        onOpenDetail = { onOpenDetail(featuredReport.report.id) }
+                        onClick = { onOpenDetail(featuredReport.report.id) }
                     )
                 }
             }
@@ -593,195 +543,13 @@ private fun AlertList(
             key = { _, summary -> summary.report.id }
         ) { _, summary ->
             if (summary.report.id != featuredReport?.report?.id) {
-                AlertListCard(
+                ReportCard(
                     summary = summary,
                     isFeatured = false,
-                    onOpenDetail = { onOpenDetail(summary.report.id) }
+                    onClick = { onOpenDetail(summary.report.id) }
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun AlertListCard(
-    summary: ReportSummary,
-    isFeatured: Boolean = false,
-    onOpenDetail: () -> Unit
-) {
-    val report = summary.report
-    val category = report.category
-    val severity = summary.severity
-    val status = report.status
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onOpenDetail),
-        shape = RoundedCornerShape(16.dp),
-        color = DesignSystem.Colors.White,
-        shadowElevation = if (isFeatured) 4.dp else 2.dp
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Tag(
-                    text = category.label(),
-                    background = category.color().copy(alpha = 0.12f),
-                    textColor = category.color()
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Tag(
-                    text = severity.label(),
-                    background = severity.color().copy(alpha = 0.12f),
-                    textColor = severity.color()
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Row(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(status.color().copy(alpha = 0.12f))
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (status == ReportStatus.VERIFIED) {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = status.color(),
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(3.dp))
-                    }
-                    Text(
-                        text = status.label(),
-                        color = status.color(),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "${report.distanceMeters} m · ${report.createdAt.toRelativeTime()}",
-                    color = DesignSystem.Colors.HomeSecondaryText,
-                    fontSize = 10.sp
-                )
-            }
-
-            Text(
-                text = report.title,
-                modifier = Modifier.padding(top = 8.dp),
-                color = DesignSystem.Colors.ReportTitleText,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = report.description,
-                modifier = Modifier.padding(top = 4.dp),
-                color = DesignSystem.Colors.ReportDescriptionText,
-                fontSize = 12.sp,
-                lineHeight = 17.sp,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 9.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AlertCounter(
-                    icon = Icons.Filled.ThumbUp,
-                    count = summary.supportCount,
-                    description = "Es importante"
-                )
-                AlertCounter(
-                    icon = Icons.Filled.ChatBubbleOutline,
-                    count = summary.commentCount,
-                    description = "Comentarios"
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val initials = getAuthorInitials(summary.authorName)
-                Box(
-                    modifier = Modifier
-                        .size(27.dp)
-                        .background(DesignSystem.Colors.PrimaryDark, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = initials,
-                        color = DesignSystem.Colors.White,
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                ) {
-                    Text(
-                        text = summary.authorName,
-                        color = DesignSystem.Colors.ReportAuthorText,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "Residente",
-                        color = DesignSystem.Colors.HomeSecondaryText,
-                        fontSize = 10.sp
-                    )
-                }
-                Text(
-                    text = report.location,
-                    modifier = Modifier.weight(1f),
-                    color = DesignSystem.Colors.HomeSecondaryText,
-                    fontSize = 10.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AlertCounter(
-    icon: ImageVector,
-    count: Int,
-    description: String
-) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icon,
-            contentDescription = description,
-            tint = DesignSystem.Colors.HomeSecondaryText,
-            modifier = Modifier.size(15.dp)
-        )
-        Text(
-            text = count.toString(),
-            modifier = Modifier.padding(start = 4.dp),
-            color = DesignSystem.Colors.ReportCounterText,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Text(
-            text = description,
-            modifier = Modifier.padding(start = 4.dp),
-            color = DesignSystem.Colors.HomeSecondaryText,
-            fontSize = 10.sp
-        )
     }
 }
 
@@ -845,41 +613,11 @@ private fun SelectedAlertCard(
                     .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Tag(
-                    text = category.label(),
-                    background = category.color().copy(alpha = 0.12f),
-                    textColor = category.color()
-                )
+                ReportCategoryTag(category = category)
                 Spacer(modifier = Modifier.width(6.dp))
-                Tag(
-                    text = severity.label(),
-                    background = severity.color().copy(alpha = 0.12f),
-                    textColor = severity.color()
-                )
+                ReportSeverityTag(severity = severity)
                 Spacer(modifier = Modifier.width(6.dp))
-                Row(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(status.color().copy(alpha = 0.12f))
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (status == ReportStatus.VERIFIED) {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = status.color(),
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(3.dp))
-                    }
-                    Text(
-                        text = status.label(),
-                        color = status.color(),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+                ReportStatusTag(status = status)
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "${report.distanceMeters} m · ${report.createdAt.toRelativeTime()}",
@@ -1005,22 +743,4 @@ private fun SelectedAlertCard(
             }
         }
     }
-}
-
-@Composable
-private fun Tag(
-    text: String,
-    background: Color,
-    textColor: Color
-) {
-    Text(
-        text = text,
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(background)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        color = textColor,
-        fontSize = 10.sp,
-        fontWeight = FontWeight.SemiBold
-    )
 }

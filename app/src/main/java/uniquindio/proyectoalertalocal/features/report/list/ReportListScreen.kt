@@ -9,24 +9,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -42,19 +37,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
+import uniquindio.proyectoalertalocal.core.component.ReportCard
+import uniquindio.proyectoalertalocal.core.component.ReportEmptyState
+import uniquindio.proyectoalertalocal.core.component.label
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
-import uniquindio.proyectoalertalocal.features.report.CategoriaPublicacion
-import uniquindio.proyectoalertalocal.features.report.PublicacionUiModel
-import androidx.compose.ui.layout.ContentScale
+import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
+import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 
 @Composable
 fun ReportListScreen(
@@ -62,7 +58,8 @@ fun ReportListScreen(
     onOpenNotifications: () -> Unit,
     onShowMessage: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ReportListViewModel = viewModel()
+    onCreateReport: () -> Unit = {},
+    viewModel: ReportListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -80,24 +77,53 @@ fun ReportListScreen(
             onSelectCategory = viewModel::selectCategory
         )
         ReportControls(
-            proximity = uiState.proximity,
+            proximity = uiState.selectedProximity,
             onSelectProximity = viewModel::selectProximity
         )
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 8.dp,
-                bottom = 16.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(uiState.filteredPublications, key = { it.id }) { publication ->
-                PublicationCard(
-                    publication = publication,
-                    onClick = { onOpenPublication(publication.id) }
+
+        when {
+            uiState.reports.isEmpty() -> {
+                ReportEmptyState(
+                    message = "Aún no hay alertas en tu barrio.",
+                    actionLabel = "Crear un reporte",
+                    onAction = onCreateReport,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
                 )
+            }
+
+            uiState.filteredReports.isEmpty() -> {
+                ReportEmptyState(
+                    message = "No hay alertas con estos filtros.",
+                    actionLabel = null,
+                    onAction = null,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                )
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 8.dp,
+                        bottom = 16.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(uiState.filteredReports, key = { it.report.id }) { summary ->
+                        ReportCard(
+                            summary = summary,
+                            onClick = { onOpenPublication(summary.report.id) }
+                        )
+                    }
+                }
             }
         }
     }
@@ -182,10 +208,10 @@ private fun ReportListHeader(
 
 @Composable
 private fun ReportFilters(
-    selectedCategory: CategoriaPublicacion?,
-    onSelectCategory: (CategoriaPublicacion?) -> Unit
+    selectedCategory: ReportCategory?,
+    onSelectCategory: (ReportCategory?) -> Unit
 ) {
-    val categories = listOf(null) + CategoriaPublicacion.entries
+    val categories = listOf(null) + ReportCategory.entries
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -203,7 +229,7 @@ private fun ReportFilters(
                 color = if (isSelected) DesignSystem.Colors.PrimaryDark else DesignSystem.Colors.FilterSurface
             ) {
                 Text(
-                    text = category?.etiqueta ?: "Todos",
+                    text = category?.label() ?: "Todos",
                     modifier = Modifier.padding(horizontal = 15.dp, vertical = 7.dp),
                     color = if (isSelected) DesignSystem.Colors.White else Color(0xFF505357),
                     fontSize = 12.sp,
@@ -216,8 +242,8 @@ private fun ReportFilters(
 
 @Composable
 private fun ReportControls(
-    proximity: String,
-    onSelectProximity: (String) -> Unit
+    proximity: ProximityFilter,
+    onSelectProximity: (ProximityFilter) -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
     Row(
@@ -243,7 +269,7 @@ private fun ReportControls(
                     tint = DesignSystem.Colors.ReportMutedText
                 )
                 Text(
-                    text = proximity,
+                    text = proximity.label(),
                     modifier = Modifier.padding(start = 6.dp),
                     color = Color(0xFF53575A),
                     fontSize = 12.sp
@@ -253,9 +279,9 @@ private fun ReportControls(
                 expanded = isMenuOpen,
                 onDismissRequest = { isMenuOpen = false }
             ) {
-                listOf("Cerca de mí", "En mi zona", "Toda la ciudad").forEach { option ->
+                ProximityFilter.entries.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(option) },
+                        text = { Text(option.label()) },
                         onClick = {
                             onSelectProximity(option)
                             isMenuOpen = false
@@ -275,179 +301,4 @@ private fun ReportControls(
             fontWeight = FontWeight.SemiBold
         )
     }
-}
-
-@Composable
-private fun PublicationCard(
-    publication: PublicacionUiModel,
-    onClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        color = DesignSystem.Colors.White,
-        shadowElevation = 2.dp
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                PublicationTag(
-                    text = publication.categoria.etiqueta,
-                    background = publication.categoria.color.copy(alpha = 0.12f),
-                    textColor = publication.categoria.color
-                )
-                PublicationTag(
-                    text = publication.estado,
-                    background = reportStatusColor(publication.estado).copy(alpha = 0.13f),
-                    textColor = reportStatusColor(publication.estado),
-                    modifier = Modifier.padding(start = 6.dp)
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    text = "${publication.distancia} · ${publication.antiguedad}",
-                    color = DesignSystem.Colors.ReportMutedText,
-                    fontSize = 10.sp
-                )
-            }
-            Text(
-                text = publication.titulo,
-                modifier = Modifier.padding(top = 8.dp),
-                color = DesignSystem.Colors.ReportTitleText,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = publication.descripcion,
-                modifier = Modifier.padding(top = 4.dp),
-                color = DesignSystem.Colors.ReportDescriptionText,
-                fontSize = 12.sp,
-                lineHeight = 17.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 9.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                PublicationCounter(
-                    icon = Icons.Filled.ThumbUp,
-                    count = publication.votosImportante,
-                    description = "Me gusta"
-                )
-                PublicationCounter(
-                    icon = Icons.Filled.ChatBubbleOutline,
-                    count = publication.cantidadComentarios,
-                    description = "Comentarios"
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    modifier = Modifier.size(27.dp),
-                    shape = CircleShape,
-                    color = DesignSystem.Colors.PrimaryDark
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = publication.inicialesReportante,
-                            color = DesignSystem.Colors.White,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                ) {
-                    Text(
-                        text = publication.nombreReportante,
-                        color = DesignSystem.Colors.ReportAuthorText,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "Residente",
-                        color = DesignSystem.Colors.ReportMutedText,
-                        fontSize = 10.sp
-                    )
-                }
-                Text(
-                    text = publication.ubicacion,
-                    modifier = Modifier.weight(1f),
-                    color = DesignSystem.Colors.ReportMutedText,
-                    fontSize = 10.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PublicationCounter(
-    icon: ImageVector,
-    count: Int,
-    description: String
-) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icon,
-            contentDescription = description,
-            tint = DesignSystem.Colors.ReportMutedText,
-            modifier = Modifier.size(15.dp)
-        )
-        Text(
-            text = count.toString(),
-            modifier = Modifier.padding(start = 4.dp),
-            color = DesignSystem.Colors.ReportCounterText,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Text(
-            text = description,
-            modifier = Modifier.padding(start = 4.dp),
-            color = DesignSystem.Colors.ReportMutedText,
-            fontSize = 10.sp
-        )
-    }
-}
-
-@Composable
-private fun PublicationTag(
-    text: String,
-    background: Color,
-    textColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Text(
-        text = text,
-        modifier = modifier
-            .clip(CircleShape)
-            .background(background)
-            .padding(horizontal = 7.dp, vertical = 3.dp),
-        color = textColor,
-        fontSize = 9.sp,
-        fontWeight = FontWeight.SemiBold
-    )
-}
-
-private fun reportStatusColor(status: String): Color = when (status) {
-    "Verificado" -> Color(0xFF25A56A)
-    "Pendiente" -> Color(0xFFC68A1A)
-    "Resuelto" -> Color(0xFF3F819C)
-    else -> DesignSystem.Colors.ReportMutedText
 }

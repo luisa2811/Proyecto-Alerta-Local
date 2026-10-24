@@ -1,16 +1,13 @@
 package uniquindio.proyectoalertalocal.features.report.list
 
-import uniquindio.proyectoalertalocal.features.report.CategoriaPublicacion
-import uniquindio.proyectoalertalocal.features.report.PublicacionUiModel
-import uniquindio.proyectoalertalocal.features.report.publicacionesDemostrativas
+import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
+import uniquindio.proyectoalertalocal.domain.model.ReportCategory
+import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 
 data class ReportListUiState(
-    val selectedCategory: CategoriaPublicacion? = null,
-    val proximity: String = "Cerca de mí",
-    val publications: List<PublicacionUiModel> = publicacionesDemostrativas
-) {
-    val filteredPublications: List<PublicacionUiModel>
-        get() = selectedCategory?.let { category ->
-            publications.filter { it.categoria == category }
-        } ?: publications
-}
+    val selectedCategory: ReportCategory? = null,
+    val selectedProximity: ProximityFilter = ProximityFilter.NEARBY,
+    val reports: List<ReportSummary> = emptyList(),
+    val filteredReports: List<ReportSummary> = emptyList(),
+    val isLoading: Boolean = true
+)
