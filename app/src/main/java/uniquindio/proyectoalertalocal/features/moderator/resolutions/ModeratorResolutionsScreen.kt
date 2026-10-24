@@ -39,6 +39,7 @@ import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 import uniquindio.proyectoalertalocal.features.moderator.component.ModeratorTopBar
 import uniquindio.proyectoalertalocal.features.moderator.component.ResolutionCard
+import uniquindio.proyectoalertalocal.core.component.label
 
 @Composable
 fun ModeratorResolutionsScreen(
@@ -218,7 +219,7 @@ private fun CategoryFilters(
                     onClick = { onCategorySelected(category) },
                     label = { 
                         Text(
-                            "${getCategoryLabel(category)} ($count)",
+                            "${category.label()} ($count)",
                             fontSize = 11.sp
                         ) 
                     },
@@ -233,12 +234,3 @@ private fun CategoryFilters(
     }
 }
 
-private fun getCategoryLabel(category: ReportCategory): String {
-    return when (category) {
-        ReportCategory.SECURITY -> "Seguridad"
-        ReportCategory.EMERGENCIES -> "Emergencias"
-        ReportCategory.INFRASTRUCTURE -> "Infraestructura"
-        ReportCategory.PETS -> "Mascotas"
-        ReportCategory.COMMUNITY -> "Comunidad"
-    }
-}

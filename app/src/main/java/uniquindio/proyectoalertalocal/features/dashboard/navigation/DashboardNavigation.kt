@@ -1,4 +1,4 @@
-﻿package uniquindio.proyectoalertalocal.features.dashboard.navigation
+package uniquindio.proyectoalertalocal.features.dashboard.navigation
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +11,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.features.home.HomeScreen
+import uniquindio.proyectoalertalocal.features.moderator.pending.ModeratorPendingScreen
+import uniquindio.proyectoalertalocal.features.moderator.resolutions.ModeratorResolutionsScreen
 import uniquindio.proyectoalertalocal.features.moderator.detail.ModeratorReportDetailScreen
 import uniquindio.proyectoalertalocal.features.moderator.pending.ModeratorPendingScreen
 import uniquindio.proyectoalertalocal.features.notifications.NotificationsScreen
@@ -54,7 +56,7 @@ fun DashboardNavigation(
         }
 
         composable<DashboardRoutes.ModeratorResolutions> {
-            uniquindio.proyectoalertalocal.features.moderator.resolutions.ModeratorResolutionsScreen(
+            ModeratorResolutionsScreen(
                 onBack = onLogout,
                 onShowMessage = onShowMessage,
                 onOpenDetail = { reportId ->
@@ -99,7 +101,7 @@ fun DashboardNavigation(
             EditResidenceScreen(
                 onBack = { navController.popBackStack() },
                 onConfirm = { complement ->
-                    onShowMessage("DirecciÃ³n confirmada: $complement")
+                    onShowMessage("Dirección confirmada: $complement")
                     navController.popBackStack()
                 }
             )

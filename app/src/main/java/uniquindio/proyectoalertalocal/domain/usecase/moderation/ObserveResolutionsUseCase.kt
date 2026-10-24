@@ -12,6 +12,7 @@ import uniquindio.proyectoalertalocal.domain.model.ResolutionBoard
 import uniquindio.proyectoalertalocal.domain.repository.CommentRepository
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
 import uniquindio.proyectoalertalocal.domain.repository.UserRepository
+import uniquindio.proyectoalertalocal.domain.model.AuthorNames
 
 class ObserveResolutionsUseCase @Inject constructor(
     private val reportRepository: ReportRepository,
@@ -45,7 +46,7 @@ class ObserveResolutionsUseCase @Inject constructor(
             val resolverNames = resolved.mapNotNull { report ->
                 val resolverId = report.resolvedBy ?: return@mapNotNull null
                 val resolver = usersById[resolverId]
-                resolverId to (resolver?.name ?: uniquindio.proyectoalertalocal.domain.model.AuthorNames.DELETED)
+                report.id to (resolver?.name ?: AuthorNames.DELETED)
             }.toMap()
 
             ResolutionBoard(

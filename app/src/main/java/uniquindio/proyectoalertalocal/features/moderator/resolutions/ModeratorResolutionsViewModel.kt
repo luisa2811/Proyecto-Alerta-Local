@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveResolutionsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ReopenReportUseCase
@@ -31,7 +32,7 @@ class ModeratorResolutionsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getCurrentUserUseCase().collect { user ->
-                _uiState.update { it.copy(neighborhood = user?.neighborhood.orEmpty()) }
+                _uiState.update { it.copy(neighborhood = user?.assignedCommune.orEmpty()) }
             }
         }
         viewModelScope.launch {
@@ -47,7 +48,7 @@ class ModeratorResolutionsViewModel @Inject constructor(
         _uiState.update { it.copy(selectedTab = tab) }
     }
 
-    fun selectCategory(category: uniquindio.proyectoalertalocal.domain.model.ReportCategory?) {
+    fun selectCategory(category: ReportCategory?) {
         _uiState.update { it.copy(selectedCategory = category) }
     }
 
