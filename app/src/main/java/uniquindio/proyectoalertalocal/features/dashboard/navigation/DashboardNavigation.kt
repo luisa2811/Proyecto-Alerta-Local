@@ -149,7 +149,7 @@ fun DashboardNavigation(
                 backStackEntry.toRoute<DashboardRoutes.ReportDetail>().reportId
 
             ReportDetailScreen(
-                publicationId = reportId,
+                reportId = reportId,
                 onBack = { navController.popBackStack() },
                 onShowMessage = onShowMessage
             )
