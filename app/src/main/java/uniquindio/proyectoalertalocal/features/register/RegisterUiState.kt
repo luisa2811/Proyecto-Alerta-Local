@@ -2,6 +2,7 @@ package uniquindio.proyectoalertalocal.features.register
 
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.isValidEmail
+import uniquindio.proyectoalertalocal.core.util.isStrongPassword
 
 data class RegisterUiState(
     val fullName: String = "",
@@ -19,7 +20,7 @@ data class RegisterUiState(
         }
 
     val passwordError: String?
-        get() = if (password.isNotBlank() && !isPasswordSecure(password)) {
+        get() = if (password.isNotBlank() && !password.isStrongPassword()) {
             "La contraseña no cumple los requisitos de seguridad."
         } else {
             null
@@ -42,9 +43,4 @@ data class RegisterUiState(
             confirmPassword.isNotBlank() &&
             confirmPasswordError == null &&
             result == null
-
-    private fun isPasswordSecure(value: String): Boolean =
-        value.length >= 8 &&
-            value.any(Char::isUpperCase) &&
-            value.any(Char::isDigit)
 }
