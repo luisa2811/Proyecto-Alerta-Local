@@ -1,6 +1,7 @@
 package uniquindio.proyectoalertalocal.features.login
 
 import uniquindio.proyectoalertalocal.domain.model.UserRole
+import uniquindio.proyectoalertalocal.core.util.isValidEmail
 
 data class LoginUiState(
     val email: String = "",
@@ -12,7 +13,7 @@ data class LoginUiState(
     val showEmailError: Boolean = false
 ) {
     val isEmailValid: Boolean
-        get() = EMAIL_PATTERN.matches(email.trim())
+        get() = email.isValidEmail()
 
     val emailError: String?
         get() = if (showEmailError && email.isNotBlank() && !isEmailValid) {
@@ -26,11 +27,4 @@ data class LoginUiState(
             password.isNotBlank() &&
             (selectedRole != UserRole.MODERATOR || moderatorCode.isNotBlank()) &&
             !isLoading
-
-    private companion object {
-        val EMAIL_PATTERN = Regex(
-            "^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@" +
-                "(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$"
-        )
-    }
 }

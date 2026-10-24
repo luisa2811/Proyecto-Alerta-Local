@@ -18,7 +18,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.features.dashboard.MainScreen
 import uniquindio.proyectoalertalocal.features.home.PreLoginHomeScreen
 import uniquindio.proyectoalertalocal.features.login.LoginScreen
@@ -48,11 +47,7 @@ fun AppNavigation(
             SessionState.NotAuthenticated -> {
                 AuthNavigation(
                     navController = navController,
-                    startAtLogin = returningFromLogout,
-                    onLoginSuccess = { role ->
-                        returningFromLogout = false
-                        sessionViewModel.startDemoSession(role)
-                    }
+                    startAtLogin = returningFromLogout
                 )
             }
 
@@ -72,8 +67,7 @@ fun AppNavigation(
 @Composable
 private fun AuthNavigation(
     navController: NavHostController,
-    startAtLogin: Boolean,
-    onLoginSuccess: (UserRole) -> Unit
+    startAtLogin: Boolean
 ) {
     NavHost(
         navController = navController,
@@ -98,11 +92,6 @@ private fun AuthNavigation(
 
         composable<AuthRoutes.Login> {
             LoginScreen(
-                onLoginSuccess = { roleName ->
-                    onLoginSuccess(
-                        if (roleName == "Moderador") UserRole.MODERATOR else UserRole.RESIDENT
-                    )
-                },
                 onForgotPasswordClick = { email ->
                     navController.navigate(AuthRoutes.PasswordRecovery(email = email))
                 },
@@ -113,7 +102,14 @@ private fun AuthNavigation(
         }
 
         composable<AuthRoutes.Register> {
-            RegisterScreen(onLoginClick = { navController.popBackStack() })
+            RegisterScreen(
+                onLoginClick = { navController.popBackStack() },
+                onRegisterSuccess = {
+                    navController.navigate(AuthRoutes.Login) {
+                        popUpTo<AuthRoutes.Register> { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable<AuthRoutes.PasswordRecovery> { backStackEntry ->

@@ -20,6 +20,7 @@ import uniquindio.proyectoalertalocal.core.util.RequestResult
 @Composable
 fun RegisterScreen(
     onLoginClick: () -> Unit = {},
+    onRegisterSuccess: () -> Unit = {},
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -33,7 +34,7 @@ fun RegisterScreen(
             }
             is RequestResult.Success -> {
                 snackbarState.showSnackbar(result.message)
-                onLoginClick()
+                onRegisterSuccess()
             }
             RequestResult.Loading, null -> Unit
         }

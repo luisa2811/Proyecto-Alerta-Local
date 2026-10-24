@@ -67,7 +67,6 @@ import uniquindio.proyectoalertalocal.domain.model.UserRole
 fun LoginScreen(
     onForgotPasswordClick: (String) -> Unit = {},
     onRegisterClick: () -> Unit = {},
-    onLoginSuccess: (String) -> Unit = {},
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

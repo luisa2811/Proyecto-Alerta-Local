@@ -1,6 +1,7 @@
 package uniquindio.proyectoalertalocal.features.register
 
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.isValidEmail
 
 data class RegisterUiState(
     val fullName: String = "",
@@ -11,7 +12,7 @@ data class RegisterUiState(
     val result: RequestResult? = null
 ) {
     val emailError: String?
-        get() = if (email.isNotBlank() && !EMAIL_PATTERN.matches(email.trim())) {
+        get() = if (email.isNotBlank() && !email.isValidEmail()) {
             "Correo electrónico inválido."
         } else {
             null
@@ -45,12 +46,5 @@ data class RegisterUiState(
     private fun isPasswordSecure(value: String): Boolean =
         value.length >= 8 &&
             value.any(Char::isUpperCase) &&
-            value.any { it.isDigit() || !it.isLetter() }
-
-    private companion object {
-        val EMAIL_PATTERN = Regex(
-            "^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@" +
-                "(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$"
-        )
-    }
+            value.any(Char::isDigit)
 }

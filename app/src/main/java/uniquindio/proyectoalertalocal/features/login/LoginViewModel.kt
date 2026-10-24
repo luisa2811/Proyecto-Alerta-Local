@@ -68,16 +68,16 @@ class LoginViewModel @Inject constructor(
                 },
                 onFailure = { error ->
                     val message = error.message
-                        ?: error("LoginUserUseCase devolvió un error sin mensaje.")
+                        ?: "Ocurrió un error inesperado."
                     _uiState.update { state ->
                         state.copy(
                             isLoading = false,
-                            password = if (message == "Correo o contraseña incorrectos.") {
+                            password = if (message == LoginUserUseCase.INVALID_CREDENTIALS_MESSAGE) {
                                 ""
                             } else {
                                 state.password
                             },
-                            moderatorCode = if (message == "Código de moderador inválido.") {
+                            moderatorCode = if (message == LoginUserUseCase.INVALID_MODERATOR_CODE_MESSAGE) {
                                 ""
                             } else {
                                 state.moderatorCode

@@ -247,7 +247,7 @@ private fun RegisterTextField(
             Text(
                 text = errorMessage,
                 modifier = Modifier.padding(start = 2.dp),
-                color = MaterialTheme.colorScheme.error,
+                color = DesignSystem.Colors.Accent,
                 fontSize = 11.sp
             )
         }

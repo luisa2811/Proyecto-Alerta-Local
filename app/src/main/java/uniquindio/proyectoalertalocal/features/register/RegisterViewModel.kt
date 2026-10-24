@@ -60,7 +60,7 @@ class RegisterViewModel @Inject constructor(
                 },
                 onFailure = { error ->
                     val message = error.message
-                        ?: error("RegisterUserUseCase devolvió un error sin mensaje.")
+                        ?: "Ocurrió un error inesperado."
                     _uiState.update { it.copy(result = RequestResult.Failure(message)) }
                 }
             )
