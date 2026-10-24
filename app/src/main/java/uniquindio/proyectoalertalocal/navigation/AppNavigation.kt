@@ -57,10 +57,7 @@ fun AppNavigation(
 
             is SessionState.Authenticated -> {
                 MainScreen(
-                    role = state.session.role,
-                    onLogout = {
-                        sessionViewModel.logout()
-                    }
+                    role = state.session.role
                 )
             }
         }
