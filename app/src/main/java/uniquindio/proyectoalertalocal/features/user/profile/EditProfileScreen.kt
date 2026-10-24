@@ -36,6 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,19 +49,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.util.RequestResult
 
 @Composable
 fun EditProfileScreen(
     onBack: () -> Unit,
     onShowMessage: (String) -> Unit = {},
-    viewModel: EditProfileViewModel = viewModel()
+    onEditResidence: () -> Unit = {},
+    viewModel: EditProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.result) {
+        when (val result = uiState.result) {
+            is RequestResult.Success -> {
+                onShowMessage(result.message)
+                viewModel.clearResult()
+                onBack()
+            }
+            is RequestResult.Failure -> {
+                onShowMessage(result.errorMessage)
+                viewModel.clearResult()
+            }
+            RequestResult.Loading, null -> Unit
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -89,7 +108,7 @@ fun EditProfileScreen(
                 .padding(horizontal = 23.dp)
                 .padding(bottom = 24.dp)
         ) {
-            ProfilePhoto(initials = uiState.initials)
+            ProfilePhoto(initials = getAuthorInitials(uiState.fullName))
             Spacer(Modifier.height(24.dp))
 
             SectionTitle(
@@ -102,6 +121,7 @@ fun EditProfileScreen(
                     label = "NOMBRE COMPLETO",
                     value = uiState.fullName,
                     icon = Icons.Filled.Badge,
+                    error = uiState.nameError,
                     onValueChange = viewModel::changeFullName
                 )
                 PersonalField(
@@ -110,6 +130,7 @@ fun EditProfileScreen(
                     icon = Icons.Filled.AlternateEmail,
                     verified = uiState.emailVerified,
                     keyboardType = KeyboardType.Email,
+                    error = uiState.emailError,
                     onValueChange = viewModel::changeEmail
                 )
                 PersonalField(
@@ -118,6 +139,8 @@ fun EditProfileScreen(
                     icon = Icons.Filled.Phone,
                     verified = uiState.phoneVerified,
                     keyboardType = KeyboardType.Phone,
+                    prefix = "+57",
+                    error = uiState.phoneError,
                     onValueChange = viewModel::changePhone
                 )
             }
@@ -131,8 +154,7 @@ fun EditProfileScreen(
             LocationCard(
                 address = uiState.address,
                 neighborhood = uiState.neighborhood,
-                onAddressChange = viewModel::changeAddress,
-                onNeighborhoodChange = viewModel::changeNeighborhood
+                onEditResidence = onEditResidence
             )
 
             Spacer(Modifier.height(24.dp))
@@ -148,15 +170,18 @@ fun EditProfileScreen(
 
             Spacer(Modifier.height(28.dp))
             Surface(
-                color = DesignSystem.Colors.ProfileGold,
+                color = DesignSystem.Colors.ProfileGold.copy(
+                    alpha = if (uiState.isFormValid) 1f else 0.5f
+                ),
                 shape = RoundedCornerShape(12.dp),
                 shadowElevation = 3.dp,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
-                    .clickable {
-                        onShowMessage("Los cambios son temporales y todavía no se guardan.")
-                    }
+                    .clickable(
+                        enabled = uiState.isFormValid,
+                        onClick = viewModel::saveChanges
+                    )
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -267,6 +292,8 @@ private fun PersonalField(
     icon: ImageVector,
     verified: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
+    prefix: String? = null,
+    error: String? = null,
     onValueChange: (String) -> Unit
 ) {
     Column(
@@ -316,6 +343,14 @@ private fun PersonalField(
                 .padding(top = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            prefix?.let {
+                Text(
+                    text = it,
+                    color = Color(0xFF777D87),
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(end = 6.dp)
+                )
+            }
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
@@ -348,6 +383,14 @@ private fun PersonalField(
                     .size(17.dp)
             )
         }
+        error?.let {
+            Text(
+                text = it,
+                color = Color(0xFFD92626),
+                fontSize = 10.sp,
+                modifier = Modifier.padding(top = 3.dp)
+            )
+        }
     }
 }
 
@@ -355,8 +398,7 @@ private fun PersonalField(
 private fun LocationCard(
     address: String,
     neighborhood: String,
-    onAddressChange: (String) -> Unit,
-    onNeighborhoodChange: (String) -> Unit
+    onEditResidence: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -385,52 +427,20 @@ private fun LocationCard(
                     .weight(1f)
                     .padding(start = 9.dp)
             ) {
-                BasicTextField(
-                    value = address,
-                    onValueChange = onAddressChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    textStyle = TextStyle(
-                        color = Color(0xFF292A31),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    decorationBox = { innerTextField ->
-                        Box {
-                            if (address.isEmpty()) {
-                                Text(
-                                    text = "Dirección",
-                                    color = Color(0xFF8A8D94),
-                                    fontSize = 13.sp
-                                )
-                            }
-                            innerTextField()
-                        }
-                    }
+                Text(
+                    text = address.ifBlank { "Dirección" },
+                    color = if (address.isBlank()) Color(0xFF8A8D94) else Color(0xFF292A31),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.fillMaxWidth()
                 )
-                BasicTextField(
-                    value = neighborhood,
-                    onValueChange = onNeighborhoodChange,
+                Text(
+                    text = neighborhood.ifBlank { "Barrio o sector" },
+                    color = if (neighborhood.isBlank()) Color(0xFF8A8D94) else Color(0xFF555963),
+                    fontSize = 12.sp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 2.dp),
-                    singleLine = true,
-                    textStyle = TextStyle(
-                        color = Color(0xFF555963),
-                        fontSize = 12.sp
-                    ),
-                    decorationBox = { innerTextField ->
-                        Box {
-                            if (neighborhood.isEmpty()) {
-                                Text(
-                                    text = "Barrio o sector",
-                                    color = Color(0xFF8A8D94),
-                                    fontSize = 12.sp
-                                )
-                            }
-                            innerTextField()
-                        }
-                    }
+                        .padding(top = 2.dp)
                 )
             }
         }
@@ -441,6 +451,7 @@ private fun LocationCard(
                 .height(44.dp)
                 .clip(RoundedCornerShape(13.dp))
                 .background(DesignSystem.Colors.ProfileLightBlue)
+                .clickable(onClick = onEditResidence)
                 .padding(horizontal = 13.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -451,7 +462,7 @@ private fun LocationCard(
                 modifier = Modifier.size(18.dp)
             )
             Text(
-                text = "Cambiar ubicación en el mapa",
+                text = "Editar residencia",
                 color = Color(0xFF4F5D6E),
                 fontSize = 13.sp,
                 modifier = Modifier

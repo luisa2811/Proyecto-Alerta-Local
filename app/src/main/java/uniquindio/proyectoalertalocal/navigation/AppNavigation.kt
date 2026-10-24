@@ -5,15 +5,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -27,11 +27,16 @@ import uniquindio.proyectoalertalocal.features.register.RegisterScreen
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController = rememberNavController(),
     sessionViewModel: SessionViewModel = hiltViewModel()
 ) {
     val sessionState by sessionViewModel.sessionState.collectAsStateWithLifecycle()
-    var returningFromLogout by remember { mutableStateOf(false) }
+    var hadSession by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(sessionState) {
+        if (sessionState is SessionState.Authenticated) {
+            hadSession = true
+        }
+    }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         when (val state = sessionState) {
@@ -46,8 +51,7 @@ fun AppNavigation(
 
             SessionState.NotAuthenticated -> {
                 AuthNavigation(
-                    navController = navController,
-                    startAtLogin = returningFromLogout
+                    startAtLogin = hadSession
                 )
             }
 
@@ -55,7 +59,6 @@ fun AppNavigation(
                 MainScreen(
                     role = state.session.role,
                     onLogout = {
-                        returningFromLogout = true
                         sessionViewModel.logout()
                     }
                 )
@@ -66,9 +69,9 @@ fun AppNavigation(
 
 @Composable
 private fun AuthNavigation(
-    navController: NavHostController,
     startAtLogin: Boolean
 ) {
+    val navController = rememberNavController()
     NavHost(
         navController = navController,
         startDestination = if (startAtLogin) AuthRoutes.Login else AuthRoutes.Onboarding
