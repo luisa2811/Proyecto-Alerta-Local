@@ -60,14 +60,13 @@ class PasswordRecoveryViewModel @Inject constructor(
                         it.copy(
                             step = 2,
                             isCodeExpired = false,
-                            result = RequestResult.Success(message),
-                            generatedCodeMessage = message
+                            result = RequestResult.Success(message)
                         )
                     }
                 },
                 onFailure = { throwable ->
                     _uiState.update {
-                        it.copy(result = RequestResult.Failure(throwable.message ?: "Ocurrió un error."))
+                        it.copy(result = RequestResult.Failure(throwable.message ?: "Ocurrió un error inesperado."))
                     }
                 }
             )
@@ -85,8 +84,8 @@ class PasswordRecoveryViewModel @Inject constructor(
                     _uiState.update { it.copy(step = 3, result = null) }
                 },
                 onFailure = { throwable ->
-                    val errorMessage = throwable.message ?: "Ocurrió un error."
-                    val isExpired = errorMessage.contains("expirado", ignoreCase = true)
+                    val errorMessage = throwable.message ?: "Ocurrió un error inesperado."
+                    val isExpired = errorMessage == VerifyRecoveryCodeUseCase.ERROR_CODE_EXPIRED
                     _uiState.update {
                         it.copy(
                             code = "",
@@ -112,14 +111,13 @@ class PasswordRecoveryViewModel @Inject constructor(
                         it.copy(
                             code = "",
                             isCodeExpired = false,
-                            result = RequestResult.Success(message),
-                            generatedCodeMessage = message
+                            result = RequestResult.Success(message)
                         )
                     }
                 },
                 onFailure = { throwable ->
                     _uiState.update {
-                        it.copy(result = RequestResult.Failure(throwable.message ?: "Ocurrió un error."))
+                        it.copy(result = RequestResult.Failure(throwable.message ?: "Ocurrió un error inesperado."))
                     }
                 }
             )
@@ -142,8 +140,8 @@ class PasswordRecoveryViewModel @Inject constructor(
                     }
                 },
                 onFailure = { throwable ->
-                    val errorMessage = throwable.message ?: "Ocurrió un error."
-                    val mustVerifyFirst = errorMessage.contains("verificar el código", ignoreCase = true)
+                    val errorMessage = throwable.message ?: "Ocurrió un error inesperado."
+                    val mustVerifyFirst = errorMessage == ResetPasswordUseCase.ERROR_CODE_NOT_VERIFIED
                     if (mustVerifyFirst) {
                         _uiState.update {
                             it.copy(
@@ -169,9 +167,5 @@ class PasswordRecoveryViewModel @Inject constructor(
 
     fun clearResult() {
         _uiState.update { it.copy(result = null) }
-    }
-
-    fun clearGeneratedCodeMessage() {
-        _uiState.update { it.copy(generatedCodeMessage = null) }
     }
 }

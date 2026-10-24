@@ -2,6 +2,7 @@ package uniquindio.proyectoalertalocal.features.login
 
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.isValidEmail
+import uniquindio.proyectoalertalocal.core.util.isStrongPassword
 
 data class PasswordRecoveryUiState(
     val step: Int = 1,
@@ -11,7 +12,6 @@ data class PasswordRecoveryUiState(
     val confirmPassword: String = "",
     val isCodeExpired: Boolean = false,
     val result: RequestResult? = null,
-    val generatedCodeMessage: String? = null,
     val passwordResetSuccess: Boolean = false
 ) {
     val emailError: String?
@@ -24,7 +24,7 @@ data class PasswordRecoveryUiState(
     val passwordError: String?
         get() = if (
             newPassword.isNotBlank() &&
-            !(newPassword.length >= 8 && newPassword.any(Char::isUpperCase) && newPassword.any(Char::isDigit))
+            !newPassword.isStrongPassword()
         ) {
             "La contraseña no cumple los requisitos de seguridad."
         } else {
@@ -46,8 +46,6 @@ data class PasswordRecoveryUiState(
 
     val isStep3Valid: Boolean
         get() = newPassword.isNotBlank() &&
-            newPassword.length >= 8 &&
-            newPassword.any(Char::isUpperCase) &&
-            newPassword.any(Char::isDigit) &&
+            newPassword.isStrongPassword() &&
             confirmPassword == newPassword
 }
