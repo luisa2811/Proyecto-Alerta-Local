@@ -116,7 +116,8 @@ fun RegisterContent(
             value = uiState.email,
             placeholder = "nombre@correo.com",
             onValueChange = onEmailChange,
-            keyboardType = KeyboardType.Email
+            keyboardType = KeyboardType.Email,
+            errorMessage = uiState.emailError
         )
         Spacer(Modifier.height(12.dp))
         RegisterTextField(
@@ -132,7 +133,8 @@ fun RegisterContent(
             placeholder = "••••••••••••",
             onValueChange = onPasswordChange,
             keyboardType = KeyboardType.Password,
-            isPassword = true
+            isPassword = true,
+            errorMessage = uiState.passwordError
         )
         Spacer(Modifier.height(12.dp))
         RegisterTextField(
@@ -141,11 +143,13 @@ fun RegisterContent(
             placeholder = "••••••••••••",
             onValueChange = onConfirmPasswordChange,
             keyboardType = KeyboardType.Password,
-            isPassword = true
+            isPassword = true,
+            errorMessage = uiState.confirmPasswordError
         )
 
         LegalNotice(modifier = Modifier.padding(top = 16.dp))
         RegisterButton(
+            uiState = uiState,
             onClick = onRegisterClick,
             modifier = Modifier.padding(top = 20.dp)
         )
@@ -185,7 +189,8 @@ private fun RegisterTextField(
     placeholder: String,
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType = KeyboardType.Text,
-    isPassword: Boolean = false
+    isPassword: Boolean = false,
+    errorMessage: String? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -237,6 +242,15 @@ private fun RegisterTextField(
                 }
             )
         }
+        if (errorMessage != null) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = errorMessage,
+                modifier = Modifier.padding(start = 2.dp),
+                color = DesignSystem.Colors.Accent,
+                fontSize = 11.sp
+            )
+        }
     }
 }
 
@@ -277,6 +291,7 @@ private fun LegalNotice(modifier: Modifier = Modifier) {
 
 @Composable
 private fun RegisterButton(
+    uiState: RegisterUiState,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -285,6 +300,7 @@ private fun RegisterButton(
         modifier = modifier
             .fillMaxWidth()
             .height(DesignSystem.Dimensions.ButtonHeight),
+        enabled = uiState.isFormValid,
         shape = RoundedCornerShape(DesignSystem.Dimensions.ButtonCornerRadius),
         colors = ButtonDefaults.buttonColors(
             containerColor = DesignSystem.Colors.Primary,
