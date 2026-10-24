@@ -122,6 +122,24 @@ fun DashboardNavigation(
             )
         }
 
+        composable<DashboardRoutes.EditReport> { backStackEntry ->
+            val reportId = backStackEntry.toRoute<DashboardRoutes.EditReport>().reportId
+            CreateReportScreen(
+                reportId = reportId,
+                onBack = { navController.popBackStack() },
+                onShowMessage = onShowMessage,
+                onPublished = {
+                    navController.navigate(DashboardRoutes.MyReports) {
+                        popUpTo<DashboardRoutes.Home>()
+                        launchSingleTop = true
+                    }
+                },
+                onOpenReport = { id ->
+                    navController.navigate(DashboardRoutes.ReportDetail(id))
+                }
+            )
+        }
+
         composable<DashboardRoutes.MyReports> {
             MyReportsScreen(onBack = { navController.popBackStack() })
         }
