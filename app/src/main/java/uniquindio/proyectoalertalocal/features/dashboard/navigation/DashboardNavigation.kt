@@ -99,10 +99,7 @@ fun DashboardNavigation(
         composable<DashboardRoutes.EditResidence> {
             EditResidenceScreen(
                 onBack = { navController.popBackStack() },
-                onConfirm = { complement ->
-                    onShowMessage("Dirección confirmada: $complement")
-                    navController.popBackStack()
-                }
+                onShowMessage = onShowMessage
             )
         }
 
@@ -172,14 +169,18 @@ fun DashboardNavigation(
                 onBack = { navController.popBackStack() },
                 onEditProfile = {
                     navController.navigate(DashboardRoutes.EditProfile)
-                }
+                },
+                onShowMessage = onShowMessage
             )
         }
 
         composable<DashboardRoutes.EditProfile> {
             EditProfileScreen(
                 onBack = { navController.popBackStack() },
-                onShowMessage = onShowMessage
+                onShowMessage = onShowMessage,
+                onEditResidence = {
+                    navController.navigate(DashboardRoutes.EditResidence)
+                }
             )
         }
 

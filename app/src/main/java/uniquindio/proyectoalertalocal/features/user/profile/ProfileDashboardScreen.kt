@@ -22,35 +22,88 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChatBubbleOutline
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.domain.model.Badge
 
 @Composable
 fun ProfileDashboardScreen(
     onBack: () -> Unit,
     onEditProfile: () -> Unit,
-    viewModel: ProfileDashboardViewModel = viewModel()
+    onShowMessage: (String) -> Unit = {},
+    viewModel: ProfileDashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.result) {
+        when (val result = uiState.result) {
+            is RequestResult.Failure -> {
+                onShowMessage(result.errorMessage)
+                viewModel.onResultShown()
+            }
+            is RequestResult.Success -> {
+                onShowMessage(result.message)
+                viewModel.onResultShown()
+            }
+            RequestResult.Loading, null -> Unit
+        }
+    }
+
+    if (showDeleteAccountDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountDialog = false },
+            title = { Text("Eliminar mi cuenta") },
+            text = { Text("¿Eliminar tu cuenta? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteAccountDialog = false
+                        viewModel.deleteAccount()
+                    }
+                ) {
+                    Text(
+                        text = "Eliminar",
+                        color = Color(0xFFD92626),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -94,7 +147,7 @@ fun ProfileDashboardScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = uiState.initials,
+                        text = getAuthorInitials(uiState.fullName),
                         color = Color.White,
                         fontSize = 23.sp,
                         fontWeight = FontWeight.SemiBold
@@ -107,70 +160,78 @@ fun ProfileDashboardScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 10.dp)
                 )
-                Text(
-                    text = uiState.memberSince,
-                    color = DesignSystem.Colors.TextSecondary,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 2.dp)
-                )
-                Surface(
-                    color = Color(0xFFEAF3F9),
-                    shape = CircleShape,
-                    modifier = Modifier.padding(top = 10.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 11.dp, vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                uiState.memberSince?.let { memberSince ->
+                    Text(
+                        text = memberSince,
+                        color = DesignSystem.Colors.TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+                uiState.levelName?.let { levelName ->
+                    Surface(
+                        color = Color(0xFFEAF3F9),
+                        shape = CircleShape,
+                        modifier = Modifier.padding(top = 10.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.StarBorder,
-                            contentDescription = null,
-                            tint = DesignSystem.Colors.Primary,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            text = uiState.guardianLevel,
-                            color = DesignSystem.Colors.Primary,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(start = 5.dp)
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 11.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.StarBorder,
+                                contentDescription = null,
+                                tint = DesignSystem.Colors.Primary,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = levelName,
+                                color = DesignSystem.Colors.Primary,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(start = 5.dp)
+                            )
+                        }
                     }
                 }
 
-                Spacer(Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${uiState.points} pts",
-                        color = Color(0xFF42403E),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = "${uiState.pointsToHero} pts para Héroe Comunitario",
-                        color = DesignSystem.Colors.TextSecondary,
-                        fontSize = 10.sp
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 6.dp)
-                        .height(8.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFDDE2E9))
-                ) {
+                if (uiState.levelName != null) {
+                    Spacer(Modifier.height(24.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${uiState.points} pts",
+                            color = Color(0xFF42403E),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        uiState.levelMessage?.let { levelMessage ->
+                            Text(
+                                text = levelMessage,
+                                color = DesignSystem.Colors.TextSecondary,
+                                fontSize = 10.sp
+                            )
+                        }
+                    }
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(0.68f)
+                            .fillMaxWidth()
+                            .padding(top = 6.dp)
                             .height(8.dp)
                             .clip(CircleShape)
-                            .background(DesignSystem.Colors.Primary)
-                    )
+                            .background(Color(0xFFDDE2E9))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(uiState.progress)
+                                .height(8.dp)
+                                .clip(CircleShape)
+                                .background(DesignSystem.Colors.Primary)
+                        )
+                    }
                 }
 
                 Row(
@@ -186,37 +247,53 @@ fun ProfileDashboardScreen(
                         modifier = Modifier.weight(1f)
                     )
                     StatCard(
-                        count = uiState.completedReports,
+                        count = uiState.resolvedReports,
                         label = "Finalizadas",
                         color = Color(0xFF23754F),
                         modifier = Modifier.weight(1f)
                     )
                     StatCard(
-                        count = uiState.reportsToVerify,
+                        count = uiState.pendingReports,
                         label = "Por verificar",
                         color = Color(0xFFD75418),
                         modifier = Modifier.weight(1f)
                     )
                 }
 
-                Text(
-                    text = "Insignias",
-                    color = DesignSystem.Colors.TextPrimary,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(top = 22.dp)
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    uiState.badges.forEach { badge ->
-                        BadgeItem(badge = badge)
+                if (uiState.showBadges) {
+                    Text(
+                        text = "Insignias",
+                        color = DesignSystem.Colors.TextPrimary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .align(Alignment.Start)
+                            .padding(top = 22.dp)
+                    )
+                    if (uiState.earnedBadges.isEmpty()) {
+                        Text(
+                            text = "Aún no tienes insignias. ¡Crea tu primer reporte!",
+                            color = DesignSystem.Colors.TextSecondary,
+                            fontSize = 11.sp,
+                            modifier = Modifier
+                                .align(Alignment.Start)
+                                .padding(top = 10.dp)
+                        )
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Badge.entries.forEach { badge ->
+                                BadgeItem(
+                                    badge = badge,
+                                    earned = badge in uiState.earnedBadges
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -233,9 +310,16 @@ fun ProfileDashboardScreen(
                     title = "Editar mis datos",
                     onClick = onEditProfile
                 )
-                ProfileMenuRow(title = "Modo moderador")
-                ProfileMenuRow(title = "Cerrar sesión")
-                ProfileMenuRow(title = "Eliminar mi cuenta", destructive = true, last = true)
+                ProfileMenuRow(
+                    title = "Cerrar sesión",
+                    onClick = viewModel::logout
+                )
+                ProfileMenuRow(
+                    title = "Eliminar mi cuenta",
+                    destructive = true,
+                    last = true,
+                    onClick = { showDeleteAccountDialog = true }
+                )
             }
         }
     }
@@ -273,31 +357,31 @@ private fun StatCard(
 }
 
 @Composable
-private fun BadgeItem(badge: ProfileBadgeUiModel) {
-    val (icon, background, tint) = when (badge.kind) {
-        BadgeKind.STAR -> Triple(
-            Icons.Filled.StarBorder,
-            Color(0xFFE8F2FA),
-            Color(0xFF246392)
-        )
-        BadgeKind.CHECK -> Triple(
-            Icons.Filled.Check,
-            Color(0xFFE7F4ED),
-            Color(0xFF26764F)
-        )
-        BadgeKind.CHAT -> Triple(
-            Icons.Filled.ChatBubbleOutline,
-            Color(0xFFFBF2DA),
-            Color(0xFFB98200)
-        )
-        BadgeKind.LOCKED -> Triple(
-            Icons.Filled.Lock,
-            Color(0xFFF0EFED),
-            Color(0xFFCAC8C5)
-        )
+private fun BadgeItem(badge: Badge, earned: Boolean) {
+    val icon = badgeIcon(badge)
+    val background = if (earned) {
+        when (badge) {
+            Badge.FIRST_REPORT -> Color(0xFFE8F2FA)
+            Badge.TRUSTED_REPORTER -> Color(0xFFE7F4ED)
+            Badge.NEIGHBORHOOD_VOICE -> Color(0xFFFBF2DA)
+            Badge.ACTIVE_NEIGHBOR -> Color(0xFFEAF1FB)
+        }
+    } else {
+        Color(0xFFF0EFED)
     }
+    val tint = if (earned) {
+        when (badge) {
+            Badge.FIRST_REPORT -> Color(0xFF246392)
+            Badge.TRUSTED_REPORTER -> Color(0xFF26764F)
+            Badge.NEIGHBORHOOD_VOICE -> Color(0xFFB98200)
+            Badge.ACTIVE_NEIGHBOR -> Color(0xFF246392)
+        }
+    } else {
+        Color(0xFFCAC8C5)
+    }
+
     Column(
-        modifier = Modifier.width(64.dp),
+        modifier = Modifier.width(70.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -315,14 +399,21 @@ private fun BadgeItem(badge: ProfileBadgeUiModel) {
             )
         }
         Text(
-            text = badge.title,
+            text = if (earned) badge.displayName else badge.requirement,
             color = DesignSystem.Colors.TextSecondary,
-            fontSize = 9.sp,
-            lineHeight = 11.sp,
+            fontSize = if (earned) 9.sp else 8.sp,
+            lineHeight = if (earned) 11.sp else 10.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 5.dp)
         )
     }
+}
+
+private fun badgeIcon(badge: Badge): ImageVector = when (badge) {
+    Badge.FIRST_REPORT -> Icons.Filled.StarBorder
+    Badge.TRUSTED_REPORTER -> Icons.Filled.Check
+    Badge.NEIGHBORHOOD_VOICE -> Icons.Filled.LocationOn
+    Badge.ACTIVE_NEIGHBOR -> Icons.Filled.ChatBubbleOutline
 }
 
 @Composable
