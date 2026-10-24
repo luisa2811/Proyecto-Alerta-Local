@@ -14,7 +14,7 @@ import uniquindio.proyectoalertalocal.features.home.HomeScreen
 import uniquindio.proyectoalertalocal.features.moderator.pending.ModeratorPendingScreen
 import uniquindio.proyectoalertalocal.features.moderator.resolutions.ModeratorResolutionsScreen
 import uniquindio.proyectoalertalocal.features.moderator.detail.ModeratorReportDetailScreen
-import uniquindio.proyectoalertalocal.features.moderator.pending.ModeratorPendingScreen
+import uniquindio.proyectoalertalocal.features.moderator.profile.ModeratorProfileScreen
 import uniquindio.proyectoalertalocal.features.notifications.NotificationsScreen
 import uniquindio.proyectoalertalocal.features.report.create.CreateReportScreen
 import uniquindio.proyectoalertalocal.features.report.detail.ReportDetailScreen
@@ -44,26 +44,33 @@ fun DashboardNavigation(
     ) {
         composable<DashboardRoutes.ModeratorHome> {
             ModeratorPendingScreen(
-                onBack = onLogout,
                 onShowMessage = onShowMessage,
                 onOpenDetail = { reportId ->
                     navController.navigate(DashboardRoutes.ModeratorReportDetail(reportId))
                 },
                 onOpenProfile = {
-                    navController.navigate(DashboardRoutes.Profile)
+                    navController.navigate(DashboardRoutes.ModeratorProfile)
                 }
             )
         }
 
         composable<DashboardRoutes.ModeratorResolutions> {
             ModeratorResolutionsScreen(
-                onBack = onLogout,
                 onShowMessage = onShowMessage,
                 onOpenDetail = { reportId ->
                     navController.navigate(DashboardRoutes.ModeratorReportDetail(reportId))
                 },
                 onOpenProfile = {
-                    navController.navigate(DashboardRoutes.Profile)
+                    navController.navigate(DashboardRoutes.ModeratorProfile)
+                }
+            )
+        }
+
+        composable<DashboardRoutes.ModeratorProfile> {
+            ModeratorProfileScreen(
+                onBack = { navController.popBackStack() },
+                onEditProfile = {
+                    navController.navigate(DashboardRoutes.EditProfile)
                 }
             )
         }
