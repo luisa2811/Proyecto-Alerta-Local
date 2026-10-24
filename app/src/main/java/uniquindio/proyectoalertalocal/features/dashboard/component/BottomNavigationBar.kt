@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -16,17 +17,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardDestination
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardRoutes
-import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 
 @Composable
 fun BottomNavigationBar(
     destinations: List<DashboardDestination>,
-    navController: NavHostController
+    navController: NavHostController,
+    badgeCounts: Map<DashboardDestination, Int> = emptyMap()
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
@@ -38,37 +41,66 @@ fun BottomNavigationBar(
     ) {
         destinations.forEach { destination ->
             val isSelected = currentDestination?.hasRoute(destination.route::class) == true
+            val badgeCount = badgeCounts[destination] ?: 0
 
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
                     navController.navigate(destination.route) {
-                        popUpTo<DashboardRoutes.Home> { saveState = true }
+                        if (destination.route is DashboardRoutes.Home || destination.route is DashboardRoutes.ModeratorHome) {
+                            popUpTo(destination.route) { saveState = true }
+                        } else {
+                            popUpTo(DashboardRoutes.Home) { saveState = true }
+                        }
                         launchSingleTop = true
                         restoreState = true
                     }
                 },
                 icon = {
-                    if (destination.centralAction) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .shadow(6.dp, CircleShape)
-                                .background(DesignSystem.Colors.HomeAccent, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
+                    val iconComposable = @Composable {
+                        if (destination.centralAction) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .shadow(6.dp, CircleShape)
+                                    .background(DesignSystem.Colors.HomeAccent, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = destination.icon,
+                                    contentDescription = "Crear reporte",
+                                    tint = DesignSystem.Colors.White,
+                                    modifier = Modifier.size(26.dp)
+                                )
+                            }
+                        } else {
                             Icon(
                                 imageVector = destination.icon,
-                                contentDescription = "Crear reporte",
-                                tint = DesignSystem.Colors.White,
-                                modifier = Modifier.size(26.dp)
+                                contentDescription = destination.label
                             )
                         }
+                    }
+                    if (!destination.centralAction && badgeCount > 0) {
+                        BadgedBox(
+                            badge = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .background(DesignSystem.Colors.AccentDark, CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = badgeCount.toString(),
+                                        color = DesignSystem.Colors.White,
+                                        fontSize = 8.sp
+                                    )
+                                }
+                            }
+                        ) {
+                            iconComposable()
+                        }
                     } else {
-                        Icon(
-                            imageVector = destination.icon,
-                            contentDescription = destination.label
-                        )
+                        iconComposable()
                     }
                 },
                 label = { Text(destination.label) },

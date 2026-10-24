@@ -41,6 +41,19 @@ fun DashboardNavigation(
             .padding(innerPadding)
     ) {
         composable<DashboardRoutes.ModeratorHome> {
+            uniquindio.proyectoalertalocal.features.moderator.pending.ModeratorPendingScreen(
+                onBack = onLogout,
+                onShowMessage = onShowMessage,
+                onOpenDetail = { reportId ->
+                    navController.navigate(DashboardRoutes.ModeratorReportDetail(reportId))
+                },
+                onOpenProfile = {
+                    navController.navigate(DashboardRoutes.Profile)
+                }
+            )
+        }
+
+        composable<DashboardRoutes.ModeratorResolutions> {
             ModeratorDashboardScreen(
                 onBack = onLogout,
                 onShowMessage = onShowMessage,
@@ -57,9 +70,10 @@ fun DashboardNavigation(
             val reportId =
                 backStackEntry.toRoute<DashboardRoutes.ModeratorReportDetail>().reportId
 
-            ModeratorReportDetailScreen(
+            uniquindio.proyectoalertalocal.features.moderator.detail.ModeratorReportDetailScreen(
                 reportId = reportId,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onShowMessage = onShowMessage
             )
         }
 

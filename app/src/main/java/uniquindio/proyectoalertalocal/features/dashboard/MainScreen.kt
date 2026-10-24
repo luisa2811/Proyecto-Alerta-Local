@@ -6,19 +6,21 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.features.dashboard.component.BottomNavigationBar
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardDestination
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardNavigation
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardRoutes
-import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.features.moderator.ModeratorBadgeViewModel
 
 @Composable
 fun MainScreen(
@@ -31,19 +33,23 @@ fun MainScreen(
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
     val destinations = DashboardDestination.entries.filter { role in it.roles }
-    val showBottomBar = role == UserRole.RESIDENT &&
-        currentDestination?.hasRoute<DashboardRoutes.CreateReport>() != true &&
-        currentDestination?.hasRoute<DashboardRoutes.ReportDetail>() != true &&
-        currentDestination?.hasRoute<DashboardRoutes.EditReport>() != true &&
-        currentDestination?.hasRoute<DashboardRoutes.EditProfile>() != true &&
-        currentDestination?.hasRoute<DashboardRoutes.EditResidence>() != true
+    val showBottomBar = destinations.any { currentDestination?.hasRoute(it.route::class) == true }
+
+    val badgeCounts = if (role == UserRole.MODERATOR) {
+        val badgeViewModel: ModeratorBadgeViewModel = hiltViewModel()
+        val pendingCount by badgeViewModel.pendingCount.collectAsState()
+        mapOf(DashboardDestination.MODERATOR_PENDING to pendingCount)
+    } else {
+        emptyMap()
+    }
 
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
                 BottomNavigationBar(
                     destinations = destinations,
-                    navController = navController
+                    navController = navController,
+                    badgeCounts = badgeCounts
                 )
             }
         },

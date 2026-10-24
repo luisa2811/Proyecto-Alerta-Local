@@ -67,50 +67,12 @@ fun ModeratorDashboardScreen(
         )
 
         when (selectedSection) {
-            ModeratorSection.PENDING_REPORTS -> ModeratorPendingScreen(
-                modifier = Modifier.weight(1f),
-                reports = reports,
-                selectedStatus = selectedStatus,
-                reportBeingRejected = reportBeingRejected,
-                rejectionReason = rejectionReason,
-                quickReasons = quickReasons,
+            ModeratorSection.PENDING_REPORTS -> uniquindio.proyectoalertalocal.features.moderator.pending.ModeratorPendingScreen(
+                onBack = onBack,
+                onShowMessage = onShowMessage,
                 onOpenDetail = onOpenDetail,
-                onReasonChange = { rejectionReason = it },
-                onToggleReason = { reason ->
-                    quickReasons = if (reason in quickReasons) {
-                        quickReasons - reason
-                    } else {
-                        quickReasons + reason
-                    }
-                },
-                onVerify = { report ->
-                    reports = reports.map {
-                        if (it.id == report.id) it.copy(status = ModerationStatus.VERIFIED) else it
-                    }
-                    reportBeingRejected = ""
-                    onShowMessage("Reporte verificado.")
-                },
-                onStartReject = { report ->
-                    reportBeingRejected = report.id
-                    rejectionReason = ""
-                    quickReasons = emptySet()
-                },
-                onCancelReject = { report ->
-                    if (reportBeingRejected == report.id) reportBeingRejected = ""
-                },
-                onConfirmReject = { report ->
-                    val details = (listOf(rejectionReason.trim()).filter { it.isNotEmpty() } + quickReasons)
-                        .joinToString(", ")
-                    if (details.isBlank()) {
-                        onShowMessage("Selecciona un motivo o escribe una explicación para rechazar.")
-                    } else {
-                        reports = reports.map {
-                            if (it.id == report.id) it.copy(status = ModerationStatus.REJECTED) else it
-                        }
-                        reportBeingRejected = ""
-                        onShowMessage("Rechazo registrado: $details")
-                    }
-                }
+                onOpenProfile = onOpenProfile,
+                modifier = Modifier.weight(1f)
             )
 
             ModeratorSection.RESOLUTIONS -> ModeratorResolutionsScreen(

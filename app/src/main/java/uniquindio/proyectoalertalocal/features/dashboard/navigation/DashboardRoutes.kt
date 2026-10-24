@@ -8,6 +8,12 @@ sealed class DashboardRoutes {
     data object ModeratorHome : DashboardRoutes()
 
     @Serializable
+    data object ModeratorResolutions : DashboardRoutes()
+
+    @Serializable
+    data object ModeratorProfile : DashboardRoutes()
+
+    @Serializable
     data class ModeratorReportDetail(val reportId: String) : DashboardRoutes()
 
     @Serializable

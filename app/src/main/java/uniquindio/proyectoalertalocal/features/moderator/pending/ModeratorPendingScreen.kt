@@ -1,92 +1,139 @@
 package uniquindio.proyectoalertalocal.features.moderator.pending
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Inbox
-import androidx.compose.material3.Icon
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
-import uniquindio.proyectoalertalocal.features.moderator.ModerationReport
-import uniquindio.proyectoalertalocal.features.moderator.ModerationStatus
+import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.features.moderator.component.ModerationReportCard
+import uniquindio.proyectoalertalocal.features.moderator.component.ModeratorTopBar
 
 @Composable
-internal fun ModeratorPendingScreen(
-    modifier: Modifier,
-    reports: List<ModerationReport>,
-    selectedStatus: ModerationStatus,
-    reportBeingRejected: String,
-    rejectionReason: String,
-    quickReasons: Set<String>,
+fun ModeratorPendingScreen(
+    onBack: () -> Unit,
+    onShowMessage: (String) -> Unit,
     onOpenDetail: (String) -> Unit,
-    onReasonChange: (String) -> Unit,
-    onToggleReason: (String) -> Unit,
-    onVerify: (ModerationReport) -> Unit,
-    onStartReject: (ModerationReport) -> Unit,
-    onCancelReject: (ModerationReport) -> Unit,
-    onConfirmReject: (ModerationReport) -> Unit
+    onOpenProfile: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: ModeratorPendingViewModel = hiltViewModel()
 ) {
-    val visibleReports = reports.filter { it.status == selectedStatus }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    if (visibleReports.isEmpty()) {
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .fillMaxWidth()
-                .padding(28.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    Icons.Filled.Inbox,
-                    contentDescription = null,
-                    tint = DesignSystem.Colors.ModeratorMuted,
-                    modifier = Modifier.size(42.dp)
-                )
-                Text(
-                    "No hay reportes en esta sección",
-                    modifier = Modifier.padding(top = 12.dp),
-                    color = DesignSystem.Colors.ModeratorMuted,
-                    fontSize = 14.sp
-                )
+    LaunchedEffect(uiState.result) {
+        when (val result = uiState.result) {
+            is RequestResult.Success -> {
+                snackbarHostState.showSnackbar(result.message)
+                viewModel.onResultShown()
             }
+            is RequestResult.Failure -> {
+                snackbarHostState.showSnackbar(result.errorMessage)
+                viewModel.onResultShown()
+            }
+            else -> Unit
         }
-    } else {
-        LazyColumn(
-            modifier = modifier
-                .fillMaxWidth(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+    }
+
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        topBar = {
+            ModeratorTopBar(
+                averageReviewMinutes = uiState.queue?.averageReviewMinutes,
+                selectedTab = uiState.selectedTab,
+                pendingCount = uiState.queue?.pending?.size ?: 0,
+                verifiedCount = uiState.queue?.verified?.size ?: 0,
+                rejectedCount = uiState.queue?.rejected?.size ?: 0,
+                onBack = onBack,
+                onOpenProfile = onOpenProfile,
+                onTabSelected = viewModel::selectTab
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(DesignSystem.Colors.Background)
         ) {
-            items(visibleReports, key = { it.id }) { report ->
-                ModerationReportCard(
-                    report = report,
-                    onShowDetail = { onOpenDetail(report.id) },
-                    showRejection = reportBeingRejected == report.id,
-                    reason = rejectionReason,
-                    selectedReasons = quickReasons,
-                    onReasonChange = onReasonChange,
-                    onToggleReason = onToggleReason,
-                    onVerify = { onVerify(report) },
-                    onStartReject = { onStartReject(report) },
-                    onCancelReject = { onCancelReject(report) },
-                    onConfirmReject = { onConfirmReject(report) }
-                )
+            if (uiState.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = DesignSystem.Colors.ModeratorNavy)
+                }
+                return@Box
+            }
+
+            val queue = uiState.queue
+            if (queue == null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = "No hay reportes en este estado.", color = DesignSystem.Colors.TextSecondary)
+                }
+                return@Box
+            }
+
+            val items = when (uiState.selectedTab) {
+                ModerationTab.PENDING -> queue.pending
+                ModerationTab.VERIFIED -> queue.verified
+                ModerationTab.REJECTED -> queue.rejected
+            }
+
+            if (items.isEmpty()) {
+                val message = if (uiState.selectedTab == ModerationTab.PENDING) {
+                    "No hay reportes pendientes por revisar."
+                } else {
+                    "No hay reportes en este estado."
+                }
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = message, color = DesignSystem.Colors.TextSecondary)
+                }
+                return@Box
+            }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(items = items, key = { it.report.id }) { summary ->
+                    ModerationReportCard(
+                        summary = summary,
+                        reportsById = queue.reportsById,
+                        selectedTab = uiState.selectedTab,
+                        rejectingReportId = uiState.rejectingReportId,
+                        rejectionReason = uiState.rejectionReason,
+                        rejectionError = uiState.rejectionError,
+                        isRejectionValid = uiState.isRejectionValid,
+                        onOpenDetail = onOpenDetail,
+                        onVerify = viewModel::onVerify,
+                        onStartReject = viewModel::startReject,
+                        onCancelReject = viewModel::cancelReject,
+                        onRejectionReasonChange = viewModel::onRejectionReasonChange,
+                        onUseQuickReason = viewModel::useQuickReason,
+                        onConfirmReject = viewModel::confirmReject
+                    )
+                }
             }
         }
     }
