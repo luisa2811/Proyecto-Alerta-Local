@@ -1,10 +1,13 @@
 package uniquindio.proyectoalertalocal.features.moderator.detail
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,259 +16,382 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
+import uniquindio.proyectoalertalocal.core.component.ReportSeverityTag
+import uniquindio.proyectoalertalocal.core.component.ReportStatusTag
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
-import uniquindio.proyectoalertalocal.features.moderator.ModerationStatus
-import uniquindio.proyectoalertalocal.features.moderator.demoReports
-import uniquindio.proyectoalertalocal.features.moderator.demoResolutions
-
+import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRelativeTime
+import uniquindio.proyectoalertalocal.domain.model.ReportStatus
+import uniquindio.proyectoalertalocal.core.component.displayCode
 @Composable
 fun ModeratorReportDetailScreen(
     reportId: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onShowMessage: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: ModeratorReportDetailViewModel = hiltViewModel()
 ) {
-    val report = demoReports().firstOrNull { it.id == reportId }
-    val resolution = demoResolutions().firstOrNull { it.id == reportId }
-    val title = report?.title ?: resolution?.title
-    val category = report?.category ?: resolution?.category
-    val description = report?.description ?: resolution?.description
-    val reporter = report?.reporter ?: resolution?.reporter
-    val age = report?.age ?: resolution?.time
-    val location = report?.location ?: resolution?.location
-    val type = report?.type ?: resolution?.type
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DesignSystem.Colors.Background)
-    ) {
-        ScreenHeader(
-            title = "Detalle del reporte",
-            onBack = onBack
-        )
+    LaunchedEffect(reportId) {
+        viewModel.loadReport(reportId)
+    }
 
-        if (title == null || category == null || description == null ||
-            reporter == null || age == null || location == null || type == null
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No se encontró este reporte.", color = DesignSystem.Colors.ModeratorMuted)
+    LaunchedEffect(uiState.result) {
+        when (val result = uiState.result) {
+            is RequestResult.Success -> {
+                snackbarHostState.showSnackbar(result.message)
+                viewModel.onResultShown()
             }
-        } else {
+            is RequestResult.Failure -> {
+                snackbarHostState.showSnackbar(result.errorMessage)
+                viewModel.onResultShown()
+            }
+            else -> Unit
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(DesignSystem.Colors.Background)
+        ) {
+            ScreenHeader(
+                title = "Detalle del reporte",
+                onBack = onBack
+            )
+
+            if (uiState.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = DesignSystem.Colors.ModeratorNavy)
+                }
+                return@Column
+            }
+
+            val summary = uiState.summary
+            if (summary == null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("El reporte no existe.", color = DesignSystem.Colors.TextSecondary)
+                }
+                return@Column
+            }
+
+            val report = summary.report
+            val code = report.id.takeLast(6).uppercase()
+
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp)
-                    .padding(bottom = 24.dp)
+                    .padding(bottom = 20.dp)
             ) {
-                ReportDetailPhoto()
-
                 Row(
-                    modifier = Modifier.padding(top = 16.dp),
+                    modifier = Modifier.padding(top = 14.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(
-                        color = type.background,
-                        shape = RoundedCornerShape(50)
-                    ) {
-                        Text(
-                            category,
-                            modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
-                            color = type.color,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                    val status = report?.status?.label ?: resolution?.status ?: "En seguimiento"
-                    val statusColor = when (report?.status) {
-                        ModerationStatus.PENDING -> DesignSystem.Colors.ModeratorPendingText
-                        ModerationStatus.VERIFIED -> DesignSystem.Colors.ModeratorVerifiedText
-                        ModerationStatus.REJECTED -> DesignSystem.Colors.ModeratorRed
-                        null -> if (resolution?.resolved == true) {
-                            DesignSystem.Colors.ModeratorVerifiedText
-                        } else {
-                            DesignSystem.Colors.ModeratorPendingText
-                        }
-                    }
-                    val statusBackground = when (report?.status) {
-                        ModerationStatus.PENDING -> DesignSystem.Colors.ModeratorPendingBackground
-                        ModerationStatus.VERIFIED -> DesignSystem.Colors.ModeratorVerifiedBackground
-                        ModerationStatus.REJECTED -> DesignSystem.Colors.ModeratorSecurityBackground
-                        null -> if (resolution?.resolved == true) {
-                            DesignSystem.Colors.ModeratorVerifiedBackground
-                        } else {
-                            DesignSystem.Colors.ModeratorPendingBackground
-                        }
-                    }
-                    Surface(
-                        color = statusBackground,
-                        shape = RoundedCornerShape(50)
-                    ) {
-                        Text(
-                            status,
-                            modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
-                            color = statusColor,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                    ReportCategoryTag(category = report.category)
+                    ReportSeverityTag(severity = summary.severity)
+                    ReportStatusTag(status = report.status)
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = code,
+                        color = DesignSystem.Colors.TextSecondary,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
 
                 Text(
-                    title,
-                    modifier = Modifier.padding(top = 12.dp),
+                    text = report.title,
+                    modifier = Modifier.padding(top = 10.dp),
                     color = DesignSystem.Colors.ReportTitleText,
-                    fontSize = 20.sp,
-                    lineHeight = 25.sp,
+                    fontSize = 19.sp,
+                    lineHeight = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
 
                 Row(
-                    modifier = Modifier.padding(top = 12.dp),
+                    modifier = Modifier.padding(top = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val initials = reporter
-                        .split(" ")
-                        .mapNotNull { it.firstOrNull()?.toString() }
-                        .take(2)
-                        .joinToString("")
+                    val initials = getAuthorInitials(summary.authorName)
                     Box(
                         modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFDCE8F3)),
+                            .size(26.dp)
+                            .background(DesignSystem.Colors.ModeratorNavy.copy(alpha = 0.12f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(initials, color = DesignSystem.Colors.ModeratorNavy, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = initials,
+                            color = DesignSystem.Colors.ModeratorNavy,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     Text(
-                        "Publicado por ",
+                        text = summary.authorName,
                         modifier = Modifier.padding(start = 8.dp),
-                        color = DesignSystem.Colors.ModeratorMuted,
-                        fontSize = 12.sp
-                    )
-                    Text(
-                        reporter,
-                        color = Color(0xFF3D4246),
+                        color = DesignSystem.Colors.TextPrimary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        " · $age",
-                        color = DesignSystem.Colors.ModeratorMuted,
+                        text = " · ${report.createdAt.toRelativeTime()}",
+                        color = DesignSystem.Colors.TextSecondary,
                         fontSize = 12.sp
                     )
                 }
 
                 Text(
-                    description,
-                    modifier = Modifier.padding(top = 16.dp),
-                    color = Color(0xFF565A5D),
-                    fontSize = 13.sp,
-                    lineHeight = 20.sp
+                    text = report.description,
+                    modifier = Modifier.padding(top = 12.dp),
+                    color = DesignSystem.Colors.TextSecondary,
+                    fontSize = 12.sp,
+                    lineHeight = 19.sp
                 )
 
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 18.dp),
-                    color = Color(0xFFF1F2F4),
-                    shape = RoundedCornerShape(12.dp)
+                        .padding(top = 14.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = DesignSystem.Colors.FilterSurface
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 14.dp),
+                        modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(10.dp))
+                                .size(42.dp)
+                                .clip(RoundedCornerShape(9.dp))
                                 .background(Color(0xFFDDEBFF)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                Icons.Filled.LocationOn,
-                                contentDescription = null,
+                                imageVector = Icons.Filled.Place,
+                                contentDescription = "Ubicación",
                                 tint = Color(0xFF2775DC),
-                                modifier = Modifier.size(22.dp)
+                                modifier = Modifier.size(23.dp)
                             )
                         }
-                        Column(modifier = Modifier.padding(start = 12.dp)) {
+                        Column(modifier = Modifier.padding(start = 11.dp)) {
                             Text(
-                                location,
-                                color = Color(0xFF34383B),
+                                text = report.location,
+                                color = Color(0xFF363A3D),
                                 fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                "Ver ubicación exacta en el mapa",
-                                modifier = Modifier.padding(top = 3.dp),
-                                color = DesignSystem.Colors.ModeratorMuted,
-                                fontSize = 11.sp
+                                text = report.neighborhood,
+                                modifier = Modifier.padding(top = 4.dp),
+                                color = DesignSystem.Colors.TextSecondary,
+                                fontSize = 10.sp
                             )
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Votos: ${summary.supportCount}",
+                        color = DesignSystem.Colors.TextSecondary,
+                        fontSize = 11.sp
+                    )
+                    Text(
+                        text = "Comentarios: ${summary.commentCount}",
+                        color = DesignSystem.Colors.TextSecondary,
+                        fontSize = 11.sp
+                    )
+                }
+
+                if (!report.possibleDuplicateOf.isNullOrBlank()) {
+                    val original = uiState.reportsById[report.possibleDuplicateOf]
+                    Text(
+                        text = if (original != null) "Posible duplicado de ${original.displayCode()}" else "El reporte original ya no está disponible.",
+                        modifier = Modifier.padding(top = 8.dp),
+                        color = DesignSystem.Colors.TextSecondary,
+                        fontSize = 11.sp
+                    )
+                }
+
+                if (report.status == ReportStatus.REJECTED && !report.rejectionReason.isNullOrBlank()) {
+                    Text(
+                        text = "Motivo de rechazo: ${report.rejectionReason}",
+                        modifier = Modifier.padding(top = 8.dp),
+                        color = DesignSystem.Colors.ModeratorRed,
+                        fontSize = 11.sp,
+                        lineHeight = 16.sp
+                    )
+                }
+                if (report.status == ReportStatus.RESOLVED && !report.resolutionNote.isNullOrBlank()) {
+                    Text(
+                        text = "Nota de resolución: ${report.resolutionNote}",
+                        modifier = Modifier.padding(top = 8.dp),
+                        color = DesignSystem.Colors.ModeratorGreen,
+                        fontSize = 11.sp,
+                        lineHeight = 16.sp
+                    )
+                }
+            }
+
+            if (report.status == ReportStatus.PENDING) {
+                if (uiState.rejecting) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            .background(DesignSystem.Colors.White, RoundedCornerShape(12.dp))
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = "Motivo del rechazo",
+                            color = DesignSystem.Colors.TextPrimary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Row(
+                            modifier = Modifier.padding(top = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            QuickReasonChipDetail(label = "Ubicación incorrecta", onClick = { viewModel.useQuickReason("Ubicación incorrecta") })
+                            QuickReasonChipDetail(label = "Foto poco clara", onClick = { viewModel.useQuickReason("Foto poco clara") })
+                            QuickReasonChipDetail(label = "Duplicado", onClick = { viewModel.useQuickReason("Duplicado") })
+                        }
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            color = DesignSystem.Colors.FilterSurface,
+                            border = BorderStroke(1.dp, DesignSystem.Colors.Border)
+                        ) {
+                            BasicTextField(
+                                value = uiState.rejectionReason,
+                                onValueChange = viewModel::onRejectionReasonChange,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp)
+                                    .padding(10.dp),
+                                textStyle = TextStyle(color = DesignSystem.Colors.TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
+                            )
+                        }
+                        if (uiState.rejectionError != null) {
+                            Text(
+                                text = uiState.rejectionError ?: "",
+                                modifier = Modifier.padding(top = 4.dp),
+                                color = DesignSystem.Colors.ModeratorRed,
+                                fontSize = 10.sp
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = { viewModel.cancelReject() },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Cancelar")
+                            }
+                            Button(
+                                onClick = { viewModel.confirmReject() },
+                                enabled = uiState.isRejectionValid,
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.ModeratorRed)
+                            ) {
+                                Text("Confirmar rechazo", color = DesignSystem.Colors.White)
+                            }
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { viewModel.onVerify() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.ModeratorGreen)
+                        ) {
+                            Text("Verificar", color = DesignSystem.Colors.White)
+                        }
+                        OutlinedButton(
+                            onClick = { viewModel.startReject() },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Rechazar")
                         }
                     }
                 }
             }
         }
+        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 
 @Composable
-private fun ReportDetailPhoto() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(206.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                Brush.linearGradient(
-                    listOf(Color(0xFFE9E5DC), Color(0xFFF0EDE6), Color(0xFFE6E2D9))
-                )
-            ),
-        contentAlignment = Alignment.Center
+private fun QuickReasonChipDetail(
+    label: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.clickable(onClick = onClick),
+        shape = CircleShape,
+        color = DesignSystem.Colors.White,
+        border = BorderStroke(1.dp, DesignSystem.Colors.Border)
     ) {
-        Icon(
-            Icons.Filled.CameraAlt,
-            contentDescription = "Foto del reporte",
-            tint = Color(0xFFAAA69E),
-            modifier = Modifier.size(44.dp)
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            color = DesignSystem.Colors.TextPrimary,
+            fontSize = 10.sp
         )
-        Surface(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(10.dp),
-            color = Color(0x99000000),
-            shape = RoundedCornerShape(50)
-        ) {
-            Text(
-                "1 foto",
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                color = Color.White,
-                fontSize = 10.sp
-            )
-        }
     }
 }
