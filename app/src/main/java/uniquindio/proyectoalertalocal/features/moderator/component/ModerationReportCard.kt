@@ -9,15 +9,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,8 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -45,7 +39,6 @@ import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
 import uniquindio.proyectoalertalocal.domain.model.Report
-import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 import uniquindio.proyectoalertalocal.core.component.displayCode
 import uniquindio.proyectoalertalocal.core.component.label
@@ -215,75 +208,16 @@ fun ModerationReportCard(
 
             if (selectedTab == uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab.PENDING) {
                 if (rejectingReportId == report.id) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 10.dp)
-                            .background(DesignSystem.Colors.FilterSurface, RoundedCornerShape(12.dp))
-                            .padding(10.dp)
-                    ) {
-                        Text(
-                            text = "Motivo del rechazo",
-                            color = DesignSystem.Colors.TextPrimary,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Row(
-                            modifier = Modifier.padding(top = 6.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            QuickReasonChip(label = "Ubicación incorrecta", onClick = { onUseQuickReason("Ubicación incorrecta") })
-                            QuickReasonChip(label = "Foto poco clara", onClick = { onUseQuickReason("Foto poco clara") })
-                            QuickReasonChip(label = "Duplicado", onClick = { onUseQuickReason("Duplicado") })
-                        }
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            shape = RoundedCornerShape(10.dp),
-                            color = DesignSystem.Colors.White,
-                            border = BorderStroke(1.dp, DesignSystem.Colors.Border)
-                        ) {
-                            androidx.compose.foundation.text.BasicTextField(
-                                value = rejectionReason,
-                                onValueChange = onRejectionReasonChange,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(70.dp)
-                                    .padding(10.dp),
-                                textStyle = androidx.compose.ui.text.TextStyle(color = DesignSystem.Colors.TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
-                            )
-                        }
-                        if (rejectionError != null) {
-                            Text(
-                                text = rejectionError,
-                                modifier = Modifier.padding(top = 4.dp),
-                                color = DesignSystem.Colors.ModeratorRed,
-                                fontSize = 10.sp
-                            )
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            OutlinedButton(
-                                onClick = onCancelReject,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("Cancelar")
-                            }
-                            Button(
-                                onClick = onConfirmReject,
-                                enabled = isRejectionValid,
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.ModeratorRed)
-                            ) {
-                                Text("Confirmar rechazo", color = DesignSystem.Colors.White)
-                            }
-                        }
-                    }
+                    RejectionForm(
+                        reason = rejectionReason,
+                        reasonError = rejectionError,
+                        isValid = isRejectionValid,
+                        onReasonChange = onRejectionReasonChange,
+                        onUseQuickReason = onUseQuickReason,
+                        onCancel = onCancelReject,
+                        onConfirm = onConfirmReject,
+                        modifier = Modifier.padding(top = 10.dp)
+                    )
                 } else {
                     Row(
                         modifier = Modifier
@@ -308,25 +242,5 @@ fun ModerationReportCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun QuickReasonChip(
-    label: String,
-    onClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier.clickable(onClick = onClick),
-        shape = CircleShape,
-        color = DesignSystem.Colors.White,
-        border = BorderStroke(1.dp, DesignSystem.Colors.Border)
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-            color = DesignSystem.Colors.TextPrimary,
-            fontSize = 10.sp
-        )
     }
 }

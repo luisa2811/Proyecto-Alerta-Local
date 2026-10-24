@@ -68,7 +68,9 @@ fun ModeratorPendingScreen(
                 rejectedCount = uiState.queue?.rejected?.size ?: 0,
                 onBack = onBack,
                 onOpenProfile = onOpenProfile,
-                onTabSelected = viewModel::selectTab
+                onTabSelected = { tab -> 
+                    if (tab is ModerationTab) viewModel.selectTab(tab)
+                }
             )
         }
     ) { innerPadding ->
