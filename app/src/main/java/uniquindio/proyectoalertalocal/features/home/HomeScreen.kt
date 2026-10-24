@@ -296,6 +296,15 @@ private fun ProximityFilter.label(): String = when (this) {
     ProximityFilter.CITY -> "Toda la ciudad"
 }
 
+private fun getAuthorInitials(authorName: String): String {
+    val words = authorName.trim().split("\\s+".toRegex()).filter { it.isNotEmpty() }
+    return when {
+        words.isEmpty() -> ""
+        words.size == 1 -> words[0].take(1).uppercase()
+        else -> (words[0].take(1) + words[1].take(1)).uppercase()
+    }
+}
+
 @Composable
 private fun ViewControls(
     proximity: ProximityFilter,
@@ -603,6 +612,7 @@ private fun AlertListCard(
     val report = summary.report
     val category = report.category
     val severity = summary.severity
+    val status = report.status
 
     Surface(
         modifier = Modifier
@@ -628,29 +638,29 @@ private fun AlertListCard(
                     background = severity.color().copy(alpha = 0.12f),
                     textColor = severity.color()
                 )
-                if (report.status == ReportStatus.VERIFIED) {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Row(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(DesignSystem.Colors.VerifiedBackground)
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Spacer(modifier = Modifier.width(6.dp))
+                Row(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(status.color().copy(alpha = 0.12f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (status == ReportStatus.VERIFIED) {
                         Icon(
                             imageVector = Icons.Filled.Check,
                             contentDescription = null,
-                            tint = DesignSystem.Colors.VerifiedGreen,
+                            tint = status.color(),
                             modifier = Modifier.size(12.dp)
                         )
-                        Text(
-                            text = "Verificado",
-                            modifier = Modifier.padding(start = 3.dp),
-                            color = DesignSystem.Colors.VerifiedGreen,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Spacer(modifier = Modifier.width(3.dp))
                     }
+                    Text(
+                        text = status.label(),
+                        color = status.color(),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
@@ -702,7 +712,7 @@ private fun AlertListCard(
                     .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val initials = summary.authorName.take(2).uppercase()
+                val initials = getAuthorInitials(summary.authorName)
                 Box(
                     modifier = Modifier
                         .size(27.dp)
@@ -813,6 +823,7 @@ private fun SelectedAlertCard(
     val report = summary.report
     val category = report.category
     val severity = summary.severity
+    val status = report.status
 
     Surface(
         modifier = modifier,
@@ -845,29 +856,29 @@ private fun SelectedAlertCard(
                     background = severity.color().copy(alpha = 0.12f),
                     textColor = severity.color()
                 )
-                if (report.status == ReportStatus.VERIFIED) {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Row(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(DesignSystem.Colors.VerifiedBackground)
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Spacer(modifier = Modifier.width(6.dp))
+                Row(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(status.color().copy(alpha = 0.12f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (status == ReportStatus.VERIFIED) {
                         Icon(
                             imageVector = Icons.Filled.Check,
                             contentDescription = null,
-                            tint = DesignSystem.Colors.VerifiedGreen,
+                            tint = status.color(),
                             modifier = Modifier.size(12.dp)
                         )
-                        Text(
-                            text = "Verificado",
-                            modifier = Modifier.padding(start = 3.dp),
-                            color = DesignSystem.Colors.VerifiedGreen,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Spacer(modifier = Modifier.width(3.dp))
                     }
+                    Text(
+                        text = status.label(),
+                        color = status.color(),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
@@ -902,7 +913,7 @@ private fun SelectedAlertCard(
                     .padding(top = 11.dp, bottom = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val initials = summary.authorName.take(2).uppercase()
+                val initials = getAuthorInitials(summary.authorName)
                 Box(
                     modifier = Modifier
                         .size(25.dp)

@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
+import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 import uniquindio.proyectoalertalocal.domain.usecase.report.FilterReportsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.ObserveReportsUseCase
 
@@ -27,16 +28,8 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             observeReportsUseCase().collect { newReports ->
                 _uiState.update { currentState ->
-                    val filtered = filterReportsUseCase(
-                        reports = newReports,
-                        category = currentState.selectedCategory,
-                        proximity = currentState.selectedProximity
-                    )
-                    currentState.copy(
-                        reports = newReports,
-                        filteredReports = filtered,
-                        isLoading = false
-                    )
+                    val updatedState = currentState.copy(reports = newReports, isLoading = false)
+                    updatedState.copy(filteredReports = applyFilters(updatedState))
                 }
             }
         }
@@ -44,29 +37,15 @@ class HomeViewModel @Inject constructor(
 
     fun selectCategory(category: ReportCategory?) {
         _uiState.update { currentState ->
-            val filtered = filterReportsUseCase(
-                reports = currentState.reports,
-                category = category,
-                proximity = currentState.selectedProximity
-            )
-            currentState.copy(
-                selectedCategory = category,
-                filteredReports = filtered
-            )
+            val updatedState = currentState.copy(selectedCategory = category)
+            updatedState.copy(filteredReports = applyFilters(updatedState))
         }
     }
 
     fun selectProximity(proximity: ProximityFilter) {
         _uiState.update { currentState ->
-            val filtered = filterReportsUseCase(
-                reports = currentState.reports,
-                category = currentState.selectedCategory,
-                proximity = proximity
-            )
-            currentState.copy(
-                selectedProximity = proximity,
-                filteredReports = filtered
-            )
+            val updatedState = currentState.copy(selectedProximity = proximity)
+            updatedState.copy(filteredReports = applyFilters(updatedState))
         }
     }
 
@@ -82,5 +61,13 @@ class HomeViewModel @Inject constructor(
                 currentState
             }
         }
+    }
+
+    private fun applyFilters(state: HomeUiState): List<ReportSummary> {
+        return filterReportsUseCase(
+            reports = state.reports,
+            category = state.selectedCategory,
+            proximity = state.selectedProximity
+        )
     }
 }
