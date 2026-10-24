@@ -1,11 +1,16 @@
 package uniquindio.proyectoalertalocal.features.report.detail
 
-import uniquindio.proyectoalertalocal.features.report.PublicacionUiModel
-import uniquindio.proyectoalertalocal.features.report.publicacionesDemostrativas
+import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.domain.model.CommentSummary
+import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 
 data class ReportDetailUiState(
-    val publication: PublicacionUiModel = publicacionesDemostrativas.first(),
-    val importantVotes: Int = publication.votosImportante,
-    val isImportant: Boolean = false,
-    val comment: String = ""
+    val isLoading: Boolean = true,
+    val reportSummary: ReportSummary? = null,
+    val comments: List<CommentSummary> = emptyList(),
+    val commentText: String = "",
+    val errorMessage: String? = null,
+    val commentError: String? = null,
+    val isCommentValid: Boolean = false,
+    val actionResult: RequestResult? = null
 )
