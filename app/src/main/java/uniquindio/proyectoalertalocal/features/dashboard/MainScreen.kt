@@ -24,8 +24,7 @@ import uniquindio.proyectoalertalocal.features.moderator.ModeratorBadgeViewModel
 
 @Composable
 fun MainScreen(
-    role: UserRole,
-    onLogout: () -> Unit
+    role: UserRole
 ) {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -68,7 +67,6 @@ fun MainScreen(
             navController = navController,
             innerPadding = innerPadding,
             role = role,
-            onLogout = onLogout,
             onShowMessage = { message ->
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar(message)

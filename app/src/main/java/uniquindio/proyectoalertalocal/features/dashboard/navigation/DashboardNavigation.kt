@@ -29,7 +29,6 @@ fun DashboardNavigation(
     navController: NavHostController,
     innerPadding: PaddingValues,
     role: UserRole,
-    onLogout: () -> Unit,
     onShowMessage: (String) -> Unit
 ) {
     NavHost(

@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -322,8 +323,8 @@ fun ReportDetailScreen(
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.StarBorder,
-                            contentDescription = null,
+                            imageVector = if (summary.supportedByCurrentUser) Icons.Filled.Star else Icons.Filled.StarBorder,
+                            contentDescription = if (summary.supportedByCurrentUser) "Quitar marca de importante" else "Marcar como importante",
                             modifier = Modifier.size(17.dp)
                         )
                         Text(
