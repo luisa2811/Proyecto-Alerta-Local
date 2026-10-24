@@ -62,6 +62,9 @@ object DesignSystem {
         val ModeratorVerifiedText = Color(0xFF0A9B53)
         val ModeratorPendingBackground = Color(0xFFFFF1D8)
         val ModeratorVerifiedBackground = Color(0xFFDDF8E9)
+        val LocationIconBackground = Color(0xFFDDEBFF)
+        val LocationIconTint = Color(0xFF2775DC)
+        val LocationText = Color(0xFF363A3D)
     }
 
     object Dimensions {

@@ -11,7 +11,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.features.home.HomeScreen
-import uniquindio.proyectoalertalocal.features.moderator.ModeratorDashboardScreen
+import uniquindio.proyectoalertalocal.features.moderator.pending.ModeratorPendingScreen
+import uniquindio.proyectoalertalocal.features.moderator.resolutions.ModeratorResolutionsScreen
 import uniquindio.proyectoalertalocal.features.moderator.detail.ModeratorReportDetailScreen
 import uniquindio.proyectoalertalocal.features.moderator.pending.ModeratorPendingScreen
 import uniquindio.proyectoalertalocal.features.notifications.NotificationsScreen
@@ -55,7 +56,7 @@ fun DashboardNavigation(
         }
 
         composable<DashboardRoutes.ModeratorResolutions> {
-            ModeratorDashboardScreen(
+            ModeratorResolutionsScreen(
                 onBack = onLogout,
                 onShowMessage = onShowMessage,
                 onOpenDetail = { reportId ->

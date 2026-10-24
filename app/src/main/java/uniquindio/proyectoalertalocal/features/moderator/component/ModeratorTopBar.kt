@@ -37,15 +37,24 @@ import uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab
 
 @Composable
 fun ModeratorTopBar(
-    averageReviewMinutes: Long?,
-    selectedTab: ModerationTab,
-    pendingCount: Int,
-    verifiedCount: Int,
-    rejectedCount: Int,
+    averageReviewMinutes: Long? = null,
+    selectedTab: Any,
+    pendingCount: Int = 0,
+    verifiedCount: Int = 0,
+    rejectedCount: Int = 0,
     onBack: () -> Unit,
     onOpenProfile: () -> Unit,
-    onTabSelected: (ModerationTab) -> Unit,
-    modifier: Modifier = Modifier
+    onTabSelected: (Any) -> Unit,
+    modifier: Modifier = Modifier,
+    title: String = "Moderation Queue",
+    subtitle: String? = null,
+    tabLabels: List<String> = listOf("Pendientes", "Verificadas", "Rechazadas"),
+    tabCounts: List<Int> = listOf(pendingCount, verifiedCount, rejectedCount),
+    tabs: List<Any> = listOf(
+        uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab.PENDING,
+        uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab.VERIFIED,
+        uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab.REJECTED
+    )
 ) {
     Column(
         modifier = modifier
