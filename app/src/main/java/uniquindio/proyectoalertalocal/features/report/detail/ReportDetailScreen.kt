@@ -21,10 +21,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
@@ -32,10 +36,13 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +69,8 @@ fun ReportDetailScreen(
     reportId: String,
     onBack: () -> Unit,
     onShowMessage: (String) -> Unit,
+    onEdit: (String) -> Unit,
+    onDeleted: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ReportDetailViewModel = hiltViewModel()
 ) {
@@ -74,12 +83,57 @@ fun ReportDetailScreen(
 
     LaunchedEffect(uiState.actionResult) {
         when (val result = uiState.actionResult) {
+            is RequestResult.Success -> {
+                snackbarHostState.showSnackbar(result.message)
+                viewModel.clearActionResult()
+            }
             is RequestResult.Failure -> {
                 snackbarHostState.showSnackbar(result.errorMessage)
                 viewModel.clearActionResult()
             }
             else -> Unit
         }
+    }
+
+    LaunchedEffect(uiState.navigation) {
+        when (val navigation = uiState.navigation) {
+            is ReportDetailNavigation.ToEdit -> {
+                onEdit(navigation.reportId)
+                viewModel.onNavigationHandled()
+            }
+            is ReportDetailNavigation.ToMyReports -> {
+                onDeleted()
+                viewModel.onNavigationHandled()
+            }
+            null -> Unit
+        }
+    }
+
+    if (uiState.showResolveDialog) {
+        ResolveReportDialog(
+            note = uiState.resolveNote,
+            onNoteChange = viewModel::onResolveNoteChange,
+            onCancel = { viewModel.dismissResolveDialog() },
+            onConfirm = { viewModel.confirmResolve() }
+        )
+    }
+
+    if (uiState.showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDeleteDialog() },
+            title = { Text("Eliminar reporte") },
+            text = { Text("¿Eliminar este reporte? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmDelete() }) {
+                    Text("Eliminar", color = DesignSystem.Colors.ModeratorRed, fontWeight = FontWeight.SemiBold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissDeleteDialog() }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -90,7 +144,18 @@ fun ReportDetailScreen(
         ) {
             ScreenHeader(
                 title = "Detalle del reporte",
-                onBack = onBack
+                onBack = onBack,
+                trailingContent = if (uiState.isOwner) {
+                    {
+                        OwnerMenu(
+                            onEdit = { viewModel.onEditRequested() },
+                            onResolve = { viewModel.openResolveDialog() },
+                            onDelete = { viewModel.openDeleteDialog() }
+                        )
+                    }
+                } else {
+                    null
+                }
             )
 
             if (uiState.isLoading) {
@@ -103,10 +168,12 @@ fun ReportDetailScreen(
             val summary = uiState.reportSummary
             if (summary == null || uiState.errorMessage != null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = uiState.errorMessage ?: "El reporte no existe.",
-                        color = DesignSystem.Colors.TextSecondary
-                    )
+                    if (!uiState.isDeleted) {
+                        Text(
+                            text = uiState.errorMessage ?: "El reporte no existe.",
+                            color = DesignSystem.Colors.TextSecondary
+                        )
+                    }
                 }
                 return@Column
             }
@@ -361,6 +428,117 @@ fun ReportDetailScreen(
         }
         SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
+}
+
+@Composable
+private fun OwnerMenu(
+    onEdit: () -> Unit,
+    onResolve: () -> Unit,
+    onDelete: () -> Unit
+) {
+    var isMenuOpen by remember { mutableStateOf(false) }
+
+    Box {
+        Surface(
+            modifier = Modifier
+                .size(38.dp)
+                .clickable { isMenuOpen = true },
+            shape = CircleShape,
+            color = DesignSystem.Colors.FilterSurface
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Filled.MoreVert,
+                    contentDescription = "Opciones del reporte",
+                    tint = DesignSystem.Colors.Primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+        DropdownMenu(
+            expanded = isMenuOpen,
+            onDismissRequest = { isMenuOpen = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Editar") },
+                onClick = {
+                    isMenuOpen = false
+                    onEdit()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Marcar como resuelto") },
+                onClick = {
+                    isMenuOpen = false
+                    onResolve()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Eliminar") },
+                onClick = {
+                    isMenuOpen = false
+                    onDelete()
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ResolveReportDialog(
+    note: String,
+    onNoteChange: (String) -> Unit,
+    onCancel: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text("Marcar como resuelto") },
+        text = {
+            Column {
+                Text(
+                    text = "¿Cómo se solucionó? (opcional)",
+                    color = DesignSystem.Colors.TextSecondary,
+                    fontSize = 12.sp
+                )
+                BasicTextField(
+                    value = note,
+                    onValueChange = onNoteChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .height(80.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(DesignSystem.Colors.FilterSurface)
+                        .padding(10.dp),
+                    textStyle = TextStyle(color = DesignSystem.Colors.TextPrimary, fontSize = 12.sp, lineHeight = 17.sp),
+                    decorationBox = { field ->
+                        Box {
+                            if (note.isEmpty()) {
+                                Text(
+                                    text = "Ej: Se reparó el poste con apoyo de la alcaldía.",
+                                    color = DesignSystem.Colors.Placeholder,
+                                    fontSize = 12.sp,
+                                    lineHeight = 17.sp
+                                )
+                            }
+                            field()
+                        }
+                    }
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Marcar como resuelto", fontWeight = FontWeight.SemiBold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 @Composable

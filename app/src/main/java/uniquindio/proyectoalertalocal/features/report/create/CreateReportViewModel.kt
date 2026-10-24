@@ -7,15 +7,19 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
+import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.usecase.report.CreateReportUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.FindSimilarReportsUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.report.ObserveReportDetailUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.SupportReportUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.report.UpdateReportUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 
 @HiltViewModel
@@ -23,11 +27,15 @@ class CreateReportViewModel @Inject constructor(
     private val createReportUseCase: CreateReportUseCase,
     private val findSimilarReportsUseCase: FindSimilarReportsUseCase,
     private val supportReportUseCase: SupportReportUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val updateReportUseCase: UpdateReportUseCase,
+    private val observeReportDetailUseCase: ObserveReportDetailUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateReportUiState())
     val uiState: StateFlow<CreateReportUiState> = _uiState.asStateFlow()
+
+    private var loadedEditReportId: String? = null
 
     init {
         getCurrentUserUseCase()
@@ -35,6 +43,32 @@ class CreateReportViewModel @Inject constructor(
                 _uiState.update { it.copy(currentUserId = user?.id) }
             }
             .launchIn(viewModelScope)
+    }
+
+    fun loadForEdit(reportId: String) {
+        if (loadedEditReportId == reportId) return
+        loadedEditReportId = reportId
+        _uiState.update { it.copy(editingReportId = reportId) }
+        viewModelScope.launch {
+            val summary = observeReportDetailUseCase(reportId).first()
+            if (summary == null) {
+                _uiState.update {
+                    it.copy(result = RequestResult.Failure("El reporte no existe."))
+                }
+                return@launch
+            }
+            val report = summary.report
+            _uiState.update {
+                it.copy(
+                    category = report.category,
+                    title = report.title,
+                    description = report.description,
+                    location = report.location,
+                    originalStatus = report.status
+                )
+            }
+            validate()
+        }
     }
 
     fun selectCategory(category: ReportCategory) {
@@ -81,6 +115,28 @@ class CreateReportViewModel @Inject constructor(
                     } else {
                         _uiState.update { it.copy(similarReports = similar, result = null, isPublishing = false) }
                     }
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(result = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado."), isPublishing = false) }
+                }
+        }
+    }
+
+    fun saveChanges() {
+        val state = _uiState.value
+        val reportId = state.editingReportId ?: return
+        val category = state.category ?: return
+        if (!state.isFormValid) return
+        _uiState.update { it.copy(result = RequestResult.Loading, isPublishing = true) }
+        viewModelScope.launch {
+            updateReportUseCase(reportId, state.title, state.description, category, state.location)
+                .onSuccess {
+                    val message = if (state.originalStatus == ReportStatus.VERIFIED) {
+                        "Cambios guardados. El reporte volverá a revisión."
+                    } else {
+                        "Cambios guardados correctamente."
+                    }
+                    _uiState.update { it.copy(result = RequestResult.Success(message), isPublishing = false) }
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(result = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado."), isPublishing = false) }

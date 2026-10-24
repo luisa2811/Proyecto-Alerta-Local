@@ -2,6 +2,7 @@ package uniquindio.proyectoalertalocal.domain.usecase.report
 
 import jakarta.inject.Inject
 import uniquindio.proyectoalertalocal.domain.model.Report
+import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
@@ -21,7 +22,7 @@ class UpdateReportUseCase @Inject constructor(
         reportId: String,
         title: String,
         description: String,
-        category: uniquindio.proyectoalertalocal.domain.model.ReportCategory,
+        category: ReportCategory,
         location: String
     ): Result<Report> {
         val session = sessionRepository.session.value
