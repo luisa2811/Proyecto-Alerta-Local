@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,7 +41,6 @@ import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
-import uniquindio.proyectoalertalocal.core.component.displayCode
 import uniquindio.proyectoalertalocal.core.component.label
 
 @Composable
@@ -63,6 +63,7 @@ fun ModerationReportCard(
 ) {
     val report = summary.report
     var expanded by remember { mutableStateOf(false) }
+    var hasDescriptionOverflow by remember { mutableStateOf(false) }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -91,12 +92,6 @@ fun ModerationReportCard(
                 }
                 ReportSeverityTag(severity = summary.severity)
                 Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = report.id.takeLast(6).uppercase(),
-                    color = DesignSystem.Colors.TextSecondary,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
             }
 
             Text(
@@ -168,13 +163,20 @@ fun ModerationReportCard(
                 fontSize = 11.sp,
                 lineHeight = 16.sp,
                 maxLines = if (expanded) Int.MAX_VALUE else 3,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                onTextLayout = { layoutResult: TextLayoutResult ->
+                    if (!expanded) {
+                        hasDescriptionOverflow = layoutResult.hasVisualOverflow
+                    }
+                }
             )
-            TextButton(onClick = { expanded = !expanded }) {
-                Text(
-                    text = if (expanded) "Ver menos" else "Ver más",
-                    fontSize = 11.sp
-                )
+            if (hasDescriptionOverflow) {
+                TextButton(onClick = { expanded = !expanded }) {
+                    Text(
+                        text = if (expanded) "Ver menos" else "Ver más",
+                        fontSize = 11.sp
+                    )
+                }
             }
 
             if (selectedTab == uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab.REJECTED && !report.rejectionReason.isNullOrBlank()) {
@@ -192,7 +194,7 @@ fun ModerationReportCard(
                 if (original != null) {
                     TextButton(onClick = { onOpenDetail(original.id) }) {
                         Text(
-                            text = "Posible duplicado de ${original.displayCode()}",
+                            text = "Posible duplicado de \"${original.title}\"",
                             fontSize = 11.sp
                         )
                     }

@@ -31,6 +31,20 @@ class CreateReportUseCase @Inject constructor(
         val session = sessionRepository.session.value
             ?: return Result.failure(Exception(ERROR_NO_SESSION))
         val user = userRepository.findById(session.userId)
+        val categoryPrefix = when (category) {
+            ReportCategory.SECURITY -> "SEG"
+            ReportCategory.EMERGENCIES -> "EME"
+            ReportCategory.INFRASTRUCTURE -> "INF"
+            ReportCategory.PETS -> "MAS"
+            ReportCategory.COMMUNITY -> "COM"
+        }
+        val nextNumber = reportRepository.reports.value
+            .asSequence()
+            .filter { it.category == category && it.code.startsWith("$categoryPrefix-") }
+            .mapNotNull { it.code.substringAfter('-').toIntOrNull() }
+            .maxOrNull()
+            ?.plus(1)
+            ?: 1
         val report = Report(
             id = UUID.randomUUID().toString(),
             title = title.trim(),
@@ -42,7 +56,8 @@ class CreateReportUseCase @Inject constructor(
             neighborhood = user?.neighborhood.orEmpty(),
             createdAt = Instant.now(),
             distanceMeters = 0,
-            possibleDuplicateOf = possibleDuplicateOf
+            possibleDuplicateOf = possibleDuplicateOf,
+            code = "$categoryPrefix-${nextNumber.toString().padStart(2, '0')}"
         )
         reportRepository.save(report)
         checkNewAchievementsUseCase(session.userId)

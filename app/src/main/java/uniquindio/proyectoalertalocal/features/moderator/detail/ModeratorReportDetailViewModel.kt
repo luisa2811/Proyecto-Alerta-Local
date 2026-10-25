@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.domain.usecase.comment.ObserveCommentsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveModerationQueueUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveModerationReportDetailUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.RejectReportUseCase
@@ -21,6 +22,7 @@ import uniquindio.proyectoalertalocal.domain.usecase.moderation.VerifyReportUseC
 class ModeratorReportDetailViewModel @Inject constructor(
     private val observeModerationReportDetailUseCase: ObserveModerationReportDetailUseCase,
     private val observeModerationQueueUseCase: ObserveModerationQueueUseCase,
+    private val observeCommentsUseCase: ObserveCommentsUseCase,
     private val verifyReportUseCase: VerifyReportUseCase,
     private val rejectReportUseCase: RejectReportUseCase
 ) : ViewModel() {
@@ -37,19 +39,21 @@ class ModeratorReportDetailViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 observeModerationReportDetailUseCase(reportId),
-                observeModerationQueueUseCase()
-            ) { summary, queue ->
-                summary to queue.reportsById
+                observeModerationQueueUseCase(),
+                observeCommentsUseCase(reportId)
+            ) { summary, queue, comments ->
+                Triple(summary, queue.reportsById, comments)
             }
                 .catch {
                     _uiState.update { it.copy(isLoading = false) }
                 }
-                .collect { (summary, reportsById) ->
+                .collect { (summary, reportsById, comments) ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             summary = summary,
-                            reportsById = reportsById
+                            reportsById = reportsById,
+                            comments = comments
                         )
                     }
                 }

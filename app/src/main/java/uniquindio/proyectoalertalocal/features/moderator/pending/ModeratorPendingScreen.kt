@@ -59,13 +59,13 @@ fun ModeratorPendingScreen(
         topBar = {
             ModeratorTopBar(
                 averageReviewMinutes = uiState.queue?.averageReviewMinutes,
-                selectedTab = uiState.selectedTab,
+                selectedIndex = uiState.selectedTab.ordinal,
                 pendingCount = uiState.queue?.pending?.size ?: 0,
                 verifiedCount = uiState.queue?.verified?.size ?: 0,
                 rejectedCount = uiState.queue?.rejected?.size ?: 0,
                 onOpenProfile = onOpenProfile,
-                onTabSelected = { tab -> 
-                    if (tab is ModerationTab) viewModel.selectTab(tab)
+                onTabSelected = { index ->
+                    ModerationTab.entries.getOrNull(index)?.let(viewModel::selectTab)
                 }
             )
         }

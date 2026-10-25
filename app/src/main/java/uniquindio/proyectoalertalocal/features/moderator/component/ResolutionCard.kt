@@ -65,14 +65,6 @@ fun ResolutionCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 ReportCategoryTag(category = report.category)
                 ReportSeverityTag(severity = summary.severity)
-                Text(
-                    "#${report.id.takeLast(6).uppercase()}",
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .weight(1f),
-                    color = DesignSystem.Colors.TextSecondary,
-                    fontSize = 11.sp
-                )
                 if (selectedTab == ResolutionTab.RESOLVED) {
                     Surface(
                         color = DesignSystem.Colors.ModeratorVerifiedBackground,

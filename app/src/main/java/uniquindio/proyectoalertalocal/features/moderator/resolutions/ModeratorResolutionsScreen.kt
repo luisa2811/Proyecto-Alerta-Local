@@ -88,10 +88,10 @@ fun ModeratorResolutionsScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             ModeratorTopBar(
-                selectedTab = uiState.selectedTab,
+                selectedIndex = uiState.selectedTab.ordinal,
                 onOpenProfile = onOpenProfile,
-                onTabSelected = { tab -> 
-                    if (tab is ResolutionTab) viewModel.selectTab(tab)
+                onTabSelected = { index ->
+                    ResolutionTab.entries.getOrNull(index)?.let(viewModel::selectTab)
                 },
                 title = "Gestión de Resoluciones",
                 subtitle = if (uiState.neighborhood.isNotEmpty()) "Moderando la ${uiState.neighborhood}" else null,
@@ -100,8 +100,7 @@ fun ModeratorResolutionsScreen(
                     uiState.board?.active?.size ?: 0,
                     uiState.board?.toFinish?.size ?: 0,
                     uiState.board?.resolved?.size ?: 0
-                ),
-                tabs = listOf(ResolutionTab.ACTIVE, ResolutionTab.TO_FINISH, ResolutionTab.RESOLVED)
+                )
             )
         }
     ) { innerPadding ->

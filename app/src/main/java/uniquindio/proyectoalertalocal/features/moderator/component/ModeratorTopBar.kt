@@ -33,13 +33,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
-import uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab
 
 @Composable
 fun ModeratorTopBar(
-    selectedTab: Any,
+    selectedIndex: Int,
     onOpenProfile: () -> Unit,
-    onTabSelected: (Any) -> Unit,
+    onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
     averageReviewMinutes: Long? = null,
     pendingCount: Int = 0,
@@ -49,12 +48,7 @@ fun ModeratorTopBar(
     title: String = "Moderation Queue",
     subtitle: String? = null,
     tabLabels: List<String> = listOf("Pendientes", "Verificadas", "Rechazadas"),
-    tabCounts: List<Int> = listOf(pendingCount, verifiedCount, rejectedCount),
-    tabs: List<Any> = listOf(
-        ModerationTab.PENDING,
-        ModerationTab.VERIFIED,
-        ModerationTab.REJECTED
-    )
+    tabCounts: List<Int> = listOf(pendingCount, verifiedCount, rejectedCount)
 ) {
     Column(
         modifier = modifier
@@ -139,24 +133,14 @@ fun ModeratorTopBar(
                 .padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            ModeratorTabChip(
-                label = "Pendientes",
-                count = pendingCount,
-                isSelected = selectedTab == ModerationTab.PENDING,
-                onClick = { onTabSelected(ModerationTab.PENDING) }
-            )
-            ModeratorTabChip(
-                label = "Verificadas",
-                count = verifiedCount,
-                isSelected = selectedTab == ModerationTab.VERIFIED,
-                onClick = { onTabSelected(ModerationTab.VERIFIED) }
-            )
-            ModeratorTabChip(
-                label = "Rechazadas",
-                count = rejectedCount,
-                isSelected = selectedTab == ModerationTab.REJECTED,
-                onClick = { onTabSelected(ModerationTab.REJECTED) }
-            )
+            tabLabels.forEachIndexed { index, label ->
+                ModeratorTabChip(
+                    label = label,
+                    count = tabCounts.getOrElse(index) { 0 },
+                    isSelected = selectedIndex == index,
+                    onClick = { onTabSelected(index) }
+                )
+            }
         }
     }
 }
