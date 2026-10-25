@@ -27,6 +27,7 @@ import uniquindio.proyectoalertalocal.core.component.ReportEmptyState
 import uniquindio.proyectoalertalocal.core.component.ReportHeader
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
+import uniquindio.proyectoalertalocal.features.notifications.UnreadNotificationsViewModel
 
 @Composable
 fun ReportListScreen(
@@ -38,6 +39,8 @@ fun ReportListScreen(
     viewModel: ReportListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val unreadNotificationsViewModel: UnreadNotificationsViewModel = hiltViewModel()
+    val hasUnread by unreadNotificationsViewModel.hasUnread.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
@@ -46,6 +49,7 @@ fun ReportListScreen(
     ) {
         ReportHeader(
             onOpenNotifications = onOpenNotifications,
+            hasUnreadNotifications = hasUnread,
             neighborhoodText = "Los Rosales",
             addressText = ""
         )

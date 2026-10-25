@@ -14,6 +14,7 @@ data class ProfileDashboardUiState(
     val resolvedReports: Int = 0,
     val pendingReports: Int = 0,
     val earnedBadges: Set<Badge> = emptySet(),
+    val badgeProgress: Map<Badge, Pair<Int, Int>> = emptyMap(),
     val showBadges: Boolean = false,
     val result: RequestResult? = null
 )

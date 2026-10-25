@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,7 +25,6 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
@@ -53,6 +52,8 @@ import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.domain.model.Badge
+import uniquindio.proyectoalertalocal.domain.model.ReputationRules
+import uniquindio.proyectoalertalocal.domain.model.UserLevel
 
 @Composable
 fun ProfileDashboardScreen(
@@ -168,70 +169,16 @@ fun ProfileDashboardScreen(
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
-                uiState.levelName?.let { levelName ->
-                    Surface(
-                        color = Color(0xFFEAF3F9),
-                        shape = CircleShape,
-                        modifier = Modifier.padding(top = 10.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 11.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.StarBorder,
-                                contentDescription = null,
-                                tint = DesignSystem.Colors.Primary,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = levelName,
-                                color = DesignSystem.Colors.Primary,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(start = 5.dp)
-                            )
-                        }
-                    }
-                }
-
                 if (uiState.levelName != null) {
-                    Spacer(Modifier.height(24.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "${uiState.points} pts",
-                            color = Color(0xFF42403E),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.weight(1f)
-                        )
-                        uiState.levelMessage?.let { levelMessage ->
-                            Text(
-                                text = levelMessage,
-                                color = DesignSystem.Colors.TextSecondary,
-                                fontSize = 10.sp
-                            )
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 6.dp)
-                            .height(8.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFDDE2E9))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(uiState.progress)
-                                .height(8.dp)
-                                .clip(CircleShape)
-                                .background(DesignSystem.Colors.Primary)
-                        )
-                    }
+                    var showPointsGuide by remember { mutableStateOf(false) }
+                    LevelCard(
+                        points = uiState.points,
+                        levelMessage = uiState.levelMessage.orEmpty(),
+                        progress = uiState.progress,
+                        showPointsGuide = showPointsGuide,
+                        onPointsGuideClick = { showPointsGuide = !showPointsGuide },
+                        modifier = Modifier.padding(top = 18.dp)
+                    )
                 }
 
                 Row(
@@ -270,28 +217,38 @@ fun ProfileDashboardScreen(
                             .align(Alignment.Start)
                             .padding(top = 22.dp)
                     )
-                    if (uiState.earnedBadges.isEmpty()) {
-                        Text(
-                            text = "Aún no tienes insignias. ¡Crea tu primer reporte!",
-                            color = DesignSystem.Colors.TextSecondary,
-                            fontSize = 11.sp,
-                            modifier = Modifier
-                                .align(Alignment.Start)
-                                .padding(top = 10.dp)
-                        )
-                    } else {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 10.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.Top
-                        ) {
-                            Badge.entries.forEach { badge ->
-                                BadgeItem(
-                                    badge = badge,
-                                    earned = badge in uiState.earnedBadges
-                                )
+                    Text(
+                        text = "Las insignias son logros: se ganan por acciones concretas, no por puntos.",
+                        color = DesignSystem.Colors.TextSecondary,
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp,
+                        modifier = Modifier
+                            .align(Alignment.Start)
+                            .padding(top = 4.dp)
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Badge.entries.chunked(2).forEach { badgeRow ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                badgeRow.forEach { badge ->
+                                    BadgeItem(
+                                        badge = badge,
+                                        earned = badge in uiState.earnedBadges,
+                                        progress = uiState.badgeProgress[badge]
+                                            ?: (0 to badgeGoal(badge)),
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                if (badgeRow.size == 1) {
+                                    Spacer(Modifier.weight(1f))
+                                }
                             }
                         }
                     }
@@ -322,6 +279,160 @@ fun ProfileDashboardScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun LevelCard(
+    points: Int,
+    levelMessage: String,
+    progress: Float,
+    showPointsGuide: Boolean,
+    onPointsGuideClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val currentLevel = UserLevel.fromPoints(points)
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(DesignSystem.Colors.White)
+            .padding(12.dp)
+    ) {
+        Text(
+            text = "Tu nivel",
+            color = DesignSystem.Colors.TextPrimary,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            UserLevel.entries.forEach { level ->
+                val isCurrent = level == currentLevel
+                val maxPoints = UserLevel.entries.getOrNull(level.ordinal + 1)
+                    ?.let { it.minPoints - 1 }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(9.dp))
+                        .background(
+                            if (isCurrent) Color(0xFFEAF3F9) else DesignSystem.Colors.Background
+                        )
+                        .padding(horizontal = 3.dp, vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = level.displayName,
+                        color = if (isCurrent) DesignSystem.Colors.Primary else DesignSystem.Colors.TextSecondary,
+                        fontSize = 8.sp,
+                        lineHeight = 10.sp,
+                        fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                        minLines = 2
+                    )
+                    Text(
+                        text = if (maxPoints == null) {
+                            "${level.minPoints}+"
+                        } else {
+                            "${level.minPoints}-$maxPoints"
+                        },
+                        color = if (isCurrent) DesignSystem.Colors.Primary else DesignSystem.Colors.TextSecondary,
+                        fontSize = 8.sp,
+                        fontWeight = if (isCurrent) FontWeight.SemiBold else FontWeight.Normal,
+                        modifier = Modifier.padding(top = 3.dp)
+                    )
+                }
+            }
+        }
+        Text(
+            text = "$points puntos · $levelMessage",
+            color = DesignSystem.Colors.TextSecondary,
+            fontSize = 10.sp,
+            modifier = Modifier.padding(top = 10.dp)
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp)
+                .height(7.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFDDE2E9))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(progress)
+                    .height(7.dp)
+                    .clip(CircleShape)
+                    .background(DesignSystem.Colors.Primary)
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(onClick = onPointsGuideClick)
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "¿Cómo gano puntos?",
+                color = DesignSystem.Colors.Primary,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = DesignSystem.Colors.Primary,
+                modifier = Modifier
+                    .size(18.dp)
+                    .rotate(if (showPointsGuide) 90f else 0f)
+            )
+        }
+        if (showPointsGuide) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                PointValueRow("Crear un reporte", ReputationRules.POINTS_PER_REPORT)
+                PointValueRow("Reporte verificado", ReputationRules.POINTS_PER_VERIFIED_REPORT)
+                PointValueRow("Reporte resuelto", ReputationRules.POINTS_PER_RESOLVED_REPORT)
+                PointValueRow("Comentar", ReputationRules.POINTS_PER_COMMENT)
+                PointValueRow(
+                    "Cada voto \"Es importante\" recibido",
+                    ReputationRules.POINTS_PER_VOTE
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PointValueRow(label: String, points: Int) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            color = DesignSystem.Colors.TextSecondary,
+            fontSize = 10.sp,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = "+$points",
+            color = DesignSystem.Colors.TextPrimary,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
@@ -357,7 +468,12 @@ private fun StatCard(
 }
 
 @Composable
-private fun BadgeItem(badge: Badge, earned: Boolean) {
+private fun BadgeItem(
+    badge: Badge,
+    earned: Boolean,
+    progress: Pair<Int, Int>,
+    modifier: Modifier = Modifier
+) {
     val icon = badgeIcon(badge)
     val background = if (earned) {
         when (badge) {
@@ -380,33 +496,83 @@ private fun BadgeItem(badge: Badge, earned: Boolean) {
         Color(0xFFCAC8C5)
     }
 
+    val current = progress.first.coerceAtMost(progress.second)
+    val goal = progress.second.coerceAtLeast(1)
     Column(
-        modifier = Modifier.width(70.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier
+            .clip(RoundedCornerShape(13.dp))
+            .background(if (earned) DesignSystem.Colors.White else Color(0xFFF0EFED))
+            .padding(10.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(42.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(background),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = tint,
-                modifier = Modifier.size(22.dp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(background),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = tint,
+                    modifier = Modifier.size(19.dp)
+                )
+            }
+            Text(
+                text = if (earned) "Obtenida" else "En progreso",
+                color = if (earned) tint else Color(0xFF8D8A86),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(start = 7.dp)
             )
         }
         Text(
-            text = if (earned) badge.displayName else badge.requirement,
-            color = DesignSystem.Colors.TextSecondary,
-            fontSize = if (earned) 9.sp else 8.sp,
-            lineHeight = if (earned) 11.sp else 10.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 5.dp)
+            text = badge.displayName,
+            color = if (earned) DesignSystem.Colors.TextPrimary else Color(0xFF777470),
+            fontSize = 10.sp,
+            lineHeight = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(top = 7.dp)
         )
+        Text(
+            text = badgeProgressLabel(badge, current, goal),
+            color = if (earned) DesignSystem.Colors.TextSecondary else Color(0xFF8D8A86),
+            fontSize = 9.sp,
+            lineHeight = 11.sp,
+            modifier = Modifier.padding(top = 3.dp)
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp)
+                .height(5.dp)
+                .clip(CircleShape)
+                .background(if (earned) Color(0xFFDDE2E9) else Color(0xFFD9D7D4))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth((current.toFloat() / goal).coerceIn(0f, 1f))
+                    .height(5.dp)
+                    .clip(CircleShape)
+                    .background(tint)
+            )
+        }
     }
+}
+
+private fun badgeGoal(badge: Badge): Int = when (badge) {
+    Badge.FIRST_REPORT -> 1
+    Badge.TRUSTED_REPORTER -> ReputationRules.VERIFIED_REPORTS_FOR_TRUSTED
+    Badge.ACTIVE_NEIGHBOR -> ReputationRules.COMMENTS_FOR_ACTIVE_NEIGHBOR
+    Badge.NEIGHBORHOOD_VOICE -> ReputationRules.MIN_VOTES_FOR_NEIGHBORHOOD_VOICE
+}
+
+private fun badgeProgressLabel(badge: Badge, current: Int, goal: Int): String = when (badge) {
+    Badge.FIRST_REPORT -> "$current/$goal reportes creados"
+    Badge.TRUSTED_REPORTER -> "$current/$goal reportes verificados"
+    Badge.ACTIVE_NEIGHBOR -> "$current/$goal comentarios"
+    Badge.NEIGHBORHOOD_VOICE -> "$current/$goal votos en tu reporte del mes"
 }
 
 private fun badgeIcon(badge: Badge): ImageVector = when (badge) {

@@ -28,9 +28,9 @@ class ResolveReportUseCase @Inject constructor(
             return Result.failure(Exception("Solo el autor puede modificar este reporte."))
         }
 
-        if (report.status != ReportStatus.PENDING && report.status != ReportStatus.VERIFIED) {
+        if (report.status != ReportStatus.VERIFIED) {
             return Result.failure(
-                Exception("Solo se pueden resolver reportes pendientes o verificados.")
+                Exception("Solo se pueden resolver reportes verificados.")
             )
         }
 
