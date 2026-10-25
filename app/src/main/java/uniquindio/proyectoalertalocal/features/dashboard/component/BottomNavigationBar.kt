@@ -19,11 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardDestination
-import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardRoutes
 
 @Composable
 fun BottomNavigationBar(
@@ -33,6 +33,7 @@ fun BottomNavigationBar(
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
+    val startDestinationId = navController.graph.findStartDestination().id
 
     NavigationBar(
         containerColor = DesignSystem.Colors.White,
@@ -42,18 +43,17 @@ fun BottomNavigationBar(
         destinations.forEach { destination ->
             val isSelected = currentDestination?.hasRoute(destination.route::class) == true
             val badgeCount = badgeCounts[destination] ?: 0
+            val isStartTab = navController.graph.findNode(destination.route)?.id == startDestinationId
 
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
                     navController.navigate(destination.route) {
-                        if (destination.route is DashboardRoutes.Home || destination.route is DashboardRoutes.ModeratorHome) {
-                            popUpTo(destination.route) { saveState = true }
-                        } else {
-                            popUpTo(DashboardRoutes.Home) { saveState = true }
+                        popUpTo(startDestinationId) {
+                            saveState = !isStartTab
                         }
                         launchSingleTop = true
-                        restoreState = true
+                        restoreState = !isStartTab
                     }
                 },
                 icon = {

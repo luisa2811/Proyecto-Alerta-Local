@@ -9,7 +9,6 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
-import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportSeverity
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
@@ -64,16 +63,4 @@ fun ReportSeverity.color(): Color = when (this) {
     ReportSeverity.MEDIUM -> DesignSystem.Colors.ModeratorPendingText
     ReportSeverity.HIGH -> DesignSystem.Colors.AccentDark
     ReportSeverity.CRITICAL -> DesignSystem.Colors.ModeratorRed
-}
-
-fun Report.displayCode(): String {
-    val prefix = when (category) {
-        ReportCategory.SECURITY -> "SEG"
-        ReportCategory.EMERGENCIES -> "EME"
-        ReportCategory.INFRASTRUCTURE -> "INF"
-        ReportCategory.PETS -> "MAS"
-        ReportCategory.COMMUNITY -> "COM"
-    }
-    val digest = id.hashCode().toLong().let { if (it < 0L) -it else it } % 10_000L
-    return "#$prefix-${digest.toString().padStart(4, '0')}"
 }

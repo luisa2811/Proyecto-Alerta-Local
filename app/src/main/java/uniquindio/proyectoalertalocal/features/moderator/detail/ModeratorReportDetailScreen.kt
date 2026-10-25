@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
@@ -42,7 +44,6 @@ import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
 import uniquindio.proyectoalertalocal.core.component.ReportSeverityTag
 import uniquindio.proyectoalertalocal.core.component.ReportStatusTag
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
-import uniquindio.proyectoalertalocal.core.component.displayCode
 import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
@@ -104,9 +105,7 @@ fun ModeratorReportDetailScreen(
                 }
                 return@Column
             }
-
             val report = summary.report
-            val code = report.id.takeLast(6).uppercase()
 
             Column(
                 modifier = Modifier
@@ -123,13 +122,6 @@ fun ModeratorReportDetailScreen(
                     ReportCategoryTag(category = report.category)
                     ReportSeverityTag(severity = summary.severity)
                     ReportStatusTag(status = report.status)
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(
-                        text = code,
-                        color = DesignSystem.Colors.TextSecondary,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
                 }
 
                 Text(
@@ -160,7 +152,7 @@ fun ModeratorReportDetailScreen(
                         )
                     }
                     Text(
-                        text = summary.authorName,
+                        text = "Publicado por ${summary.authorName}",
                         modifier = Modifier.padding(start = 8.dp),
                         color = DesignSystem.Colors.TextPrimary,
                         fontSize = 12.sp,
@@ -225,28 +217,14 @@ fun ModeratorReportDetailScreen(
                     }
                 }
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(
-                        text = "Votos: ${summary.supportCount}",
-                        color = DesignSystem.Colors.TextSecondary,
-                        fontSize = 11.sp
-                    )
-                    Text(
-                        text = "Comentarios: ${summary.commentCount}",
-                        color = DesignSystem.Colors.TextSecondary,
-                        fontSize = 11.sp
-                    )
-                }
-
                 if (!report.possibleDuplicateOf.isNullOrBlank()) {
                     val original = uiState.reportsById[report.possibleDuplicateOf]
                     Text(
-                        text = if (original != null) "Posible duplicado de ${original.displayCode()}" else "El reporte original ya no está disponible.",
+                        text = if (original != null) {
+                            "Posible duplicado de \"${original.title}\""
+                        } else {
+                            "El reporte original ya no está disponible."
+                        },
                         modifier = Modifier.padding(top = 8.dp),
                         color = DesignSystem.Colors.TextSecondary,
                         fontSize = 11.sp
@@ -270,6 +248,70 @@ fun ModeratorReportDetailScreen(
                         fontSize = 11.sp,
                         lineHeight = 16.sp
                     )
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
+                Text(
+                    text = "Comentarios · ${uiState.comments.size}",
+                    modifier = Modifier.padding(top = 14.dp),
+                    color = DesignSystem.Colors.TextPrimary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                if (uiState.comments.isEmpty()) {
+                    Text(
+                        text = "Aún no hay comentarios.",
+                        modifier = Modifier.padding(top = 12.dp, bottom = 18.dp),
+                        color = DesignSystem.Colors.TextSecondary,
+                        fontSize = 11.sp
+                    )
+                } else {
+                    uiState.comments.forEach { commentSummary ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Surface(
+                                modifier = Modifier.size(28.dp),
+                                shape = CircleShape,
+                                color = DesignSystem.Colors.ModeratorNavy.copy(alpha = 0.12f)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = getAuthorInitials(commentSummary.authorName),
+                                        color = DesignSystem.Colors.ModeratorNavy,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                            Column(modifier = Modifier.padding(start = 9.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = commentSummary.authorName,
+                                        color = DesignSystem.Colors.TextPrimary,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = " · ${commentSummary.comment.createdAt.toRelativeTime()}",
+                                        color = DesignSystem.Colors.TextSecondary,
+                                        fontSize = 10.sp
+                                    )
+                                }
+                                Text(
+                                    text = commentSummary.comment.text,
+                                    modifier = Modifier.padding(top = 4.dp),
+                                    color = DesignSystem.Colors.TextSecondary,
+                                    fontSize = 11.sp,
+                                    lineHeight = 16.sp
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(18.dp))
                 }
             }
 

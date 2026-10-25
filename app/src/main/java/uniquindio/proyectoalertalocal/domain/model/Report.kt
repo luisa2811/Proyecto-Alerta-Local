@@ -20,5 +20,6 @@ data class Report(
     val resolvedAt: Instant? = null,
     val possibleDuplicateOf: String? = null,
     val rejectionReason: String? = null,
-    val resolutionNote: String? = null
+    val resolutionNote: String? = null,
+    val code: String = ""
 )
