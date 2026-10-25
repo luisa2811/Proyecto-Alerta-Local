@@ -106,6 +106,7 @@ class ProfileDashboardViewModel @Inject constructor(
             resolvedReports = stats.resolvedReports,
             pendingReports = stats.pendingReports,
             earnedBadges = visibleReputation?.badges.orEmpty(),
+            badgeProgress = visibleReputation?.badgeProgress.orEmpty(),
             showBadges = isResident
         )
     }
@@ -118,7 +119,7 @@ class ProfileDashboardViewModel @Inject constructor(
     private fun levelMessage(reputation: Reputation): String {
         val nextLevel = reputation.nextLevel ?: return MAX_LEVEL_MESSAGE
         val pointsToNextLevel = reputation.pointsToNextLevel ?: 0
-        return "Faltan $pointsToNextLevel puntos para ${nextLevel.displayName}"
+        return "Faltan $pointsToNextLevel para ${nextLevel.displayName}"
     }
 
     private fun progress(reputation: Reputation): Float {

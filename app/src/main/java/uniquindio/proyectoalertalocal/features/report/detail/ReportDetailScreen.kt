@@ -149,6 +149,7 @@ fun ReportDetailScreen(
                 trailingContent = if (uiState.isOwner) {
                     {
                         OwnerMenu(
+                            reportStatus = uiState.reportSummary?.report?.status,
                             onEdit = { viewModel.onEditRequested() },
                             onResolve = { viewModel.openResolveDialog() },
                             onDelete = { viewModel.openDeleteDialog() }
@@ -433,6 +434,7 @@ fun ReportDetailScreen(
 
 @Composable
 private fun OwnerMenu(
+    reportStatus: ReportStatus?,
     onEdit: () -> Unit,
     onResolve: () -> Unit,
     onDelete: () -> Unit
@@ -462,18 +464,22 @@ private fun OwnerMenu(
         ) {
             DropdownMenuItem(
                 text = { Text("Editar") },
+                enabled = reportStatus != ReportStatus.RESOLVED &&
+                    reportStatus != ReportStatus.REJECTED,
                 onClick = {
                     isMenuOpen = false
                     onEdit()
                 }
             )
-            DropdownMenuItem(
-                text = { Text("Marcar como resuelto") },
-                onClick = {
-                    isMenuOpen = false
-                    onResolve()
-                }
-            )
+            if (reportStatus == ReportStatus.VERIFIED) {
+                DropdownMenuItem(
+                    text = { Text("Marcar como resuelto") },
+                    onClick = {
+                        isMenuOpen = false
+                        onResolve()
+                    }
+                )
+            }
             DropdownMenuItem(
                 text = { Text("Eliminar") },
                 onClick = {

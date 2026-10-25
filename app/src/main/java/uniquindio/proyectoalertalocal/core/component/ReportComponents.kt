@@ -79,6 +79,7 @@ fun ProximityFilter.label(): String = when (this) {
 @Composable
 fun ReportHeader(
     onOpenNotifications: () -> Unit,
+    hasUnreadNotifications: Boolean,
     modifier: Modifier = Modifier,
     onEditLocation: (() -> Unit)? = null,
     neighborhoodText: String = "Los Rosales",
@@ -173,13 +174,15 @@ fun ReportHeader(
                     )
                 }
             }
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 8.dp, end = 8.dp)
-                    .size(8.dp)
-                    .background(DesignSystem.Colors.HomeAccent, CircleShape)
-            )
+            if (hasUnreadNotifications) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 8.dp, end = 8.dp)
+                        .size(8.dp)
+                        .background(DesignSystem.Colors.HomeAccent, CircleShape)
+                )
+            }
         }
     }
 }

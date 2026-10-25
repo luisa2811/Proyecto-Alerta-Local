@@ -86,6 +86,57 @@ class ReputationRulesTest {
         assertNull(maxLevel.pointsToNextLevel)
     }
 
+    @Test
+    fun calculate_includesProgressForEveryBadge() {
+        val report = InMemoryDemoData.reports.first().copy(
+            id = "badge-progress-report",
+            authorId = "badge-progress-user",
+            status = ReportStatus.VERIFIED,
+            createdAt = now,
+            supportedBy = setOf("supporter-1", "supporter-2", "supporter-3"),
+            reviewedBy = "moderator"
+        )
+        val comments = listOf(
+            Comment(
+                id = "badge-progress-comment-1",
+                reportId = report.id,
+                authorId = "badge-progress-user",
+                text = "Comentario de prueba",
+                createdAt = now
+            ),
+            Comment(
+                id = "badge-progress-comment-2",
+                reportId = report.id,
+                authorId = "badge-progress-user",
+                text = "Otro comentario de prueba",
+                createdAt = now
+            )
+        )
+        val reputation = ReputationRules.calculate(
+            userId = "badge-progress-user",
+            reports = listOf(report),
+            comments = comments,
+            now = now
+        )
+
+        assertEquals(
+            1 to 1,
+            reputation.badgeProgress[Badge.FIRST_REPORT]
+        )
+        assertEquals(
+            1 to ReputationRules.VERIFIED_REPORTS_FOR_TRUSTED,
+            reputation.badgeProgress[Badge.TRUSTED_REPORTER]
+        )
+        assertEquals(
+            2 to ReputationRules.COMMENTS_FOR_ACTIVE_NEIGHBOR,
+            reputation.badgeProgress[Badge.ACTIVE_NEIGHBOR]
+        )
+        assertEquals(
+            3 to ReputationRules.MIN_VOTES_FOR_NEIGHBORHOOD_VOICE,
+            reputation.badgeProgress[Badge.NEIGHBORHOOD_VOICE]
+        )
+    }
+
     // --- Un reporte rechazado no suma ---
 
     @Test

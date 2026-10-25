@@ -44,11 +44,27 @@ object ReputationRules {
             if (ownComments.size >= COMMENTS_FOR_ACTIVE_NEIGHBOR) add(Badge.ACTIVE_NEIGHBOR)
             if (hasNeighborhoodVoice(userId, reports, now, zoneId)) add(Badge.NEIGHBORHOOD_VOICE)
         }
+        val currentMonth = YearMonth.from(now.atZone(zoneId))
+        val ownMonthlyTopVotes = ownReports
+            .filter {
+                it.status != ReportStatus.REJECTED &&
+                    YearMonth.from(it.createdAt.atZone(zoneId)) == currentMonth
+            }
+            .maxOfOrNull { it.supportedBy.size } ?: 0
+        val badgeProgress = mapOf(
+            Badge.FIRST_REPORT to (ownReports.size to 1),
+            Badge.TRUSTED_REPORTER to (verifiedReports to VERIFIED_REPORTS_FOR_TRUSTED),
+            Badge.ACTIVE_NEIGHBOR to (ownComments.size to COMMENTS_FOR_ACTIVE_NEIGHBOR),
+            Badge.NEIGHBORHOOD_VOICE to (
+                ownMonthlyTopVotes to MIN_VOTES_FOR_NEIGHBORHOOD_VOICE
+            )
+        )
 
         return Reputation(
             points = points,
             level = UserLevel.fromPoints(points),
-            badges = badges
+            badges = badges,
+            badgeProgress = badgeProgress
         )
     }
 
