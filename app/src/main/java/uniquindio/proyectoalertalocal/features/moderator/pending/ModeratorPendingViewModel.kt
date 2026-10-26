@@ -14,18 +14,26 @@ import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveModerationQueueUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.RejectReportUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.VerifyReportUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 
 @HiltViewModel
 class ModeratorPendingViewModel @Inject constructor(
     private val observeModerationQueueUseCase: ObserveModerationQueueUseCase,
     private val verifyReportUseCase: VerifyReportUseCase,
-    private val rejectReportUseCase: RejectReportUseCase
+    private val rejectReportUseCase: RejectReportUseCase,
+    private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ModeratorPendingUiState())
     val uiState: StateFlow<ModeratorPendingUiState> = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            getCurrentUserUseCase().collect { user ->
+                _uiState.update { it.copy(commune = user?.assignedCommune.orEmpty()) }
+            }
+        }
+
         viewModelScope.launch {
             observeModerationQueueUseCase()
                 .catch { _uiState.update { it.copy(isLoading = false) } }

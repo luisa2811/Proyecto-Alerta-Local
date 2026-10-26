@@ -58,6 +58,8 @@ fun ModeratorPendingScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             ModeratorTopBar(
+                title = "Cola de moderación",
+                subtitle = if (uiState.commune.isNotEmpty()) "Moderando la ${uiState.commune}" else null,
                 averageReviewMinutes = uiState.queue?.averageReviewMinutes,
                 selectedIndex = uiState.selectedTab.ordinal,
                 pendingCount = uiState.queue?.pending?.size ?: 0,

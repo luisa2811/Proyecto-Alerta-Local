@@ -14,12 +14,13 @@ import uniquindio.proyectoalertalocal.domain.usecase.notification.ObserveNotific
 class UnreadNotificationsViewModel @Inject constructor(
     observeNotificationsUseCase: ObserveNotificationsUseCase
 ) : ViewModel() {
-
     val hasUnread: StateFlow<Boolean> = observeNotificationsUseCase()
-        .map { notifications -> notifications.any { !it.isRead } }
+        .map { notifications ->
+            notifications.any { !it.isRead }
+        }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.WhileSubscribed(5000),
             initialValue = false
         )
 }
