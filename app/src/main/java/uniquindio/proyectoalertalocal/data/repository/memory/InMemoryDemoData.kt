@@ -34,7 +34,9 @@ internal object InMemoryDemoData {
             displayNameInReports = true,
             memberSince = now.minus(Duration.ofDays(580)),
             earnedBadges = setOf(Badge.FIRST_REPORT),
-            notifiedLevel = UserLevel.COLLABORATOR
+            notifiedLevel = UserLevel.COLLABORATOR,
+            residenceLatitude = 4.533900,
+            residenceLongitude = -75.681100
         ),
         User(
             id = "resident-carlos",
@@ -45,7 +47,9 @@ internal object InMemoryDemoData {
             address = "Calle 9 con Cra 14",
             neighborhood = "La Esperanza",
             earnedBadges = setOf(Badge.FIRST_REPORT),
-            notifiedLevel = UserLevel.COLLABORATOR
+            notifiedLevel = UserLevel.COLLABORATOR,
+            residenceLatitude = 4.533900,
+            residenceLongitude = -75.678848
         ),
         User(
             id = "resident-ana",
@@ -55,7 +59,9 @@ internal object InMemoryDemoData {
             role = UserRole.RESIDENT,
             neighborhood = "Los Rosales",
             earnedBadges = setOf(Badge.FIRST_REPORT, Badge.NEIGHBORHOOD_VOICE),
-            notifiedLevel = UserLevel.COLLABORATOR
+            notifiedLevel = UserLevel.COLLABORATOR,
+            residenceLatitude = 4.530751,
+            residenceLongitude = -75.681100
         ),
         User(
             id = "resident-julian",
@@ -65,7 +71,9 @@ internal object InMemoryDemoData {
             role = UserRole.RESIDENT,
             neighborhood = "Los Rosales",
             earnedBadges = setOf(Badge.FIRST_REPORT),
-            notifiedLevel = UserLevel.NOVICE
+            notifiedLevel = UserLevel.NOVICE,
+            residenceLatitude = 4.533900,
+            residenceLongitude = -75.686730
         ),
         User(
             id = "resident-laura",
@@ -76,7 +84,9 @@ internal object InMemoryDemoData {
             neighborhood = "La Esperanza",
             displayNameInReports = false,
             earnedBadges = setOf(Badge.FIRST_REPORT),
-            notifiedLevel = UserLevel.NOVICE
+            notifiedLevel = UserLevel.NOVICE,
+            residenceLatitude = 4.538040,
+            residenceLongitude = -75.675930
         ),
         User(
             id = "resident-andres",
@@ -86,7 +96,9 @@ internal object InMemoryDemoData {
             role = UserRole.RESIDENT,
             neighborhood = "Los Rosales",
             earnedBadges = setOf(Badge.FIRST_REPORT),
-            notifiedLevel = UserLevel.NOVICE
+            notifiedLevel = UserLevel.NOVICE,
+            residenceLatitude = 4.539000,
+            residenceLongitude = -75.687470
         ),
         User(
             id = "resident-pedro",
@@ -96,7 +108,9 @@ internal object InMemoryDemoData {
             role = UserRole.RESIDENT,
             neighborhood = "La Esperanza",
             earnedBadges = setOf(Badge.FIRST_REPORT),
-            notifiedLevel = UserLevel.NOVICE
+            notifiedLevel = UserLevel.NOVICE,
+            residenceLatitude = 4.527540,
+            residenceLongitude = -75.673130
         ),
         User(
             id = "resident-sofia",
@@ -106,7 +120,9 @@ internal object InMemoryDemoData {
             role = UserRole.RESIDENT,
             neighborhood = "Los Rosales",
             earnedBadges = setOf(Badge.FIRST_REPORT),
-            notifiedLevel = UserLevel.NOVICE
+            notifiedLevel = UserLevel.NOVICE,
+            residenceLatitude = 4.526264,
+            residenceLongitude = -75.690655
         ),
         User(
             id = "moderator-comuna-4",
@@ -115,7 +131,9 @@ internal object InMemoryDemoData {
             password = "Moderador123!",
             role = UserRole.MODERATOR,
             moderatorCode = "MOD-2026",
-            assignedCommune = "Comuna 4"
+            assignedCommune = "Comuna 4",
+            residenceLatitude = 4.547400,
+            residenceLongitude = -75.681100
         )
     )
 
@@ -132,6 +150,8 @@ internal object InMemoryDemoData {
             neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(2)),
             distanceMeters = 300,
+            latitude = 4.536600,
+            longitude = -75.681100,
             supportedBy = supporters(28, 1),
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofHours(1))
@@ -148,6 +168,8 @@ internal object InMemoryDemoData {
             neighborhood = "La Esperanza",
             createdAt = now.minus(Duration.ofMinutes(15)),
             distanceMeters = 450,
+            latitude = 4.533900,
+            longitude = -75.676032,
             supportedBy = supporters(17, 29) + "resident-maria",
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofMinutes(5))
@@ -164,6 +186,8 @@ internal object InMemoryDemoData {
             neighborhood = "La Esperanza",
             createdAt = now.minus(Duration.ofHours(5)),
             distanceMeters = 850,
+            latitude = 4.526247,
+            longitude = -75.681100,
             supportedBy = supporters(13, 46) + "resident-maria"
         ),
         Report(
@@ -178,6 +202,8 @@ internal object InMemoryDemoData {
             neighborhood = "La Esperanza",
             createdAt = now.minus(Duration.ofDays(1)),
             distanceMeters = 1300,
+            latitude = 4.533900,
+            longitude = -75.695730,
             supportedBy = emptySet(),
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofHours(20))
@@ -194,6 +220,8 @@ internal object InMemoryDemoData {
             neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(5)),
             distanceMeters = 900,
+            latitude = 4.539624,
+            longitude = -75.673934,
             supportedBy = supporters(10, 59) + "resident-maria",
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofHours(3))
@@ -210,6 +238,8 @@ internal object InMemoryDemoData {
             neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(2)),
             distanceMeters = 750,
+            latitude = 4.529122,
+            longitude = -75.687072,
             supportedBy = supporters(8, 69),
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofMinutes(90)),
@@ -227,6 +257,8 @@ internal object InMemoryDemoData {
             neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(1)),
             distanceMeters = 1200,
+            latitude = 4.541544,
+            longitude = -75.690655,
             supportedBy = supporters(41, 77),
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofMinutes(50)),
@@ -246,6 +278,8 @@ internal object InMemoryDemoData {
             neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofDays(2)),
             distanceMeters = 400,
+            latitude = 4.531352,
+            longitude = -75.677915,
             supportedBy = supporters(9, 118),
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofHours(36)),
@@ -265,6 +299,8 @@ internal object InMemoryDemoData {
             neighborhood = "La Esperanza",
             createdAt = now.minus(Duration.ofHours(5)),
             distanceMeters = 1100,
+            latitude = 4.533900,
+            longitude = -75.668713,
             supportedBy = supporters(18, 127)
         ),
         Report(
@@ -279,6 +315,8 @@ internal object InMemoryDemoData {
             neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(1)),
             distanceMeters = 650,
+            latitude = 4.528049,
+            longitude = -75.681100,
             supportedBy = supporters(8, 145),
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofMinutes(50)),
@@ -298,6 +336,8 @@ internal object InMemoryDemoData {
             neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofDays(1)),
             distanceMeters = 500,
+            latitude = 4.533900,
+            longitude = -75.686730,
             supportedBy = emptySet(),
             reviewedBy = "moderator-comuna-4",
             reviewedAt = now.minus(Duration.ofHours(20)),
@@ -315,6 +355,8 @@ internal object InMemoryDemoData {
             neighborhood = "Los Rosales",
             createdAt = now.minus(Duration.ofHours(3)),
             distanceMeters = 600,
+            latitude = 4.537716,
+            longitude = -75.685870,
             supportedBy = supporters(14, 153)
         )
     )

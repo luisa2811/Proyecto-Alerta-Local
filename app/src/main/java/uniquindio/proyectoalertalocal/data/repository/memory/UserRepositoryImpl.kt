@@ -25,6 +25,20 @@ class UserRepositoryImpl @Inject constructor() : UserRepository {
     override suspend fun findByEmail(email: String): User? =
         mutableUsers.value.firstOrNull { it.email.equals(email, ignoreCase = true) }
 
+    override suspend fun login(email: String, password: String): User? =
+        mutableUsers.value.firstOrNull {
+            it.email.equals(email, ignoreCase = true) && it.password == password
+        }
+
+    override suspend fun logout() = Unit
+
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> =
+        if (findByEmail(email) != null) {
+            Result.success(Unit)
+        } else {
+            Result.failure(Exception("No existe una cuenta asociada a este correo."))
+        }
+
     override suspend fun save(user: User) {
         mutableUsers.update { currentUsers ->
             val existingIndex = currentUsers.indexOfFirst { it.id == user.id }

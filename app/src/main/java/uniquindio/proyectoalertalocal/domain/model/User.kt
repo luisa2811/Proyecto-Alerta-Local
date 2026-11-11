@@ -19,5 +19,8 @@ data class User(
     val earnedBadges: Set<Badge> = emptySet(),
     val notifiedLevel: UserLevel = UserLevel.NOVICE,
     val moderatorCode: String? = null,
-    val assignedCommune: String? = null
+    val assignedCommune: String? = null,
+    val profilePictureUrl: String? = null,
+    val residenceLatitude: Double? = null,
+    val residenceLongitude: Double? = null
 )

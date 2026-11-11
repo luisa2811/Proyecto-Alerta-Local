@@ -21,5 +21,8 @@ data class Report(
     val possibleDuplicateOf: String? = null,
     val rejectionReason: String? = null,
     val resolutionNote: String? = null,
-    val code: String = ""
+    val code: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val imageUrls: List<String> = emptyList()
 )
