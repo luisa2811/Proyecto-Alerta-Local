@@ -3,6 +3,8 @@ package uniquindio.proyectoalertalocal.domain.usecase.auth
 import jakarta.inject.Inject
 import java.time.Instant
 import uniquindio.proyectoalertalocal.domain.model.RecoveryCode
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.repository.PasswordRecoveryRepository
 import uniquindio.proyectoalertalocal.domain.repository.UserRepository
 
@@ -17,7 +19,9 @@ class RequestPasswordRecoveryUseCase @Inject constructor(
     suspend operator fun invoke(email: String): Result<String> {
         val trimmedEmail = email.trim()
         val user = userRepository.findByEmail(trimmedEmail)
-            ?: return Result.failure(Exception(ERROR_ACCOUNT_NOT_FOUND))
+            ?: return Result.failure(
+                AppException(AppError.PASSWORD_RECOVERY_ACCOUNT_NOT_FOUND, ERROR_ACCOUNT_NOT_FOUND)
+            )
 
         val generatedCode = (100000..999999).random().toString()
         val recoveryCode = RecoveryCode(

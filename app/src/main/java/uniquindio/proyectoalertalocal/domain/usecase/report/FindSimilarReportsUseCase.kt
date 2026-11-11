@@ -4,6 +4,8 @@ import jakarta.inject.Inject
 import java.text.Normalizer
 import java.time.Duration
 import java.time.Instant
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
@@ -25,7 +27,7 @@ class FindSimilarReportsUseCase @Inject constructor(
 
     suspend operator fun invoke(title: String, category: ReportCategory): Result<List<Report>> {
         val session = sessionRepository.session.value
-            ?: return Result.failure(Exception(ERROR_NO_SESSION))
+            ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, ERROR_NO_SESSION))
         val userId = session.userId
         val user = userRepository.findById(userId)
         val neighborhood = user?.neighborhood.orEmpty()

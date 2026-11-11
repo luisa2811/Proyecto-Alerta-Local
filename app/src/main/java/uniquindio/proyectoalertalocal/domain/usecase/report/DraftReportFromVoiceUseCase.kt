@@ -1,6 +1,8 @@
 package uniquindio.proyectoalertalocal.domain.usecase.report
 
 import jakarta.inject.Inject
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.ReportDraft
 import uniquindio.proyectoalertalocal.domain.repository.AiAssistantRepository
 
@@ -16,7 +18,9 @@ class DraftReportFromVoiceUseCase @Inject constructor(
         languageTag: String
     ): Result<ReportDraft> {
         if (transcript.isBlank()) {
-            return Result.failure(Exception(ERROR_UNRECOGNIZED_SPEECH))
+            return Result.failure(
+                AppException(AppError.UNRECOGNIZED_SPEECH, ERROR_UNRECOGNIZED_SPEECH)
+            )
         }
         return aiAssistantRepository.draftReportFromText(transcript, languageTag)
             .fold(

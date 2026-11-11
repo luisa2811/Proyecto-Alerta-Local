@@ -1,6 +1,8 @@
 package uniquindio.proyectoalertalocal.domain.usecase.auth
 
 import jakarta.inject.Inject
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.User
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
@@ -26,25 +28,32 @@ class LoginUserUseCase @Inject constructor(
         selectedRole: UserRole
     ): Result<User> {
         val user = userRepository.findByEmail(email)
-            ?: return Result.failure(IllegalArgumentException(INVALID_CREDENTIALS_MESSAGE))
+            ?: return Result.failure(
+                AppException(AppError.INVALID_CREDENTIALS, INVALID_CREDENTIALS_MESSAGE)
+            )
 
         if (user.password != password) {
-            return Result.failure(IllegalArgumentException(INVALID_CREDENTIALS_MESSAGE))
+            return Result.failure(
+                AppException(AppError.INVALID_CREDENTIALS, INVALID_CREDENTIALS_MESSAGE)
+            )
         }
 
         if (user.role != selectedRole) {
-            val message = when {
+            val (error, message) = when {
                 user.role == UserRole.MODERATOR && selectedRole == UserRole.RESIDENT ->
-                    MODERATOR_ACCOUNT_REQUIRES_MODERATOR_ROLE_MESSAGE
+                    AppError.MODERATOR_ACCOUNT_REQUIRES_MODERATOR_ROLE to
+                        MODERATOR_ACCOUNT_REQUIRES_MODERATOR_ROLE_MESSAGE
                 selectedRole == UserRole.MODERATOR ->
-                    MODERATOR_ACCESS_DENIED_MESSAGE
-                else -> INVALID_CREDENTIALS_MESSAGE
+                    AppError.MODERATOR_ACCESS_DENIED to MODERATOR_ACCESS_DENIED_MESSAGE
+                else -> AppError.INVALID_CREDENTIALS to INVALID_CREDENTIALS_MESSAGE
             }
-            return Result.failure(IllegalArgumentException(message))
+            return Result.failure(AppException(error, message))
         }
 
         if (selectedRole == UserRole.MODERATOR && user.moderatorCode != moderatorCode) {
-            return Result.failure(IllegalArgumentException(INVALID_MODERATOR_CODE_MESSAGE))
+            return Result.failure(
+                AppException(AppError.INVALID_MODERATOR_CODE, INVALID_MODERATOR_CODE_MESSAGE)
+            )
         }
 
         sessionRepository.saveSession(userId = user.id, role = user.role)

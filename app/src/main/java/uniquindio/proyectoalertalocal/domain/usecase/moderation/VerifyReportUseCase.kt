@@ -2,6 +2,8 @@ package uniquindio.proyectoalertalocal.domain.usecase.moderation
 
 import jakarta.inject.Inject
 import java.time.Instant
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.model.UserRole
@@ -25,14 +27,16 @@ class VerifyReportUseCase @Inject constructor(
 
     suspend operator fun invoke(reportId: String): Result<Report> {
         val session = sessionRepository.session.value
-            ?: return Result.failure(Exception(ERROR_NO_SESSION))
+            ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, ERROR_NO_SESSION))
         if (session.role != UserRole.MODERATOR) {
-            return Result.failure(Exception(ERROR_NOT_MODERATOR))
+            return Result.failure(AppException(AppError.MODERATOR_REQUIRED, ERROR_NOT_MODERATOR))
         }
         val report = reportRepository.findById(reportId)
-            ?: return Result.failure(Exception(ERROR_NOT_FOUND))
+            ?: return Result.failure(AppException(AppError.REPORT_NOT_FOUND, ERROR_NOT_FOUND))
         if (report.status != ReportStatus.PENDING) {
-            return Result.failure(Exception(ERROR_ALREADY_REVIEWED))
+            return Result.failure(
+                AppException(AppError.REPORT_ALREADY_REVIEWED, ERROR_ALREADY_REVIEWED)
+            )
         }
 
         val updated = report.copy(

@@ -1,6 +1,8 @@
 package uniquindio.proyectoalertalocal.domain.usecase.report
 
 import jakarta.inject.Inject
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
@@ -21,17 +23,19 @@ class SupportReportUseCase @Inject constructor(
 
     suspend operator fun invoke(reportId: String): Result<Report> {
         val session = sessionRepository.session.value
-            ?: return Result.failure(Exception(ERROR_NO_SESSION))
+            ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, ERROR_NO_SESSION))
         val report = reportRepository.findById(reportId)
-            ?: return Result.failure(Exception(ERROR_NOT_ACTIVE))
+            ?: return Result.failure(AppException(AppError.REPORT_NOT_ACTIVE, ERROR_NOT_ACTIVE))
         if (report.status != ReportStatus.PENDING && report.status != ReportStatus.VERIFIED) {
-            return Result.failure(Exception(ERROR_NOT_ACTIVE))
+            return Result.failure(AppException(AppError.REPORT_NOT_ACTIVE, ERROR_NOT_ACTIVE))
         }
         if (report.authorId == session.userId) {
-            return Result.failure(Exception(ERROR_OWN_REPORT))
+            return Result.failure(AppException(AppError.REPORT_OWN_SUPPORT, ERROR_OWN_REPORT))
         }
         if (session.userId in report.supportedBy) {
-            return Result.failure(Exception(ERROR_ALREADY_SUPPORTED))
+            return Result.failure(
+                AppException(AppError.REPORT_ALREADY_SUPPORTED, ERROR_ALREADY_SUPPORTED)
+            )
         }
         val updated = report.copy(supportedBy = report.supportedBy + session.userId)
         reportRepository.update(updated)

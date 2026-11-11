@@ -3,6 +3,8 @@ package uniquindio.proyectoalertalocal.domain.usecase.report
 import jakarta.inject.Inject
 import java.time.Instant
 import java.util.UUID
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
@@ -29,7 +31,7 @@ class CreateReportUseCase @Inject constructor(
         possibleDuplicateOf: String? = null
     ): Result<Report> {
         val session = sessionRepository.session.value
-            ?: return Result.failure(Exception(ERROR_NO_SESSION))
+            ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, ERROR_NO_SESSION))
         val user = userRepository.findById(session.userId)
         val categoryPrefix = when (category) {
             ReportCategory.SECURITY -> "SEG"

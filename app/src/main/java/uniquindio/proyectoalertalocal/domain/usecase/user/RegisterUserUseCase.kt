@@ -1,6 +1,8 @@
 package uniquindio.proyectoalertalocal.domain.usecase.user
 
 import jakarta.inject.Inject
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.User
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.domain.repository.UserRepository
@@ -16,7 +18,12 @@ class RegisterUserUseCase @Inject constructor(
         password: String
     ): Result<User> {
         if (userRepository.findByEmail(email) != null) {
-            return Result.failure(Exception("Ya existe una cuenta registrada con este correo."))
+            return Result.failure(
+                AppException(
+                    AppError.EMAIL_ALREADY_REGISTERED,
+                    "Ya existe una cuenta registrada con este correo."
+                )
+            )
         }
 
         val user = User(

@@ -1,6 +1,8 @@
 package uniquindio.proyectoalertalocal.domain.usecase.user
 
 import jakarta.inject.Inject
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.User
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
 import uniquindio.proyectoalertalocal.domain.repository.UserRepository
@@ -15,10 +17,10 @@ class UpdateResidenceUseCase @Inject constructor(
         complement: String?
     ): Result<User> {
         val session = sessionRepository.session.value
-            ?: return Result.failure(Exception(NO_ACTIVE_SESSION))
+            ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, NO_ACTIVE_SESSION))
 
         val currentUser = userRepository.findById(session.userId)
-            ?: return Result.failure(Exception(NO_ACTIVE_SESSION))
+            ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, NO_ACTIVE_SESSION))
 
         val updatedUser = currentUser.copy(
             address = address.trim(),
