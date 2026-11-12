@@ -1,6 +1,8 @@
 package uniquindio.proyectoalertalocal.domain.usecase.user
 
 import jakarta.inject.Inject
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
 import uniquindio.proyectoalertalocal.domain.repository.UserRepository
 
@@ -10,11 +12,11 @@ class DeleteAccountUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(): Result<Unit> {
         val session = sessionRepository.session.value
-            ?: return Result.failure(Exception(NO_ACTIVE_SESSION))
+            ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, NO_ACTIVE_SESSION))
 
         val userId = session.userId
         val user = userRepository.findById(userId)
-            ?: return Result.failure(Exception(ACCOUNT_NOT_FOUND))
+            ?: return Result.failure(AppException(AppError.ACCOUNT_NOT_FOUND, ACCOUNT_NOT_FOUND))
 
         userRepository.delete(user.id)
         sessionRepository.clearSession()

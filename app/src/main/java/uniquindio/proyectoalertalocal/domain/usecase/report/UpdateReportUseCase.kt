@@ -1,6 +1,8 @@
 package uniquindio.proyectoalertalocal.domain.usecase.report
 
 import jakarta.inject.Inject
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
@@ -26,14 +28,14 @@ class UpdateReportUseCase @Inject constructor(
         location: String
     ): Result<Report> {
         val session = sessionRepository.session.value
-            ?: return Result.failure(Exception(ERROR_NO_SESSION))
+            ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, ERROR_NO_SESSION))
         val report = reportRepository.findById(reportId)
-            ?: return Result.failure(Exception(ERROR_NOT_FOUND))
+            ?: return Result.failure(AppException(AppError.REPORT_NOT_FOUND, ERROR_NOT_FOUND))
         if (report.authorId != session.userId) {
-            return Result.failure(Exception(ERROR_NOT_OWNER))
+            return Result.failure(AppException(AppError.REPORT_NOT_OWNER, ERROR_NOT_OWNER))
         }
         if (report.status != ReportStatus.PENDING && report.status != ReportStatus.VERIFIED) {
-            return Result.failure(Exception(ERROR_INVALID_STATUS))
+            return Result.failure(AppException(AppError.REPORT_INVALID_STATUS, ERROR_INVALID_STATUS))
         }
         val wasVerified = report.status == ReportStatus.VERIFIED
         val updated = report.copy(

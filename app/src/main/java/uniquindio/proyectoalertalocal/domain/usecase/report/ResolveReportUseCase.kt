@@ -2,6 +2,8 @@ package uniquindio.proyectoalertalocal.domain.usecase.report
 
 import jakarta.inject.Inject
 import java.time.Instant
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.model.UserRole
@@ -18,19 +20,29 @@ class ResolveReportUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(reportId: String, note: String?): Result<Report> {
         val session = sessionRepository.session.value
-            ?: return Result.failure(Exception("No existe una sesión activa."))
+            ?: return Result.failure(
+                AppException(AppError.NO_ACTIVE_SESSION, "No existe una sesión activa.")
+            )
 
         val report = reportRepository.findById(reportId)
-            ?: return Result.failure(Exception("El reporte no existe."))
+            ?: return Result.failure(AppException(AppError.REPORT_NOT_FOUND, "El reporte no existe."))
 
         val isAuthor = report.authorId == session.userId
         if (!isAuthor && session.role != UserRole.MODERATOR) {
-            return Result.failure(Exception("Solo el autor puede modificar este reporte."))
+            return Result.failure(
+                AppException(
+                    AppError.REPORT_NOT_OWNER,
+                    "Solo el autor puede modificar este reporte."
+                )
+            )
         }
 
         if (report.status != ReportStatus.VERIFIED) {
             return Result.failure(
-                Exception("Solo se pueden resolver reportes verificados.")
+                AppException(
+                    AppError.REPORT_INVALID_STATUS,
+                    "Solo se pueden resolver reportes verificados."
+                )
             )
         }
 

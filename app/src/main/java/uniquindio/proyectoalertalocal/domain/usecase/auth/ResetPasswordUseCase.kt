@@ -3,6 +3,8 @@ package uniquindio.proyectoalertalocal.domain.usecase.auth
 import jakarta.inject.Inject
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.repository.PasswordRecoveryRepository
 import uniquindio.proyectoalertalocal.domain.repository.UserRepository
 
@@ -21,15 +23,21 @@ class ResetPasswordUseCase @Inject constructor(
         val recoveryCode = passwordRecoveryRepository.findByEmail(trimmedEmail)
 
         if (recoveryCode == null || !recoveryCode.verified) {
-            return Result.failure(Exception(ERROR_CODE_NOT_VERIFIED))
+            return Result.failure(
+                AppException(AppError.PASSWORD_RESET_CODE_NOT_VERIFIED, ERROR_CODE_NOT_VERIFIED)
+            )
         }
 
         if (recoveryCode.createdAt.plus(5, ChronoUnit.MINUTES).isBefore(Instant.now())) {
-            return Result.failure(Exception(ERROR_CODE_EXPIRED))
+            return Result.failure(
+                AppException(AppError.PASSWORD_RESET_CODE_EXPIRED, ERROR_CODE_EXPIRED)
+            )
         }
 
         val user = userRepository.findByEmail(trimmedEmail)
-            ?: return Result.failure(Exception(ERROR_ACCOUNT_NOT_FOUND))
+            ?: return Result.failure(
+                AppException(AppError.PASSWORD_RECOVERY_ACCOUNT_NOT_FOUND, ERROR_ACCOUNT_NOT_FOUND)
+            )
 
         userRepository.update(user.copy(password = newPassword))
         passwordRecoveryRepository.delete(trimmedEmail)

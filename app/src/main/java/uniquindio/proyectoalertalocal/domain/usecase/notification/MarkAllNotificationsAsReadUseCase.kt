@@ -1,6 +1,8 @@
 package uniquindio.proyectoalertalocal.domain.usecase.notification
 
 import jakarta.inject.Inject
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.repository.NotificationRepository
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
 
@@ -10,7 +12,7 @@ class MarkAllNotificationsAsReadUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(): Result<Unit> {
         val session = sessionRepository.session.value
-            ?: return Result.failure(Exception(NO_ACTIVE_SESSION))
+            ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, NO_ACTIVE_SESSION))
 
         notificationRepository.markAllAsRead(session.userId)
         return Result.success(Unit)

@@ -1,6 +1,8 @@
 package uniquindio.proyectoalertalocal.domain.usecase.report
 
 import jakarta.inject.Inject
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.repository.CommentRepository
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
@@ -18,11 +20,11 @@ class DeleteReportUseCase @Inject constructor(
 
     suspend operator fun invoke(reportId: String): Result<Unit> {
         val session = sessionRepository.session.value
-            ?: return Result.failure(Exception(ERROR_NO_SESSION))
+            ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, ERROR_NO_SESSION))
         val report = reportRepository.findById(reportId)
-            ?: return Result.failure(Exception(ERROR_NOT_FOUND))
+            ?: return Result.failure(AppException(AppError.REPORT_NOT_FOUND, ERROR_NOT_FOUND))
         if (report.authorId != session.userId) {
-            return Result.failure(Exception(ERROR_NOT_OWNER))
+            return Result.failure(AppException(AppError.REPORT_NOT_OWNER, ERROR_NOT_OWNER))
         }
         reportRepository.delete(reportId)
         commentRepository.deleteByReport(reportId)
