@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveResolutionsUseCase
@@ -31,13 +32,21 @@ class ModeratorResolutionsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getCurrentUserUseCase().collect { user ->
-                _uiState.update { it.copy(neighborhood = user?.assignedCommune.orEmpty()) }
-            }
+            getCurrentUserUseCase()
+                .catch { error ->
+                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                }
+                .collect { user ->
+                    _uiState.update { it.copy(neighborhood = user?.assignedCommune.orEmpty()) }
+                }
         }
         viewModelScope.launch {
             observeResolutionsUseCase()
-                .catch { _uiState.update { it.copy(isLoading = false) } }
+                .catch { error ->
+                    _uiState.update {
+                        it.copy(isLoading = false, result = error.toRequestFailure())
+                    }
+                }
                 .collect { board ->
                     _uiState.update { it.copy(board = board, isLoading = false) }
                 }
@@ -59,14 +68,19 @@ class ModeratorResolutionsViewModel @Inject constructor(
     fun resolveReport(reportId: String) {
         val note = _uiState.value.notes[reportId].orEmpty()
         if (note.length > 300) return
+        _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            resolveReportUseCase(reportId, note.ifBlank { null })
-                .onSuccess {
-                    _uiState.update { it.copy(result = RequestResult.Success("Reporte marcado como resuelto.")) }
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(result = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado.")) }
-                }
+            runCatching { resolveReportUseCase(reportId, note.ifBlank { null }).getOrThrow() }
+                .fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(result = RequestResult.Success("Reporte marcado como resuelto."))
+                        }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    }
+                )
         }
     }
 
@@ -80,19 +94,22 @@ class ModeratorResolutionsViewModel @Inject constructor(
 
     fun confirmReopen() {
         val reportId = _uiState.value.reopeningReportId ?: return
+        _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            reopenReportUseCase(reportId)
-                .onSuccess {
-                    _uiState.update { 
-                        it.copy(
-                            reopeningReportId = null,
-                            result = RequestResult.Success("Reporte reabierto.")
-                        ) 
+            runCatching { reopenReportUseCase(reportId).getOrThrow() }
+                .fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(
+                                reopeningReportId = null,
+                                result = RequestResult.Success("Reporte reabierto.")
+                            )
+                        }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
                     }
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(result = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado.")) }
-                }
+                )
         }
     }
 

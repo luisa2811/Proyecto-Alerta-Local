@@ -33,6 +33,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +62,7 @@ import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.component.icon
 import uniquindio.proyectoalertalocal.core.component.label
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
@@ -78,6 +80,21 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val unreadNotificationsViewModel: UnreadNotificationsViewModel = hiltViewModel()
     val hasUnread by unreadNotificationsViewModel.hasUnread.collectAsStateWithLifecycle()
+    val unreadResult by unreadNotificationsViewModel.result.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.result) {
+        val result = uiState.result
+        if (result is RequestResult.Failure) {
+            onShowMessage(result.errorMessage)
+            viewModel.onResultShown()
+        }
+    }
+    LaunchedEffect(unreadResult) {
+        if (unreadResult is RequestResult.Failure) {
+            onShowMessage((unreadResult as RequestResult.Failure).errorMessage)
+            unreadNotificationsViewModel.onResultShown()
+        }
+    }
 
     Column(
         modifier = Modifier

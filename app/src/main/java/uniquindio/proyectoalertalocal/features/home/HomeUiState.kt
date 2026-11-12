@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.features.home
 
+import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
@@ -16,7 +17,8 @@ data class HomeUiState(
     val reports: List<ReportSummary> = emptyList(),
     val filteredReports: List<ReportSummary> = emptyList(),
     val selectedAlertId: String? = null,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val result: RequestResult? = RequestResult.Loading
 ) {
     val featuredReport: ReportSummary?
         get() = filteredReports.maxWithOrNull(

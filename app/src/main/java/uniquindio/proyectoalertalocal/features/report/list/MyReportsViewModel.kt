@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.report.ObserveMyReportsUseCase
 
 @HiltViewModel
@@ -23,16 +25,24 @@ class MyReportsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             observeMyReportsUseCase()
-                .catch {
-                    _uiState.update { it.copy(isLoading = false) }
+                .catch { error ->
+                    _uiState.update {
+                        it.copy(isLoading = false, result = error.toRequestFailure())
+                    }
                 }
                 .collect { reports ->
-                    _uiState.update { it.copy(reports = reports, isLoading = false) }
+                    _uiState.update {
+                        it.copy(reports = reports, isLoading = false, result = null)
+                    }
                 }
         }
     }
 
     fun selectTab(tab: MyReportsTab) {
         _uiState.update { it.copy(selectedTab = tab) }
+    }
+
+    fun onResultShown() {
+        _uiState.update { it.copy(result = null) }
     }
 }

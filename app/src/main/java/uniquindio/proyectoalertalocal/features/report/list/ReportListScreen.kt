@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +27,7 @@ import uniquindio.proyectoalertalocal.core.component.ReportCategoryFilters
 import uniquindio.proyectoalertalocal.core.component.ReportEmptyState
 import uniquindio.proyectoalertalocal.core.component.ReportHeader
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.features.notifications.UnreadNotificationsViewModel
 
@@ -41,6 +43,21 @@ fun ReportListScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val unreadNotificationsViewModel: UnreadNotificationsViewModel = hiltViewModel()
     val hasUnread by unreadNotificationsViewModel.hasUnread.collectAsStateWithLifecycle()
+    val unreadResult by unreadNotificationsViewModel.result.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.result) {
+        val result = uiState.result
+        if (result is RequestResult.Failure) {
+            onShowMessage(result.errorMessage)
+            viewModel.onResultShown()
+        }
+    }
+    LaunchedEffect(unreadResult) {
+        if (unreadResult is RequestResult.Failure) {
+            onShowMessage((unreadResult as RequestResult.Failure).errorMessage)
+            unreadNotificationsViewModel.onResultShown()
+        }
+    }
 
     Column(
         modifier = modifier

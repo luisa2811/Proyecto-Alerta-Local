@@ -7,7 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
 import uniquindio.proyectoalertalocal.data.repository.memory.FakeAiAssistantRepository
 import uniquindio.proyectoalertalocal.data.repository.memory.FakeImageStorageRepository
-import uniquindio.proyectoalertalocal.data.repository.memory.SessionRepositoryImpl
+import uniquindio.proyectoalertalocal.data.repository.local.SessionRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.remote.RemoteCommentRepository
 import uniquindio.proyectoalertalocal.data.repository.remote.RemoteNotificationRepository
 import uniquindio.proyectoalertalocal.data.repository.remote.RemoteReportRepository

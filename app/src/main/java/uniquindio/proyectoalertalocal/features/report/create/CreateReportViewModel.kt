@@ -7,12 +7,14 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.usecase.report.CreateReportUseCase
@@ -42,32 +44,43 @@ class CreateReportViewModel @Inject constructor(
             .onEach { user ->
                 _uiState.update { it.copy(currentUserId = user?.id) }
             }
+            .catch { error ->
+                _uiState.update { it.copy(result = error.toRequestFailure()) }
+            }
             .launchIn(viewModelScope)
     }
 
     fun loadForEdit(reportId: String) {
         if (loadedEditReportId == reportId) return
         loadedEditReportId = reportId
-        _uiState.update { it.copy(editingReportId = reportId) }
+        _uiState.update { it.copy(editingReportId = reportId, result = RequestResult.Loading) }
         viewModelScope.launch {
-            val summary = observeReportDetailUseCase(reportId).first()
-            if (summary == null) {
-                _uiState.update {
-                    it.copy(result = RequestResult.Failure("El reporte no existe."))
-                }
-                return@launch
-            }
-            val report = summary.report
-            _uiState.update {
-                it.copy(
-                    category = report.category,
-                    title = report.title,
-                    description = report.description,
-                    location = report.location,
-                    originalStatus = report.status
+            runCatching { observeReportDetailUseCase(reportId).first() }
+                .fold(
+                    onSuccess = { summary ->
+                        if (summary == null) {
+                            _uiState.update {
+                                it.copy(result = RequestResult.Failure("El reporte no existe."))
+                            }
+                            return@fold
+                        }
+                        val report = summary.report
+                        _uiState.update {
+                            it.copy(
+                                category = report.category,
+                                title = report.title,
+                                description = report.description,
+                                location = report.location,
+                                originalStatus = report.status,
+                                result = null
+                            )
+                        }
+                        validate()
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    }
                 )
-            }
-            validate()
         }
     }
 
@@ -108,17 +121,23 @@ class CreateReportViewModel @Inject constructor(
         if (!state.isFormValid || state.category == null) return
         _uiState.update { it.copy(result = RequestResult.Loading, isPublishing = true) }
         viewModelScope.launch {
-            findSimilarReportsUseCase(state.title, state.category)
-                .onSuccess { similar ->
-                    if (similar.isEmpty()) {
-                        createReport()
-                    } else {
-                        _uiState.update { it.copy(similarReports = similar, result = null, isPublishing = false) }
+            runCatching { findSimilarReportsUseCase(state.title, state.category).getOrThrow() }
+                .fold(
+                    onSuccess = { similar ->
+                        if (similar.isEmpty()) {
+                            createReport()
+                        } else {
+                            _uiState.update {
+                                it.copy(similarReports = similar, result = null, isPublishing = false)
+                            }
+                        }
+                    },
+                    onFailure = { error ->
+                        _uiState.update {
+                            it.copy(result = error.toRequestFailure(), isPublishing = false)
+                        }
                     }
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(result = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado."), isPublishing = false) }
-                }
+                )
         }
     }
 
@@ -129,18 +148,24 @@ class CreateReportViewModel @Inject constructor(
         if (!state.isFormValid) return
         _uiState.update { it.copy(result = RequestResult.Loading, isPublishing = true) }
         viewModelScope.launch {
-            updateReportUseCase(reportId, state.title, state.description, category, state.location)
-                .onSuccess {
+            runCatching {
+                updateReportUseCase(reportId, state.title, state.description, category, state.location)
+                    .getOrThrow()
+            }.fold(
+                onSuccess = {
                     val message = if (state.originalStatus == ReportStatus.VERIFIED) {
                         "Cambios guardados. El reporte volverá a revisión."
                     } else {
                         "Cambios guardados correctamente."
                     }
                     _uiState.update { it.copy(result = RequestResult.Success(message), isPublishing = false) }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(result = error.toRequestFailure(), isPublishing = false)
+                    }
                 }
-                .onFailure { error ->
-                    _uiState.update { it.copy(result = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado."), isPublishing = false) }
-                }
+            )
         }
     }
 
@@ -157,9 +182,11 @@ class CreateReportViewModel @Inject constructor(
     }
 
     fun supportSimilar(reportId: String) {
+        _uiState.update { it.copy(result = RequestResult.Loading, isPublishing = true) }
         viewModelScope.launch {
-            supportReportUseCase(reportId)
-                .onSuccess {
+            runCatching { supportReportUseCase(reportId).getOrThrow() }
+                .fold(
+                    onSuccess = {
                     _uiState.update {
                         it.copy(
                             result = RequestResult.Success("Te uniste a este reporte. No se creó uno nuevo."),
@@ -173,31 +200,34 @@ class CreateReportViewModel @Inject constructor(
                             navigation = CreateReportNavigation.ToReportDetail(reportId)
                         )
                     }
-                }
-                .onFailure { error ->
-                    val message = error.message ?: "Ocurrió un error inesperado."
-                    if (message == SupportReportUseCase.ERROR_ALREADY_SUPPORTED) {
-                        _uiState.update {
-                            it.copy(
-                                result = RequestResult.Failure(message),
-                                similarReports = emptyList(),
-                                category = null,
-                                title = "",
-                                description = "",
-                                location = "",
-                                isFormValid = false,
-                                isPublishing = false,
-                                navigation = CreateReportNavigation.ToReportDetail(reportId)
-                            )
+                    },
+                    onFailure = { error ->
+                        val message = error.toRequestFailure().errorMessage
+                        if (message == SupportReportUseCase.ERROR_ALREADY_SUPPORTED) {
+                            _uiState.update {
+                                it.copy(
+                                    result = RequestResult.Failure(message),
+                                    similarReports = emptyList(),
+                                    category = null,
+                                    title = "",
+                                    description = "",
+                                    location = "",
+                                    isFormValid = false,
+                                    isPublishing = false,
+                                    navigation = CreateReportNavigation.ToReportDetail(reportId)
+                                )
+                            }
+                        } else if (message == SupportReportUseCase.ERROR_NOT_ACTIVE) {
+                            _uiState.update {
+                                it.copy(result = RequestResult.Failure(message), similarReports = emptyList(), isPublishing = false)
+                            }
+                        } else {
+                            _uiState.update {
+                                it.copy(result = RequestResult.Failure(message), isPublishing = false)
+                            }
                         }
-                    } else if (message == SupportReportUseCase.ERROR_NOT_ACTIVE) {
-                        _uiState.update {
-                            it.copy(result = RequestResult.Failure(message), similarReports = emptyList(), isPublishing = false)
-                        }
-                    } else {
-                        _uiState.update { it.copy(result = RequestResult.Failure(message), isPublishing = false) }
                     }
-                }
+                )
         }
     }
 
@@ -208,9 +238,18 @@ class CreateReportViewModel @Inject constructor(
     private fun createReport(possibleDuplicateOf: String? = null) {
         val state = _uiState.value
         val category = state.category ?: return
+        _uiState.update { it.copy(result = RequestResult.Loading, isPublishing = true) }
         viewModelScope.launch {
-            createReportUseCase(state.title, state.description, category, state.location, possibleDuplicateOf)
-                .onSuccess {
+            runCatching {
+                createReportUseCase(
+                    state.title,
+                    state.description,
+                    category,
+                    state.location,
+                    possibleDuplicateOf
+                ).getOrThrow()
+            }.fold(
+                onSuccess = {
                     _uiState.update {
                         it.copy(
                             result = RequestResult.Success("Reporte publicado. Un moderador lo revisará pronto."),
@@ -224,10 +263,13 @@ class CreateReportViewModel @Inject constructor(
                             navigation = CreateReportNavigation.ToMyReports
                         )
                     }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(result = error.toRequestFailure(), isPublishing = false)
+                    }
                 }
-                .onFailure { error ->
-                    _uiState.update { it.copy(result = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado."), isPublishing = false) }
-                }
+            )
         }
     }
 

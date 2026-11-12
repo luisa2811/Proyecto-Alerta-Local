@@ -68,6 +68,7 @@ fun DashboardNavigation(
         composable<DashboardRoutes.ModeratorProfile> {
             ModeratorProfileScreen(
                 onBack = { navController.popBackStack() },
+                onShowMessage = onShowMessage,
                 onEditProfile = {
                     navController.navigate(DashboardRoutes.EditProfile)
                 }

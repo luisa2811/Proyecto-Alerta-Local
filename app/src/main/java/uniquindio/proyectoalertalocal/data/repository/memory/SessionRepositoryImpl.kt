@@ -13,6 +13,7 @@ class SessionRepositoryImpl @Inject constructor() : SessionRepository {
     private val mutableSession = MutableStateFlow<UserSession?>(null)
 
     override val session = mutableSession.asStateFlow()
+    override val isInitialized = MutableStateFlow(true).asStateFlow()
 
     override suspend fun saveSession(userId: String, role: UserRole) {
         mutableSession.value = UserSession(userId = userId, role = role)

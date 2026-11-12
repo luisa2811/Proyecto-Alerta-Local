@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.auth.SendPasswordResetEmailUseCase
 
 @HiltViewModel
@@ -36,25 +37,26 @@ class PasswordRecoveryViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.update { it.copy(result = RequestResult.Loading) }
-            val outcome = sendPasswordResetEmailUseCase(currentState.email)
-            outcome.fold(
-                onSuccess = {
-                    _uiState.update {
-                        it.copy(
-                            emailSent = true,
-                            result = RequestResult.Success(SUCCESS_MESSAGE)
+            runCatching { sendPasswordResetEmailUseCase(currentState.email) }
+                .fold(
+                    onSuccess = { outcome ->
+                        outcome.fold(
+                            onSuccess = {
+                                _uiState.update {
+                                    it.copy(
+                                        emailSent = true,
+                                        result = RequestResult.Success(SUCCESS_MESSAGE)
+                                    )
+                                }
+                            },
+                            onFailure = { error ->
+                                _uiState.update { it.copy(result = error.toRequestFailure()) }
+                            }
                         )
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
                     }
-                },
-                onFailure = { throwable ->
-                    _uiState.update {
-                        it.copy(
-                            result = RequestResult.Failure(
-                                throwable.message ?: UNEXPECTED_ERROR
-                            )
-                        )
-                    }
-                }
             )
         }
     }

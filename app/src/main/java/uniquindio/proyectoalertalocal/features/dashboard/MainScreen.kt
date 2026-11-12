@@ -6,6 +6,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -16,6 +17,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.features.dashboard.component.BottomNavigationBar
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardDestination
@@ -37,6 +39,15 @@ fun MainScreen(
     val badgeCounts = if (role == UserRole.MODERATOR) {
         val badgeViewModel: ModeratorBadgeViewModel = hiltViewModel()
         val pendingCount by badgeViewModel.pendingCount.collectAsStateWithLifecycle()
+        val badgeResult by badgeViewModel.result.collectAsStateWithLifecycle()
+        LaunchedEffect(badgeResult) {
+            if (badgeResult is RequestResult.Failure) {
+                snackbarHostState.showSnackbar(
+                    (badgeResult as RequestResult.Failure).errorMessage
+                )
+                badgeViewModel.onResultShown()
+            }
+        }
         mapOf(DashboardDestination.MODERATOR_PENDING to pendingCount)
     } else {
         emptyMap()

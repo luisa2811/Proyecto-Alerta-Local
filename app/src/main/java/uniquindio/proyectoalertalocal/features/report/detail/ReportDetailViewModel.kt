@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.comment.AddCommentUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.comment.ObserveCommentsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.DeleteReportUseCase
@@ -45,6 +46,9 @@ class ReportDetailViewModel @Inject constructor(
             .onEach { user ->
                 _uiState.update { it.copy(currentUserId = user?.id) }
             }
+            .catch { error ->
+                _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
+            }
             .launchIn(viewModelScope)
     }
 
@@ -74,7 +78,12 @@ class ReportDetailViewModel @Inject constructor(
                 }
             }
             .catch { throwable ->
-                _uiState.update { it.copy(isLoading = false, errorMessage = throwable.message ?: "El reporte no existe.") }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = throwable.toRequestFailure().errorMessage
+                    )
+                }
             }
             .launchIn(viewModelScope)
 
@@ -82,18 +91,25 @@ class ReportDetailViewModel @Inject constructor(
             .onEach { comments ->
                 _uiState.update { it.copy(comments = comments) }
             }
-            .catch {
-                _uiState.update { it.copy(comments = emptyList()) }
+            .catch { error ->
+                _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
             }
             .launchIn(viewModelScope)
     }
 
     fun toggleSupport() {
         val reportId = _uiState.value.reportSummary?.report?.id ?: currentReportId ?: return
+        _uiState.update { it.copy(actionResult = RequestResult.Loading) }
         viewModelScope.launch {
-            toggleReportSupportUseCase(reportId)
-                .onSuccess { _uiState.update { it.copy(actionResult = RequestResult.Success("OK")) } }
-                .onFailure { error -> _uiState.update { it.copy(actionResult = RequestResult.Failure(error.message ?: "")) } }
+            runCatching { toggleReportSupportUseCase(reportId).getOrThrow() }
+                .fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(actionResult = RequestResult.Success("OK")) }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
+                    }
+                )
         }
     }
 
@@ -110,12 +126,24 @@ class ReportDetailViewModel @Inject constructor(
         val reportId = _uiState.value.reportSummary?.report?.id ?: currentReportId ?: return
         val text = _uiState.value.commentText
         if (text.isBlank() || text.length > 300) return
+        _uiState.update { it.copy(actionResult = RequestResult.Loading) }
         viewModelScope.launch {
-            addCommentUseCase(reportId, text)
-                .onSuccess {
-                    _uiState.update { it.copy(commentText = "", isCommentValid = false, commentError = null) }
-                }
-                .onFailure { error -> _uiState.update { it.copy(actionResult = RequestResult.Failure(error.message ?: "")) } }
+            runCatching { addCommentUseCase(reportId, text).getOrThrow() }
+                .fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(
+                                commentText = "",
+                                isCommentValid = false,
+                                commentError = null,
+                                actionResult = null
+                            )
+                        }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
+                    }
+                )
         }
     }
 
@@ -139,22 +167,24 @@ class ReportDetailViewModel @Inject constructor(
     fun confirmResolve() {
         val reportId = _uiState.value.reportSummary?.report?.id ?: currentReportId ?: return
         val note = _uiState.value.resolveNote
-        _uiState.update { it.copy(showResolveDialog = false) }
+        _uiState.update {
+            it.copy(showResolveDialog = false, actionResult = RequestResult.Loading)
+        }
         viewModelScope.launch {
-            resolveReportUseCase(reportId, note)
-                .onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            resolveNote = "",
-                            actionResult = RequestResult.Success("Reporte marcado como resuelto.")
-                        )
+            runCatching { resolveReportUseCase(reportId, note).getOrThrow() }
+                .fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(
+                                resolveNote = "",
+                                actionResult = RequestResult.Success("Reporte marcado como resuelto.")
+                            )
+                        }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
                     }
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(actionResult = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado."))
-                    }
-                }
+                )
         }
     }
 
@@ -168,23 +198,25 @@ class ReportDetailViewModel @Inject constructor(
 
     fun confirmDelete() {
         val reportId = _uiState.value.reportSummary?.report?.id ?: currentReportId ?: return
-        _uiState.update { it.copy(showDeleteDialog = false) }
+        _uiState.update {
+            it.copy(showDeleteDialog = false, actionResult = RequestResult.Loading)
+        }
         viewModelScope.launch {
-            deleteReportUseCase(reportId)
-                .onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            isDeleted = true,
-                            actionResult = RequestResult.Success("Reporte eliminado."),
-                            navigation = ReportDetailNavigation.ToMyReports
-                        )
+            runCatching { deleteReportUseCase(reportId).getOrThrow() }
+                .fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(
+                                isDeleted = true,
+                                actionResult = RequestResult.Success("Reporte eliminado."),
+                                navigation = ReportDetailNavigation.ToMyReports
+                            )
+                        }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
                     }
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(actionResult = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado."))
-                    }
-                }
+                )
         }
     }
 
