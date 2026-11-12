@@ -40,7 +40,7 @@ class ToggleReportSupportUseCase @Inject constructor(
         } else {
             report.copy(supportedBy = report.supportedBy + session.userId)
         }
-        reportRepository.update(updated)
+        reportRepository.setSupport(reportId, session.userId, supported = !alreadySupported)
         if (!alreadySupported) {
             checkNewAchievementsUseCase(report.authorId)
         }

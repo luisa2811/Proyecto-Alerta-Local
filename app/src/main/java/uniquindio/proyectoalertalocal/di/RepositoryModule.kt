@@ -5,14 +5,14 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
-import uniquindio.proyectoalertalocal.data.repository.memory.CommentRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.memory.FakeAiAssistantRepository
 import uniquindio.proyectoalertalocal.data.repository.memory.FakeImageStorageRepository
-import uniquindio.proyectoalertalocal.data.repository.memory.NotificationRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.memory.PasswordRecoveryRepositoryImpl
-import uniquindio.proyectoalertalocal.data.repository.memory.ReportRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.memory.SessionRepositoryImpl
-import uniquindio.proyectoalertalocal.data.repository.memory.UserRepositoryImpl
+import uniquindio.proyectoalertalocal.data.repository.remote.RemoteCommentRepository
+import uniquindio.proyectoalertalocal.data.repository.remote.RemoteNotificationRepository
+import uniquindio.proyectoalertalocal.data.repository.remote.RemoteReportRepository
+import uniquindio.proyectoalertalocal.data.repository.remote.RemoteUserRepository
 import uniquindio.proyectoalertalocal.domain.repository.CommentRepository
 import uniquindio.proyectoalertalocal.domain.repository.AiAssistantRepository
 import uniquindio.proyectoalertalocal.domain.repository.ImageStorageRepository
@@ -40,25 +40,25 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindReportRepository(
-        implementation: ReportRepositoryImpl
+        implementation: RemoteReportRepository
     ): ReportRepository
 
     @Binds
     @Singleton
     abstract fun bindUserRepository(
-        implementation: UserRepositoryImpl
+        implementation: RemoteUserRepository
     ): UserRepository
 
     @Binds
     @Singleton
     abstract fun bindCommentRepository(
-        implementation: CommentRepositoryImpl
+        implementation: RemoteCommentRepository
     ): CommentRepository
 
     @Binds
     @Singleton
     abstract fun bindNotificationRepository(
-        implementation: NotificationRepositoryImpl
+        implementation: RemoteNotificationRepository
     ): NotificationRepository
 
     @Binds
