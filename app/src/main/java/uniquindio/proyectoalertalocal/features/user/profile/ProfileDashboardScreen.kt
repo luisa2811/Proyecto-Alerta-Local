@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +44,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,15 +69,19 @@ fun ProfileDashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
+    var deletePassword by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(uiState.result) {
         when (val result = uiState.result) {
             is RequestResult.Failure -> {
                 onShowMessage(result.errorMessage)
+                deletePassword = ""
                 viewModel.onResultShown()
             }
             is RequestResult.Success -> {
                 onShowMessage(result.message)
+                showDeleteAccountDialog = false
+                deletePassword = ""
                 viewModel.onResultShown()
             }
             RequestResult.Loading, null -> Unit
@@ -81,15 +90,34 @@ fun ProfileDashboardScreen(
 
     if (showDeleteAccountDialog) {
         AlertDialog(
-            onDismissRequest = { showDeleteAccountDialog = false },
+            onDismissRequest = {
+                showDeleteAccountDialog = false
+                deletePassword = ""
+            },
             title = { Text("Eliminar mi cuenta") },
-            text = { Text("¿Eliminar tu cuenta? Esta acción no se puede deshacer.") },
+            text = {
+                Column {
+                    Text("¿Eliminar tu cuenta? Esta acción no se puede deshacer.")
+                    OutlinedTextField(
+                        value = deletePassword,
+                        onValueChange = { deletePassword = it },
+                        label = { Text("Contraseña") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password
+                        ),
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        showDeleteAccountDialog = false
-                        viewModel.deleteAccount()
-                    }
+                        viewModel.deleteAccount(deletePassword)
+                    },
+                    enabled = deletePassword.isNotBlank() &&
+                        uiState.result !is RequestResult.Loading
                 ) {
                     Text(
                         text = "Eliminar",
@@ -99,7 +127,12 @@ fun ProfileDashboardScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteAccountDialog = false }) {
+                TextButton(
+                    onClick = {
+                        showDeleteAccountDialog = false
+                        deletePassword = ""
+                    }
+                ) {
                     Text("Cancelar")
                 }
             }
@@ -275,7 +308,10 @@ fun ProfileDashboardScreen(
                     title = "Eliminar mi cuenta",
                     destructive = true,
                     last = true,
-                    onClick = { showDeleteAccountDialog = true }
+                    onClick = {
+                        deletePassword = ""
+                        showDeleteAccountDialog = true
+                    }
                 )
             }
         }

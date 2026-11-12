@@ -55,12 +55,6 @@ class EditProfileViewModel @Inject constructor(
         _uiState.update { it.copy(fullName = fullName, result = null) }
     }
 
-    fun changeEmail(email: String) {
-        _uiState.update {
-            it.copy(email = email, emailVerified = false, result = null)
-        }
-    }
-
     fun changePhone(phone: String) {
         val digits = phone.filter(Char::isDigit).take(PHONE_DIGITS)
         _uiState.update {
@@ -82,7 +76,6 @@ class EditProfileViewModel @Inject constructor(
         viewModelScope.launch {
             updateProfileUseCase(
                 name = currentState.fullName,
-                email = currentState.email,
                 phone = currentState.phone,
                 displayNameInReports = currentState.displayNameInReports
             ).fold(

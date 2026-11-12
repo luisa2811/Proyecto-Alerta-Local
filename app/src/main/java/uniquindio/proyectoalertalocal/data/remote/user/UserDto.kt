@@ -31,7 +31,6 @@ data class UserDto(
         id = id,
         name = name,
         email = email,
-        password = "",
         role = UserRole.valueOf(role),
         phone = phone,
         address = address,

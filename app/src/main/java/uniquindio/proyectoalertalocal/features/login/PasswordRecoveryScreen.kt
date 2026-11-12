@@ -24,18 +24,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Devices
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -46,24 +38,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -87,19 +74,11 @@ fun PasswordRecoveryScreen(
     }
 
     LaunchedEffect(uiState.result) {
-        when (val res = uiState.result) {
-            is RequestResult.Failure -> {
-                snackbarHostState.showSnackbar(res.errorMessage)
-                viewModel.clearResult()
-            }
-            is RequestResult.Success -> {
-                snackbarHostState.showSnackbar(res.message)
-                if (uiState.passwordResetSuccess) {
-                    onBackToLogin()
-                }
-                viewModel.clearResult()
-            }
-            else -> {}
+        if (uiState.result is RequestResult.Failure) {
+            snackbarHostState.showSnackbar(
+                (uiState.result as RequestResult.Failure).errorMessage
+            )
+            viewModel.clearResult()
         }
     }
 
@@ -113,21 +92,7 @@ fun PasswordRecoveryScreen(
                 .padding(innerPadding)
                 .statusBarsPadding()
         ) {
-            RecoveryHeader(
-                title = when (uiState.step) {
-                    1 -> "Recuperar Contraseña"
-                    2 -> "Verificar Código"
-                    else -> "Nueva Contraseña"
-                },
-                onBack = {
-                    if (uiState.step > 1) {
-                        viewModel.onStepChanged(uiState.step - 1)
-                    } else {
-                        onBackToLogin()
-                    }
-                }
-            )
-
+            RecoveryHeader(onBack = onBackToLogin)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -137,34 +102,16 @@ fun PasswordRecoveryScreen(
                     .padding(bottom = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                when (uiState.step) {
-                    1 -> EmailStep(
+                if (uiState.emailSent) {
+                    RecoverySuccess(onBackToLogin)
+                } else {
+                    RecoveryEmailForm(
                         email = uiState.email,
                         emailError = uiState.emailError,
-                        isStepValid = uiState.isStep1Valid,
+                        isEmailValid = uiState.isEmailValid,
+                        isLoading = uiState.result is RequestResult.Loading,
                         onEmailChange = viewModel::onEmailChanged,
-                        onContinue = viewModel::requestRecoveryCode,
-                        onBackToLogin = onBackToLogin
-                    )
-                    2 -> CodeStep(
-                        email = uiState.email,
-                        code = uiState.code,
-                        isCodeExpired = uiState.isCodeExpired,
-                        isStepValid = uiState.isStep2Valid,
-                        onCodeChange = viewModel::onCodeChanged,
-                        onChangeEmail = { viewModel.onStepChanged(1) },
-                        onResendCode = viewModel::resendCode,
-                        onContinue = viewModel::verifyCode
-                    )
-                    else -> NewPasswordStep(
-                        password = uiState.newPassword,
-                        passwordError = uiState.passwordError,
-                        confirmPassword = uiState.confirmPassword,
-                        confirmPasswordError = uiState.confirmPasswordError,
-                        isStepValid = uiState.isStep3Valid,
-                        onPasswordChange = viewModel::onNewPasswordChanged,
-                        onConfirmPasswordChange = viewModel::onConfirmPasswordChanged,
-                        onFinish = viewModel::resetPassword,
+                        onSendLink = viewModel::sendResetLink,
                         onBackToLogin = onBackToLogin
                     )
                 }
@@ -174,9 +121,9 @@ fun PasswordRecoveryScreen(
 }
 
 @Composable
-private fun RecoveryHeader(title: String, onBack: () -> Unit) {
+private fun RecoveryHeader(onBack: () -> Unit) {
     ScreenHeader(
-        title = title,
+        title = "Recuperar Contraseña",
         onBack = onBack,
         modifier = Modifier.background(DesignSystem.Colors.Background),
         titleColor = DesignSystem.Colors.RecoveryNavy,
@@ -186,15 +133,15 @@ private fun RecoveryHeader(title: String, onBack: () -> Unit) {
 }
 
 @Composable
-private fun EmailStep(
+private fun RecoveryEmailForm(
     email: String,
     emailError: String?,
-    isStepValid: Boolean,
+    isEmailValid: Boolean,
+    isLoading: Boolean,
     onEmailChange: (String) -> Unit,
-    onContinue: () -> Unit,
+    onSendLink: () -> Unit,
     onBackToLogin: () -> Unit
 ) {
-    RecoveryProgress(currentStep = 1)
     Spacer(Modifier.height(20.dp))
     RecoveryLogo()
     Spacer(Modifier.height(18.dp))
@@ -208,7 +155,7 @@ private fun EmailStep(
     )
     Spacer(Modifier.height(5.dp))
     Text(
-        text = "Ingresa el correo electrónico asociado a tu cuenta de Alerta Local y te enviaremos un código de seguridad de 6 dígitos para restablecerla.",
+        text = "Ingresa el correo electrónico asociado a tu cuenta de Alerta Local y te enviaremos un enlace para restablecerla.",
         color = DesignSystem.Colors.TextSecondary,
         fontSize = 13.sp,
         lineHeight = 19.sp,
@@ -222,7 +169,12 @@ private fun EmailStep(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Correo electrónico", color = DesignSystem.Colors.RecoveryNavy, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Correo electrónico",
+                color = DesignSystem.Colors.RecoveryNavy,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold
+            )
             Text("Requerido", color = DesignSystem.Colors.TextPrimary, fontSize = 11.sp)
         }
         Spacer(Modifier.height(6.dp))
@@ -230,20 +182,7 @@ private fun EmailStep(
             value = email,
             onValueChange = onEmailChange,
             placeholder = "nombre@correo.com",
-            keyboardType = KeyboardType.Email,
-            leadingIcon = Icons.Outlined.Email,
-            trailingContent = {
-                if (email.isNotEmpty()) {
-                    Icon(
-                        imageVector = Icons.Outlined.Close,
-                        contentDescription = "Limpiar correo",
-                        tint = DesignSystem.Colors.TextSecondary,
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clickable { onEmailChange("") }
-                    )
-                }
-            }
+            keyboardType = KeyboardType.Email
         )
         if (emailError != null) {
             Text(
@@ -256,14 +195,14 @@ private fun EmailStep(
         Spacer(Modifier.height(14.dp))
         NoticeCard(
             icon = Icons.Outlined.Info,
-            message = "Te enviaremos un código temporal con vigencia de 5 minutos."
+            message = "Recibirás un enlace seguro en tu correo electrónico."
         )
         Spacer(Modifier.height(18.dp))
         RecoveryButton(
-            label = "Enviar código de recuperación",
+            label = "Enviar enlace",
             icon = Icons.AutoMirrored.Outlined.ArrowForward,
-            enabled = isStepValid,
-            onClick = onContinue
+            enabled = isEmailValid && !isLoading,
+            onClick = onSendLink
         )
     }
 
@@ -283,308 +222,30 @@ private fun EmailStep(
 }
 
 @Composable
-private fun CodeStep(
-    email: String,
-    code: String,
-    isCodeExpired: Boolean,
-    isStepValid: Boolean,
-    onCodeChange: (String) -> Unit,
-    onChangeEmail: () -> Unit,
-    onResendCode: () -> Unit,
-    onContinue: () -> Unit
-) {
-    Spacer(Modifier.height(16.dp))
+private fun RecoverySuccess(onBackToLogin: () -> Unit) {
+    Spacer(Modifier.height(36.dp))
     RecoveryLogo()
-    Spacer(Modifier.height(16.dp))
-    StepBadge(step = 2, label = "SEGURIDAD")
-    Spacer(Modifier.height(10.dp))
-    Box(
-        modifier = Modifier
-            .fillMaxWidth(0.38f)
-            .height(5.dp)
-            .clip(CircleShape)
-            .background(DesignSystem.Colors.Border),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Box(
-            Modifier
-                .fillMaxWidth(0.67f)
-                .height(5.dp)
-                .clip(CircleShape)
-                .background(DesignSystem.Colors.RecoveryNavy)
-        )
-    }
-    Spacer(Modifier.height(18.dp))
-    Text("Revisa tu correo", color = DesignSystem.Colors.RecoveryNavy, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-    Spacer(Modifier.height(4.dp))
+    Spacer(Modifier.height(20.dp))
     Text(
-        text = "Hemos enviado un código de 6 dígitos para proteger tu cuenta de vecindario a:",
-        color = DesignSystem.Colors.TextSecondary,
-        fontSize = 15.sp,
-        lineHeight = 21.sp,
-        textAlign = TextAlign.Center
-    )
-    Spacer(Modifier.height(10.dp))
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(DesignSystem.Colors.RecoveryField)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Outlined.Email, contentDescription = null, tint = DesignSystem.Colors.RecoveryNavy, modifier = Modifier.size(16.dp))
-        Text(
-            text = email,
-            modifier = Modifier.padding(start = 7.dp),
-            color = DesignSystem.Colors.RecoveryNavy,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-        Text(
-            text = "Cambiar",
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .clickable(onClick = onChangeEmail),
-            color = DesignSystem.Colors.RecoveryAccent,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Icon(Icons.Outlined.Edit, contentDescription = null, tint = DesignSystem.Colors.RecoveryAccent, modifier = Modifier.size(14.dp))
-    }
-    Spacer(Modifier.height(18.dp))
-
-    RecoveryCard {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Código de 6 dígitos", color = DesignSystem.Colors.TextPrimary, fontSize = 13.sp)
-            Text("Vigencia: 5 minutos", color = DesignSystem.Colors.TextSecondary, fontSize = 11.sp)
-        }
-        Spacer(Modifier.height(10.dp))
-        SixDigitCodeInput(code = code, onCodeChange = onCodeChange)
-        Spacer(Modifier.height(18.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onResendCode),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Refresh,
-                contentDescription = null,
-                tint = if (isCodeExpired) DesignSystem.Colors.RecoveryAccent else DesignSystem.Colors.TextSecondary,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = "Reenviar código",
-                color = if (isCodeExpired) DesignSystem.Colors.RecoveryAccent else DesignSystem.Colors.TextSecondary,
-                fontSize = 13.sp,
-                fontWeight = if (isCodeExpired) FontWeight.Bold else FontWeight.Medium,
-                textDecoration = if (isCodeExpired) TextDecoration.Underline else TextDecoration.None
-            )
-        }
-        Spacer(Modifier.height(18.dp))
-        RecoveryButton(
-            label = "Verificar código",
-            icon = Icons.Outlined.Shield,
-            enabled = isStepValid,
-            onClick = onContinue
-        )
-    }
-    Spacer(Modifier.height(16.dp))
-    NoticeCard(
-        icon = Icons.Outlined.Info,
-        message = "El código generado se muestra en pantalla como aviso temporal para pruebas de la aplicación."
-    )
-}
-
-@Composable
-private fun NewPasswordStep(
-    password: String,
-    passwordError: String?,
-    confirmPassword: String,
-    confirmPasswordError: String?,
-    isStepValid: Boolean,
-    onPasswordChange: (String) -> Unit,
-    onConfirmPasswordChange: (String) -> Unit,
-    onFinish: () -> Unit,
-    onBackToLogin: () -> Unit
-) {
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
-    var confirmVisible by rememberSaveable { mutableStateOf(false) }
-
-    Spacer(Modifier.height(2.dp))
-    RecoveryLogo()
-    Spacer(Modifier.height(14.dp))
-    StepBadge(step = 3, label = "Finalizar acceso")
-    Spacer(Modifier.height(12.dp))
-    Text("Crear nueva contraseña", color = DesignSystem.Colors.RecoveryNavy, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-    Spacer(Modifier.height(6.dp))
-    Text(
-        text = "Tu nueva contraseña debe ser diferente a las contraseñas utilizadas anteriormente para garantizar la seguridad de tu cuenta.",
-        color = DesignSystem.Colors.TextSecondary,
-        fontSize = 13.sp,
-        lineHeight = 19.sp,
-        textAlign = TextAlign.Center
-    )
-    Spacer(Modifier.height(16.dp))
-
-    val passwordValid = password.length >= 8 &&
-        password.any(Char::isUpperCase) &&
-        password.any(Char::isDigit)
-
-    RecoveryCard {
-        PasswordLabel("Nueva contraseña", passwordValid)
-        Spacer(Modifier.height(6.dp))
-        RecoveryTextField(
-            value = password,
-            onValueChange = onPasswordChange,
-            placeholder = "Ingresa una contraseña",
-            keyboardType = KeyboardType.Password,
-            leadingIcon = Icons.Outlined.Lock,
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingContent = {
-                Icon(
-                    imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                    contentDescription = "Mostrar u ocultar contraseña",
-                    tint = DesignSystem.Colors.TextSecondary,
-                    modifier = Modifier
-                        .size(21.dp)
-                        .clickable { passwordVisible = !passwordVisible }
-                )
-            }
-        )
-        if (passwordError != null) {
-            Text(
-                text = passwordError,
-                color = DesignSystem.Colors.ModeratorRed,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
-            )
-        }
-        Spacer(Modifier.height(12.dp))
-        PasswordStrength(password)
-        Spacer(Modifier.height(8.dp))
-        PasswordRequirements(password)
-        Spacer(Modifier.height(16.dp))
-        PasswordLabel("Confirmar nueva contraseña", confirmPassword.isNotBlank() && confirmPassword == password)
-        Spacer(Modifier.height(6.dp))
-        RecoveryTextField(
-            value = confirmPassword,
-            onValueChange = onConfirmPasswordChange,
-            placeholder = "Confirma tu nueva contraseña",
-            keyboardType = KeyboardType.Password,
-            leadingIcon = Icons.Outlined.Lock,
-            visualTransformation = if (confirmVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingContent = {
-                Icon(
-                    imageVector = if (confirmVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                    contentDescription = "Mostrar u ocultar confirmación",
-                    tint = DesignSystem.Colors.TextSecondary,
-                    modifier = Modifier
-                        .size(21.dp)
-                        .clickable { confirmVisible = !confirmVisible }
-                )
-            }
-        )
-        if (confirmPasswordError != null) {
-            Text(
-                text = confirmPasswordError,
-                color = DesignSystem.Colors.ModeratorRed,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
-            )
-        }
-        val passwordsMatch = password.isNotEmpty() && password == confirmPassword
-        Row(
-            modifier = Modifier.padding(top = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = if (passwordsMatch) Icons.Outlined.CheckCircle else Icons.Outlined.Info,
-                contentDescription = null,
-                tint = if (passwordsMatch) DesignSystem.Colors.RecoveryGreen else DesignSystem.Colors.TextSecondary,
-                modifier = Modifier.size(17.dp)
-            )
-            Text(
-                text = if (passwordsMatch) " Las contraseñas coinciden" else " Las contraseñas deben coincidir",
-                color = if (passwordsMatch) DesignSystem.Colors.RecoveryGreen else DesignSystem.Colors.TextSecondary,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-        Spacer(Modifier.height(18.dp))
-        RecoveryButton(
-            label = "Actualizar contraseña",
-            icon = Icons.Outlined.Lock,
-            enabled = isStepValid,
-            onClick = onFinish,
-            accent = true
-        )
-    }
-
-    Spacer(Modifier.height(16.dp))
-    NoticeCard(
-        icon = Icons.Outlined.Devices,
-        message = "Cierre preventivo de sesiones. Al cambiar tu contraseña, se cerrarán las sesiones activas en otros dispositivos por tu seguridad.",
-        iconTint = DesignSystem.Colors.RecoveryNavy
-    )
-    Text(
-        text = "← Volver a iniciar sesión",
-        modifier = Modifier
-            .padding(top = 22.dp)
-            .clickable(onClick = onBackToLogin),
+        text = "Revisa tu correo",
         color = DesignSystem.Colors.RecoveryNavy,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.SemiBold
+        fontSize = 23.sp,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center
     )
-}
-
-@Composable
-private fun RecoveryProgress(currentStep: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        (1..3).forEach { step ->
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (step <= currentStep) DesignSystem.Colors.RecoveryNavy else DesignSystem.Colors.Border
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = step.toString(),
-                        color = if (step <= currentStep) DesignSystem.Colors.White else DesignSystem.Colors.TextSecondary,
-                        fontSize = 12.sp
-                    )
-                }
-                Text(
-                    text = listOf("Correo", "Código", "Clave")[step - 1],
-                    color = if (step == currentStep) DesignSystem.Colors.RecoveryNavy else DesignSystem.Colors.TextSecondary,
-                    fontSize = 11.sp
-                )
-            }
-            if (step < 3) {
-                Spacer(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 10.dp)
-                        .height(1.dp)
-                        .background(DesignSystem.Colors.Border)
-                )
-            }
-        }
+    Spacer(Modifier.height(18.dp))
+    RecoveryCard {
+        NoticeCard(
+            icon = Icons.Outlined.CheckCircle,
+            message = PasswordRecoveryViewModel.SUCCESS_MESSAGE,
+            iconTint = DesignSystem.Colors.RecoveryNavy
+        )
+        Spacer(Modifier.height(18.dp))
+        RecoveryButton(
+            label = "Volver al Login",
+            icon = Icons.AutoMirrored.Outlined.ArrowForward,
+            onClick = onBackToLogin
+        )
     }
 }
 
@@ -598,24 +259,6 @@ private fun RecoveryLogo() {
             .clip(RoundedCornerShape(12.dp)),
         contentScale = ContentScale.Fit
     )
-}
-
-@Composable
-private fun StepBadge(step: Int, label: String) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(DesignSystem.Colors.RecoveryField)
-            .padding(horizontal = 12.dp, vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(Modifier.size(7.dp).clip(CircleShape).background(DesignSystem.Colors.RecoveryAccent))
-        Text(
-            text = "  PASO $step DE 3  •  $label",
-            color = DesignSystem.Colors.TextPrimary,
-            fontSize = 10.sp
-        )
-    }
 }
 
 @Composable
@@ -636,10 +279,7 @@ private fun RecoveryTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    keyboardType: KeyboardType,
-    leadingIcon: ImageVector,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    trailingContent: @Composable (() -> Unit)? = null
+    keyboardType: KeyboardType
 ) {
     Row(
         modifier = Modifier
@@ -650,7 +290,12 @@ private fun RecoveryTextField(
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(leadingIcon, contentDescription = null, tint = DesignSystem.Colors.TextSecondary, modifier = Modifier.size(19.dp))
+        Icon(
+            Icons.Outlined.Email,
+            contentDescription = null,
+            tint = DesignSystem.Colors.TextSecondary,
+            modifier = Modifier.size(19.dp)
+        )
         Spacer(Modifier.width(10.dp))
         BasicTextField(
             value = value,
@@ -659,78 +304,27 @@ private fun RecoveryTextField(
             singleLine = true,
             textStyle = TextStyle(color = DesignSystem.Colors.TextPrimary, fontSize = 14.sp),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            visualTransformation = visualTransformation,
             decorationBox = { field ->
                 Box {
                     if (value.isEmpty()) {
-                        Text(placeholder, color = DesignSystem.Colors.TextSecondary, fontSize = 13.sp)
+                        Text(
+                            placeholder,
+                            color = DesignSystem.Colors.TextSecondary,
+                            fontSize = 13.sp
+                        )
                     }
                     field()
                 }
             }
         )
-        if (trailingContent != null) {
-            Spacer(Modifier.width(8.dp))
-            trailingContent()
-        }
     }
-}
-
-@Composable
-private fun SixDigitCodeInput(code: String, onCodeChange: (String) -> Unit) {
-    BasicTextField(
-        value = code,
-        onValueChange = onCodeChange,
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        textStyle = TextStyle(color = androidx.compose.ui.graphics.Color.Transparent, fontSize = 1.sp),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-        decorationBox = { innerTextField ->
-            Box(Modifier.fillMaxWidth().height(50.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    repeat(6) { index ->
-                        val digit = code.getOrNull(index)?.toString().orEmpty()
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(50.dp)
-                                .clip(RoundedCornerShape(13.dp))
-                                .background(DesignSystem.Colors.RecoveryField),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = digit,
-                                color = DesignSystem.Colors.RecoveryNavy,
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            if (index == code.length && code.length < 6) {
-                                Box(
-                                    Modifier
-                                        .align(Alignment.BottomCenter)
-                                        .padding(bottom = 7.dp)
-                                        .width(27.dp)
-                                        .height(2.dp)
-                                        .background(DesignSystem.Colors.RecoveryAccent)
-                                )
-                            }
-                        }
-                    }
-                }
-                Box(Modifier.fillMaxSize()) { innerTextField() }
-            }
-        }
-    )
 }
 
 @Composable
 private fun NoticeCard(
     icon: ImageVector,
     message: String,
-    iconTint: androidx.compose.ui.graphics.Color = DesignSystem.Colors.RecoveryAccent
+    iconTint: Color = DesignSystem.Colors.RecoveryAccent
 ) {
     Row(
         modifier = Modifier
@@ -768,10 +362,20 @@ private fun ProtectionNotice() {
                 .background(DesignSystem.Colors.White),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Outlined.Shield, contentDescription = null, tint = DesignSystem.Colors.RecoveryNavy, modifier = Modifier.size(21.dp))
+            Icon(
+                Icons.Outlined.Shield,
+                contentDescription = null,
+                tint = DesignSystem.Colors.RecoveryNavy,
+                modifier = Modifier.size(21.dp)
+            )
         }
         Column(Modifier.padding(start = 12.dp)) {
-            Text("Protección vecinal", color = DesignSystem.Colors.RecoveryNavy, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Protección vecinal",
+                color = DesignSystem.Colors.RecoveryNavy,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold
+            )
             Text(
                 "Nunca solicitamos contraseñas por WhatsApp ni llamadas telefónicas.",
                 color = DesignSystem.Colors.TextSecondary,
@@ -787,8 +391,7 @@ private fun RecoveryButton(
     label: String,
     icon: ImageVector,
     enabled: Boolean = true,
-    onClick: () -> Unit,
-    accent: Boolean = false
+    onClick: () -> Unit
 ) {
     Button(
         onClick = onClick,
@@ -798,7 +401,7 @@ private fun RecoveryButton(
             .height(50.dp),
         shape = RoundedCornerShape(28.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (accent) DesignSystem.Colors.RecoveryAccent else DesignSystem.Colors.RecoveryNavy,
+            containerColor = DesignSystem.Colors.RecoveryNavy,
             contentColor = DesignSystem.Colors.White,
             disabledContainerColor = DesignSystem.Colors.Border,
             disabledContentColor = DesignSystem.Colors.TextSecondary
@@ -807,102 +410,5 @@ private fun RecoveryButton(
         Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
         Text(label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-    }
-}
-
-@Composable
-private fun PasswordLabel(label: String, valid: Boolean) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, color = DesignSystem.Colors.RecoveryNavy, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-        if (valid) {
-            Text(
-                text = "Válida",
-                color = DesignSystem.Colors.RecoveryGreen,
-                fontSize = 11.sp
-            )
-        }
-    }
-}
-
-@Composable
-private fun PasswordStrength(password: String) {
-    val hasLength = password.length >= 8
-    val hasUppercase = password.any(Char::isUpperCase)
-    val hasNumberOrSymbol = password.any { it.isDigit() || !it.isLetter() }
-    val strength: Int = listOf(hasLength, hasUppercase, hasNumberOrSymbol).count { it }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("Nivel de seguridad", color = DesignSystem.Colors.TextPrimary, fontSize = 11.sp)
-        Text(
-            text = when (strength) {
-                3 -> "Fortaleza: Fuerte"
-                2 -> "Fortaleza: Media"
-                1 -> "Fortaleza: Baja"
-                else -> "Fortaleza"
-            },
-            color = if (strength == 3) DesignSystem.Colors.RecoveryGreen else DesignSystem.Colors.TextSecondary,
-            fontSize = 10.sp
-        )
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 5.dp),
-        horizontalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        repeat(3) { index ->
-            Box(
-                Modifier
-                    .weight(1f)
-                    .height(5.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (index < strength) DesignSystem.Colors.RecoveryGreen else DesignSystem.Colors.Border
-                    )
-            )
-        }
-    }
-}
-
-@Composable
-private fun PasswordRequirements(password: String) {
-    val checks: List<Pair<Boolean, String>> = listOf(
-        Pair(password.length >= 8, "Al menos 8 caracteres"),
-        Pair(password.any(Char::isUpperCase), "Al menos una letra mayúscula"),
-        Pair(password.any { it.isDigit() || !it.isLetter() }, "Al menos un número o símbolo")
-    )
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 10.dp)
-            .clip(RoundedCornerShape(13.dp))
-            .background(DesignSystem.Colors.RecoveryField)
-            .padding(horizontal = 10.dp, vertical = 7.dp)
-    ) {
-        checks.forEach { (valid, label) ->
-            Row(
-                modifier = Modifier.padding(vertical = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = if (valid) Icons.Outlined.CheckCircle else Icons.Outlined.Check,
-                    contentDescription = null,
-                    tint = if (valid) DesignSystem.Colors.RecoveryGreen else DesignSystem.Colors.TextSecondary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Text(
-                    text = "  $label",
-                    color = if (valid) DesignSystem.Colors.RecoveryNavy else DesignSystem.Colors.TextSecondary,
-                    fontSize = 11.sp
-                )
-            }
-        }
     }
 }

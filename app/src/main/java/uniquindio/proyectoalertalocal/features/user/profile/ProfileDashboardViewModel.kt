@@ -66,18 +66,25 @@ class ProfileDashboardViewModel @Inject constructor(
         }
     }
 
-    fun deleteAccount() {
+    fun deleteAccount(password: String) {
         _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            deleteAccountUseCase().onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        result = RequestResult.Failure(
-                            error.message ?: UNEXPECTED_ERROR
+            deleteAccountUseCase(password).fold(
+                onSuccess = {
+                    _uiState.update {
+                        it.copy(result = RequestResult.Success(ACCOUNT_DELETED_MESSAGE))
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            result = RequestResult.Failure(
+                                error.message ?: UNEXPECTED_ERROR
+                            )
                         )
-                    )
+                    }
                 }
-            }
+            )
         }
     }
 
@@ -133,6 +140,7 @@ class ProfileDashboardViewModel @Inject constructor(
     companion object {
         const val UNEXPECTED_ERROR = "Ocurrió un error inesperado."
         const val MAX_LEVEL_MESSAGE = "Nivel máximo alcanzado"
+        const val ACCOUNT_DELETED_MESSAGE = "Tu cuenta se eliminó correctamente."
         private val MEMBER_SINCE_FORMATTER = DateTimeFormatter.ofPattern(
             "MMMM yyyy",
             Locale.forLanguageTag("es-ES")

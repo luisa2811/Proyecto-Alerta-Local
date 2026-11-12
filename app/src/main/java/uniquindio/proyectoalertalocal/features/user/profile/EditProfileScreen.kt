@@ -131,7 +131,8 @@ fun EditProfileScreen(
                     verified = uiState.emailVerified,
                     keyboardType = KeyboardType.Email,
                     error = uiState.emailError,
-                    onValueChange = viewModel::changeEmail
+                    readOnly = true,
+                    onValueChange = {}
                 )
                 PersonalField(
                     label = "TELÉFONO MÓVIL",
@@ -294,6 +295,7 @@ private fun PersonalField(
     keyboardType: KeyboardType = KeyboardType.Text,
     prefix: String? = null,
     error: String? = null,
+    readOnly: Boolean = false,
     onValueChange: (String) -> Unit
 ) {
     Column(
@@ -354,6 +356,7 @@ private fun PersonalField(
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
+                readOnly = readOnly,
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
