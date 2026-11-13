@@ -50,7 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mapbox.geojson.Point
 import uniquindio.proyectoalertalocal.R
+import uniquindio.proyectoalertalocal.core.component.MapBox
 import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 import uniquindio.proyectoalertalocal.core.component.color
@@ -58,6 +60,7 @@ import uniquindio.proyectoalertalocal.core.component.label
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
+import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 
 @Composable
@@ -66,16 +69,29 @@ fun CreateReportScreen(
     onShowMessage: (String) -> Unit,
     onPublished: () -> Unit,
     onOpenReport: (String) -> Unit,
+    onPickLocation: (GeoPoint?) -> Unit,
+    selectedLocation: GeoPoint?,
+    onLocationPickedHandled: () -> Unit,
     modifier: Modifier = Modifier,
     reportId: String? = null,
     viewModel: CreateReportViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isEditing = uiState.editingReportId != null
+    val selectedMapPoint = uiState.latitude?.let { latitude ->
+        uiState.longitude?.let { longitude -> Point.fromLngLat(longitude, latitude) }
+    }
 
     LaunchedEffect(reportId) {
         if (reportId != null) {
             viewModel.loadForEdit(reportId)
+        }
+    }
+
+    LaunchedEffect(selectedLocation) {
+        selectedLocation?.let {
+            viewModel.onLocationPicked(it.latitude, it.longitude)
+            onLocationPickedHandled()
         }
     }
 
@@ -241,6 +257,58 @@ fun CreateReportScreen(
                     error = viewModel.descriptionError(),
                     modifier = Modifier.padding(top = 17.dp)
                 )
+                Text(
+                    text = "Ubicación",
+                    color = Color(0xFF444648),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(top = 17.dp)
+                )
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .height(140.dp),
+                    shape = RoundedCornerShape(11.dp),
+                    border = BorderStroke(1.dp, DesignSystem.Colors.Border)
+                ) {
+                    MapBox(
+                        modifier = Modifier.fillMaxSize(),
+                        center = selectedMapPoint ?: Point.fromLngLat(-75.6811, 4.5339),
+                        zoom = 15.5,
+                        selectedPoint = selectedMapPoint,
+                        interactive = false,
+                        showMyLocationButton = false
+                    )
+                }
+                OutlinedButton(
+                    onClick = {
+                        onPickLocation(
+                            selectedMapPoint?.let {
+                                GeoPoint(it.latitude(), it.longitude())
+                            }
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .height(42.dp),
+                    shape = RoundedCornerShape(11.dp)
+                ) {
+                    Text(
+                        text = "Elegir en el mapa",
+                        color = DesignSystem.Colors.PrimaryDark,
+                        fontSize = 12.sp
+                    )
+                }
+                if (selectedMapPoint == null) {
+                    Text(
+                        text = "Selecciona la ubicación en el mapa.",
+                        color = DesignSystem.Colors.ModeratorRed,
+                        fontSize = 10.sp,
+                        modifier = Modifier.padding(top = 5.dp)
+                    )
+                }
                 ReportField(
                     label = "Dirección o punto de referencia",
                     value = uiState.location,

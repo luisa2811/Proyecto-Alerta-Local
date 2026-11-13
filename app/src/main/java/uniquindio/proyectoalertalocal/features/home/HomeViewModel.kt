@@ -10,21 +10,39 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
+import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 import uniquindio.proyectoalertalocal.domain.usecase.report.FilterReportsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.ObserveReportsUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val observeReportsUseCase: ObserveReportsUseCase,
-    private val filterReportsUseCase: FilterReportsUseCase
+    private val filterReportsUseCase: FilterReportsUseCase,
+    private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    private var origin: GeoPoint? = null
 
     init {
+        viewModelScope.launch {
+            getCurrentUserUseCase().collect { user ->
+                val latitude = user?.residenceLatitude
+                val longitude = user?.residenceLongitude
+                origin = if (latitude != null && longitude != null) {
+                    GeoPoint(latitude, longitude)
+                } else {
+                    null
+                }
+                _uiState.update { currentState ->
+                    currentState.copy(filteredReports = applyFilters(currentState))
+                }
+            }
+        }
         viewModelScope.launch {
             observeReportsUseCase().collect { newReports ->
                 _uiState.update { currentState ->
@@ -53,9 +71,11 @@ class HomeViewModel @Inject constructor(
         _uiState.update { it.copy(selectedView = view) }
     }
 
-    fun selectAlert(id: String) {
+    fun selectAlert(id: String?) {
         _uiState.update { currentState ->
-            if (currentState.filteredReports.any { it.report.id == id }) {
+            if (id == null) {
+                currentState.copy(selectedAlertId = null)
+            } else if (currentState.filteredReports.any { it.report.id == id }) {
                 currentState.copy(selectedAlertId = id)
             } else {
                 currentState
@@ -67,7 +87,8 @@ class HomeViewModel @Inject constructor(
         return filterReportsUseCase(
             reports = state.reports,
             category = state.selectedCategory,
-            proximity = state.selectedProximity
+            proximity = state.selectedProximity,
+            origin = origin
         )
     }
 }

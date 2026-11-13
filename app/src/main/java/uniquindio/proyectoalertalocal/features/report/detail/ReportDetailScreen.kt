@@ -55,6 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mapbox.geojson.Point
+import uniquindio.proyectoalertalocal.core.component.MapBox
 import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
 import uniquindio.proyectoalertalocal.core.component.ReportSeverityTag
 import uniquindio.proyectoalertalocal.core.component.ReportStatusTag
@@ -305,6 +307,21 @@ fun ReportDetailScreen(
                             )
                         }
                     }
+                }
+
+                if (report.latitude != null && report.longitude != null) {
+                    MapBox(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp)
+                            .height(160.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        center = Point.fromLngLat(report.longitude, report.latitude),
+                        zoom = 15.5,
+                        reports = listOf(report),
+                        interactive = false,
+                        showMyLocationButton = false
+                    )
                 }
 
                 Row(

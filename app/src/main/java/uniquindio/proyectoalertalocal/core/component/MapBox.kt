@@ -5,14 +5,17 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -49,6 +51,7 @@ import com.mapbox.maps.plugin.annotation.AnnotationConfig
 import com.mapbox.maps.plugin.annotation.AnnotationSourceOptions
 import com.mapbox.maps.plugin.annotation.ClusterOptions
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
@@ -74,6 +77,7 @@ fun MapBox(
     selectedPoint: Point? = null,
     interactive: Boolean = true,
     showMyLocationButton: Boolean = true,
+    myLocationButtonLabel: String? = null,
     onMarkerClick: (Report) -> Unit = {},
     onMapClick: (Point) -> Unit = {},
     onUserLocation: (Point) -> Unit = {}
@@ -85,6 +89,12 @@ fun MapBox(
     val currentOnUserLocation = rememberUpdatedState(onUserLocation)
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
+            center(center)
+            zoom(zoom)
+        }
+    }
+    LaunchedEffect(center, zoom) {
+        mapViewportState.setCameraOptions {
             center(center)
             zoom(zoom)
         }
@@ -120,6 +130,19 @@ fun MapBox(
                 null
             }
         ) {
+            MapEffect(interactive) { mapView ->
+                mapView.gestures.updateSettings {
+                    rotateEnabled = interactive
+                    pinchToZoomEnabled = interactive
+                    scrollEnabled = interactive
+                    simultaneousRotateAndPinchToZoomEnabled = interactive
+                    pitchEnabled = interactive
+                    doubleTapToZoomInEnabled = interactive
+                    doubleTouchToZoomOutEnabled = interactive
+                    quickZoomEnabled = interactive
+                }
+            }
+
             if (permissionState.hasPermission && followUserRequest > 0) {
                 MapEffect(followUserRequest) { mapView ->
                     val locationListener = OnIndicatorPositionChangedListener { point ->
@@ -193,14 +216,6 @@ fun MapBox(
             }
         }
 
-        if (!interactive) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .pointerInput(Unit) {}
-            )
-        }
-
         if (showMyLocationButton && interactive) {
             SmallFloatingActionButton(
                 onClick = {
@@ -216,11 +231,19 @@ fun MapBox(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
                 contentColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(
-                    imageVector = Icons.Filled.MyLocation,
-                    contentDescription = "Mi ubicación",
-                    modifier = Modifier.size(20.dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.MyLocation,
+                        contentDescription = myLocationButtonLabel ?: "Mi ubicación",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    myLocationButtonLabel?.let { label ->
+                        Text(text = label)
+                    }
+                }
             }
         }
     }

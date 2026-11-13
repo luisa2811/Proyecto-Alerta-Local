@@ -1,11 +1,9 @@
 package uniquindio.proyectoalertalocal.features.home
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -39,15 +37,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import uniquindio.proyectoalertalocal.R
+import com.mapbox.geojson.Point
+import uniquindio.proyectoalertalocal.core.component.MapBox
 import uniquindio.proyectoalertalocal.core.component.ProximitySelector
 import uniquindio.proyectoalertalocal.core.component.ReportCard
 import uniquindio.proyectoalertalocal.core.component.ReportCategoryFilters
@@ -56,10 +53,7 @@ import uniquindio.proyectoalertalocal.core.component.ReportEmptyState
 import uniquindio.proyectoalertalocal.core.component.ReportHeader
 import uniquindio.proyectoalertalocal.core.component.ReportSeverityTag
 import uniquindio.proyectoalertalocal.core.component.ReportStatusTag
-import uniquindio.proyectoalertalocal.core.component.color
 import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
-import uniquindio.proyectoalertalocal.core.component.icon
-import uniquindio.proyectoalertalocal.core.component.label
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
@@ -126,7 +120,7 @@ fun HomeScreen(
             }
 
             uiState.selectedView == HomeView.MAP -> {
-                DemoMap(
+                ReportMap(
                     reports = uiState.filteredReports,
                     selectedAlert = uiState.selectedAlert,
                     onAlertSelect = viewModel::selectAlert,
@@ -215,85 +209,27 @@ private fun ViewOption(
 }
 
 @Composable
-private fun DemoMap(
+private fun ReportMap(
     reports: List<ReportSummary>,
     selectedAlert: ReportSummary?,
-    onAlertSelect: (String) -> Unit,
+    onAlertSelect: (String?) -> Unit,
     onCreateReport: () -> Unit,
     onGetDirections: () -> Unit,
     onOpenDetail: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val mapPositionsX = floatArrayOf(0.34f, 0.51f, 0.77f, 0.25f, 0.67f, 0.40f, 0.82f, 0.20f)
-    val mapPositionsY = floatArrayOf(0.20f, 0.42f, 0.38f, 0.53f, 0.56f, 0.70f, 0.25f, 0.35f)
-
-    BoxWithConstraints(
+    Box(
         modifier = modifier
             .padding(top = 8.dp)
             .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
     ) {
-        Image(
-            painter = painterResource(R.drawable.mapa_demostrativo),
-            contentDescription = "Mapa ilustrativo sin datos geográficos reales",
+        MapBox(
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
+            center = Point.fromLngLat(-75.6811, 4.5339),
+            reports = reports.map { it.report },
+            onMarkerClick = { report -> onAlertSelect(report.id) },
+            onMapClick = { onAlertSelect(null) }
         )
-
-        Text(
-            text = "DATOS DE DEMOSTRACIÓN",
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 10.dp, top = 10.dp)
-                .background(Color(0xEFFFFFFF), RoundedCornerShape(6.dp))
-                .padding(horizontal = 7.dp, vertical = 4.dp),
-            color = DesignSystem.Colors.PrimaryDark,
-            fontSize = 8.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Text(
-            text = "Cra 15",
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = maxWidth * 0.28f, top = maxHeight * 0.12f)
-                .background(Color(0xD91C1C1C), RoundedCornerShape(4.dp))
-                .padding(horizontal = 7.dp, vertical = 3.dp),
-            color = DesignSystem.Colors.White,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-        Text(
-            text = "Calle 8",
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 10.dp, top = maxHeight * 0.08f),
-            color = DesignSystem.Colors.TextSecondary,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Text(
-            text = "Calle 9",
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 10.dp, top = maxHeight * 0.25f),
-            color = DesignSystem.Colors.TextSecondary,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Medium
-        )
-
-        reports.forEachIndexed { index, summary ->
-            val posX = mapPositionsX[index % mapPositionsX.size]
-            val posY = mapPositionsY[index % mapPositionsY.size]
-            AlertMarker(
-                summary = summary,
-                isSelected = summary.report.id == selectedAlert?.report?.id,
-                onSelect = { onAlertSelect(summary.report.id) },
-                modifier = Modifier.offset(
-                    x = maxWidth * posX - 17.dp,
-                    y = maxHeight * posY - 17.dp
-                )
-            )
-        }
 
         Button(
             onClick = onCreateReport,
@@ -385,34 +321,6 @@ private fun AlertList(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun AlertMarker(
-    summary: ReportSummary,
-    isSelected: Boolean,
-    onSelect: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val category = summary.report.category
-
-    Box(
-        modifier = modifier
-            .size(36.dp)
-            .shadow(if (isSelected) 5.dp else 2.dp, CircleShape)
-            .background(DesignSystem.Colors.White, CircleShape)
-            .padding(3.dp)
-            .background(category.color(), CircleShape)
-            .clickable(onClick = onSelect),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = category.icon(),
-            contentDescription = "Alerta ${category.label()}: ${summary.report.title}",
-            tint = DesignSystem.Colors.White,
-            modifier = Modifier.size(20.dp)
-        )
     }
 }
 

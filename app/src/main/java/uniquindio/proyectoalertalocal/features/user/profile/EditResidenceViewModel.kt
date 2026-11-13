@@ -35,6 +35,8 @@ class EditResidenceViewModel @Inject constructor(
                             address = user.address.orEmpty(),
                             neighborhood = user.neighborhood.orEmpty(),
                             complement = user.complement.orEmpty(),
+                            residenceLatitude = user.residenceLatitude,
+                            residenceLongitude = user.residenceLongitude,
                             isLoaded = true
                         )
                     }
@@ -55,6 +57,16 @@ class EditResidenceViewModel @Inject constructor(
         _uiState.update { it.copy(complement = value, result = null) }
     }
 
+    fun onLocationPicked(latitude: Double, longitude: Double) {
+        _uiState.update {
+            it.copy(
+                residenceLatitude = latitude,
+                residenceLongitude = longitude,
+                result = null
+            )
+        }
+    }
+
     fun saveResidence() {
         val currentState = _uiState.value
         if (!currentState.isFormValid) return
@@ -64,7 +76,9 @@ class EditResidenceViewModel @Inject constructor(
             updateResidenceUseCase(
                 address = currentState.address,
                 neighborhood = currentState.neighborhood,
-                complement = currentState.complement
+                complement = currentState.complement,
+                residenceLatitude = currentState.residenceLatitude,
+                residenceLongitude = currentState.residenceLongitude
             ).fold(
                 onSuccess = {
                     _uiState.update {

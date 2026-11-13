@@ -10,6 +10,8 @@ data class CreateReportUiState(
     val title: String = "",
     val description: String = "",
     val location: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val isFormValid: Boolean = false,
     val result: RequestResult? = null,
     val similarReports: List<Report> = emptyList(),
