@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Notification
 import uniquindio.proyectoalertalocal.domain.usecase.notification.MarkAllNotificationsAsReadUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.notification.ObserveNotificationsUseCase
@@ -32,14 +35,17 @@ class NotificationsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             observeNotificationsUseCase()
-                .catch {
-                    _uiState.update { it.copy(isLoading = false) }
+                .catch { error ->
+                    _uiState.update {
+                        it.copy(isLoading = false, result = error.toRequestFailure())
+                    }
                 }
                 .collect { notifications ->
                     _uiState.update {
                         it.copy(
                             notifications = notifications,
-                            isLoading = false
+                            isLoading = false,
+                            result = if (it.result == RequestResult.Loading) null else it.result
                         )
                     }
                 }
@@ -50,59 +56,56 @@ class NotificationsViewModel @Inject constructor(
         val currentState = _uiState.value
         if (!currentState.hasUnread) return
 
+        _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            markAllNotificationsAsReadUseCase().onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        result = RequestResult.Failure(
-                            error.message ?: UNEXPECTED_ERROR
-                        )
-                    )
-                }
-            }
+            runCatching { markAllNotificationsAsReadUseCase().getOrThrow() }
+                .fold(
+                    onSuccess = { _uiState.update { it.copy(result = null) } },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    }
+                )
         }
     }
 
     fun onNotificationClicked(notification: Notification) {
+        _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            if (!notification.isRead) {
-                setNotificationReadUseCase(notification.id, true)
-            }
-
-            if (notification.title == NEW_ACHIEVEMENT_TITLE) {
-                _uiState.update { it.copy(navigation = NotificationNavigation.ToProfile) }
-                return@launch
-            }
-
-            val reportId = notification.reportId
-            if (reportId.isNullOrBlank()) {
-                return@launch
-            }
-
-            val reportSummary = observeReportDetailUseCase(reportId).first()
-            if (reportSummary == null) {
-                _uiState.update {
-                    it.copy(result = RequestResult.Failure(REPORT_NOT_AVAILABLE))
+            runCatching {
+                if (!notification.isRead) {
+                    setNotificationReadUseCase(notification.id, true).getOrThrow()
                 }
-                return@launch
-            }
-
-            _uiState.update { it.copy(navigation = NotificationNavigation.ToReport(reportId)) }
+                when {
+                    notification.title == NEW_ACHIEVEMENT_TITLE ->
+                        NotificationNavigation.ToProfile
+                    notification.reportId.isNullOrBlank() -> null
+                    observeReportDetailUseCase(notification.reportId).first() == null ->
+                        throw AppException(AppError.REPORT_NOT_FOUND, REPORT_NOT_AVAILABLE)
+                    else -> NotificationNavigation.ToReport(notification.reportId)
+                }
+            }.fold(
+                onSuccess = { navigation ->
+                    _uiState.update { it.copy(result = null, navigation = navigation) }
+                },
+                onFailure = { error ->
+                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                }
+            )
         }
     }
 
     fun markAsUnread(notification: Notification) {
         if (notification.isRead) {
+            _uiState.update { it.copy(result = RequestResult.Loading) }
             viewModelScope.launch {
-                setNotificationReadUseCase(notification.id, false).onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            result = RequestResult.Failure(
-                                error.message ?: UNEXPECTED_ERROR
-                            )
-                        )
+                runCatching {
+                    setNotificationReadUseCase(notification.id, false).getOrThrow()
+                }.fold(
+                    onSuccess = { _uiState.update { it.copy(result = null) } },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
                     }
-                }
+                )
             }
         }
     }

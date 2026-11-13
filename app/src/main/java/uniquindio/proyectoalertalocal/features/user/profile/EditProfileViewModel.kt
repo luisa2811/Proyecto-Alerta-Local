@@ -7,9 +7,11 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.UpdateProfileUseCase
 
@@ -24,41 +26,39 @@ class EditProfileViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getCurrentUserUseCase().collect { user ->
-                if (user == null) return@collect
+            getCurrentUserUseCase()
+                .catch { error ->
+                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                }
+                .collect { user ->
+                    if (user == null) return@collect
 
-                _uiState.update { state ->
-                    if (state.isLoaded) {
-                        state.copy(
-                            address = user.address.orEmpty(),
-                            neighborhood = user.neighborhood.orEmpty()
-                        )
-                    } else {
-                        state.copy(
-                            fullName = user.name,
-                            email = user.email,
-                            emailVerified = user.emailVerified,
-                            phone = normalizePhone(user.phone),
-                            phoneVerified = user.phoneVerified,
-                            address = user.address.orEmpty(),
-                            neighborhood = user.neighborhood.orEmpty(),
-                            displayNameInReports = user.displayNameInReports,
-                            isLoaded = true
-                        )
+                    _uiState.update { state ->
+                        if (state.isLoaded) {
+                            state.copy(
+                                address = user.address.orEmpty(),
+                                neighborhood = user.neighborhood.orEmpty()
+                            )
+                        } else {
+                            state.copy(
+                                fullName = user.name,
+                                email = user.email,
+                                emailVerified = user.emailVerified,
+                                phone = normalizePhone(user.phone),
+                                phoneVerified = user.phoneVerified,
+                                address = user.address.orEmpty(),
+                                neighborhood = user.neighborhood.orEmpty(),
+                                displayNameInReports = user.displayNameInReports,
+                                isLoaded = true
+                            )
+                        }
                     }
                 }
-            }
         }
     }
 
     fun changeFullName(fullName: String) {
         _uiState.update { it.copy(fullName = fullName, result = null) }
-    }
-
-    fun changeEmail(email: String) {
-        _uiState.update {
-            it.copy(email = email, emailVerified = false, result = null)
-        }
     }
 
     fun changePhone(phone: String) {
@@ -80,25 +80,27 @@ class EditProfileViewModel @Inject constructor(
 
         _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            updateProfileUseCase(
-                name = currentState.fullName,
-                email = currentState.email,
-                phone = currentState.phone,
-                displayNameInReports = currentState.displayNameInReports
-            ).fold(
-                onSuccess = {
-                    _uiState.update {
-                        it.copy(result = RequestResult.Success(SUCCESS_MESSAGE))
-                    }
+            runCatching {
+                updateProfileUseCase(
+                    name = currentState.fullName,
+                    phone = currentState.phone,
+                    displayNameInReports = currentState.displayNameInReports
+                )
+            }.fold(
+                onSuccess = { outcome ->
+                    outcome.fold(
+                        onSuccess = {
+                            _uiState.update {
+                                it.copy(result = RequestResult.Success(SUCCESS_MESSAGE))
+                            }
+                        },
+                        onFailure = { error ->
+                            _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        }
+                    )
                 },
                 onFailure = { error ->
-                    _uiState.update {
-                        it.copy(
-                            result = RequestResult.Failure(
-                                error.message ?: UNEXPECTED_ERROR
-                            )
-                        )
-                    }
+                    _uiState.update { it.copy(result = error.toRequestFailure()) }
                 }
             )
         }

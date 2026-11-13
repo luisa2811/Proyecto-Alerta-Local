@@ -28,6 +28,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -44,6 +45,7 @@ import uniquindio.proyectoalertalocal.core.component.ReportSeverityTag
 import uniquindio.proyectoalertalocal.core.component.ReportStatusTag
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
@@ -54,10 +56,19 @@ fun MyReportsScreen(
     onBack: () -> Unit,
     onOpenReport: (String) -> Unit,
     onCreateReport: () -> Unit,
+    onShowMessage: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: MyReportsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.result) {
+        val result = uiState.result
+        if (result is RequestResult.Failure) {
+            onShowMessage(result.errorMessage)
+            viewModel.onResultShown()
+        }
+    }
 
     Column(
         modifier = modifier

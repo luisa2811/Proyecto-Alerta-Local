@@ -36,6 +36,20 @@ class ReportRepositoryImpl @Inject constructor() : ReportRepository {
         }
     }
 
+    override suspend fun setSupport(reportId: String, userId: String, supported: Boolean) {
+        mutableReports.update { currentReports ->
+            currentReports.map { report ->
+                if (report.id != reportId) {
+                    report
+                } else if (supported) {
+                    report.copy(supportedBy = report.supportedBy + userId)
+                } else {
+                    report.copy(supportedBy = report.supportedBy - userId)
+                }
+            }
+        }
+    }
+
     override suspend fun delete(id: String) {
         mutableReports.update { currentReports ->
             currentReports.filterNot { it.id == id }

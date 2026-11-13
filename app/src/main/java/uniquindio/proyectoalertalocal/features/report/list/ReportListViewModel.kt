@@ -7,8 +7,10 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
@@ -26,12 +28,22 @@ class ReportListViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            observeReportsUseCase().collect { newReports ->
-                _uiState.update { currentState ->
-                    val updatedState = currentState.copy(reports = newReports, isLoading = false)
-                    updatedState.copy(filteredReports = applyFilters(updatedState))
+            observeReportsUseCase()
+                .catch { error ->
+                    _uiState.update {
+                        it.copy(isLoading = false, result = error.toRequestFailure())
+                    }
                 }
-            }
+                .collect { newReports ->
+                    _uiState.update { currentState ->
+                        val updatedState = currentState.copy(
+                            reports = newReports,
+                            isLoading = false,
+                            result = null
+                        )
+                        updatedState.copy(filteredReports = applyFilters(updatedState))
+                    }
+                }
         }
     }
 
@@ -47,6 +59,10 @@ class ReportListViewModel @Inject constructor(
             val updatedState = currentState.copy(selectedProximity = proximity)
             updatedState.copy(filteredReports = applyFilters(updatedState))
         }
+    }
+
+    fun onResultShown() {
+        _uiState.update { it.copy(result = null) }
     }
 
     private fun applyFilters(state: ReportListUiState): List<ReportSummary> {

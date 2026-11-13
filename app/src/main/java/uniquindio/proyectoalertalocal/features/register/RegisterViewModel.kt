@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.user.RegisterUserUseCase
 
 @HiltViewModel
@@ -45,23 +46,28 @@ class RegisterViewModel @Inject constructor(
 
         _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            val registerResult = registerUserUseCase(
-                name = currentState.fullName.trim(),
-                email = currentState.email.trim(),
-                neighborhood = currentState.neighborhood.trim(),
-                password = currentState.password
-            )
-
-            registerResult.fold(
-                onSuccess = {
-                    _uiState.update {
-                        it.copy(result = RequestResult.Success("Cuenta creada correctamente."))
-                    }
+            runCatching {
+                registerUserUseCase(
+                    name = currentState.fullName.trim(),
+                    email = currentState.email.trim(),
+                    neighborhood = currentState.neighborhood.trim(),
+                    password = currentState.password
+                )
+            }.fold(
+                onSuccess = { registerResult ->
+                    registerResult.fold(
+                        onSuccess = {
+                            _uiState.update {
+                                it.copy(result = RequestResult.Success("Cuenta creada correctamente."))
+                            }
+                        },
+                        onFailure = { error ->
+                            _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        }
+                    )
                 },
                 onFailure = { error ->
-                    val message = error.message
-                        ?: "Ocurrió un error inesperado."
-                    _uiState.update { it.copy(result = RequestResult.Failure(message)) }
+                    _uiState.update { it.copy(result = error.toRequestFailure()) }
                 }
             )
         }

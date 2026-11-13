@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.domain.usecase.auth.LoginUserUseCase
 
@@ -53,44 +55,60 @@ class LoginViewModel @Inject constructor(
         val data = _uiState.value
         if (!data.isLoginEnabled) return
 
-        _uiState.update { it.copy(isLoading = true, snackbarMessage = null) }
-        viewModelScope.launch {
-            val result = loginUserUseCase(
-                email = data.email.trim(),
-                password = data.password,
-                moderatorCode = data.moderatorCode,
-                selectedRole = data.selectedRole
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                snackbarMessage = null,
+                result = RequestResult.Loading
             )
-
-            result.fold(
-                onSuccess = {
-                    _uiState.update { it.copy(isLoading = false) }
+        }
+        viewModelScope.launch {
+            runCatching {
+                loginUserUseCase(
+                    email = data.email.trim(),
+                    password = data.password,
+                    moderatorCode = data.moderatorCode,
+                    selectedRole = data.selectedRole
+                )
+            }.fold(
+                onSuccess = { loginResult ->
+                    loginResult.fold(
+                        onSuccess = {
+                            _uiState.update {
+                                it.copy(isLoading = false, result = null)
+                            }
+                        },
+                        onFailure = ::publishLoginFailure
+                    )
                 },
-                onFailure = { error ->
-                    val message = error.message
-                        ?: "Ocurrió un error inesperado."
-                    _uiState.update { state ->
-                        state.copy(
-                            isLoading = false,
-                            password = if (message == LoginUserUseCase.INVALID_CREDENTIALS_MESSAGE) {
-                                ""
-                            } else {
-                                state.password
-                            },
-                            moderatorCode = if (message == LoginUserUseCase.INVALID_MODERATOR_CODE_MESSAGE) {
-                                ""
-                            } else {
-                                state.moderatorCode
-                            },
-                            snackbarMessage = message
-                        )
-                    }
-                }
+                onFailure = ::publishLoginFailure
+            )
+        }
+    }
+
+    private fun publishLoginFailure(error: Throwable) {
+        val failure = error.toRequestFailure()
+        val message = failure.errorMessage
+        _uiState.update { state ->
+            state.copy(
+                isLoading = false,
+                password = if (message == LoginUserUseCase.INVALID_CREDENTIALS_MESSAGE) {
+                    ""
+                } else {
+                    state.password
+                },
+                moderatorCode = if (message == LoginUserUseCase.INVALID_MODERATOR_CODE_MESSAGE) {
+                    ""
+                } else {
+                    state.moderatorCode
+                },
+                snackbarMessage = message,
+                result = failure
             )
         }
     }
 
     fun clearSnackbarMessage() {
-        _uiState.update { it.copy(snackbarMessage = null) }
+        _uiState.update { it.copy(snackbarMessage = null, result = null) }
     }
 }

@@ -12,5 +12,7 @@ interface ReportRepository {
 
     suspend fun update(report: Report)
 
+    suspend fun setSupport(reportId: String, userId: String, supported: Boolean)
+
     suspend fun delete(id: String)
 }

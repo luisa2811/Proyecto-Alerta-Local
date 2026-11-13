@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.comment.ObserveCommentsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveModerationQueueUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveModerationReportDetailUseCase
@@ -44,8 +45,10 @@ class ModeratorReportDetailViewModel @Inject constructor(
             ) { summary, queue, comments ->
                 Triple(summary, queue.reportsById, comments)
             }
-                .catch {
-                    _uiState.update { it.copy(isLoading = false) }
+                .catch { error ->
+                    _uiState.update {
+                        it.copy(isLoading = false, result = error.toRequestFailure())
+                    }
                 }
                 .collect { (summary, reportsById, comments) ->
                     _uiState.update {
@@ -62,14 +65,17 @@ class ModeratorReportDetailViewModel @Inject constructor(
 
     fun onVerify() {
         val reportId = _uiState.value.summary?.report?.id ?: currentReportId ?: return
+        _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            verifyReportUseCase(reportId)
-                .onSuccess {
-                    _uiState.update { it.copy(result = RequestResult.Success("Reporte verificado.")) }
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(result = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado.")) }
-                }
+            runCatching { verifyReportUseCase(reportId).getOrThrow() }
+                .fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(result = RequestResult.Success("Reporte verificado.")) }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    }
+                )
         }
     }
 
@@ -94,20 +100,23 @@ class ModeratorReportDetailViewModel @Inject constructor(
         val reason = _uiState.value.rejectionReason
         val trimmed = reason.trim()
         if (trimmed.length < 5 || trimmed.length > 300) return
+        _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            rejectReportUseCase(reportId, reason)
-                .onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            rejecting = false,
-                            rejectionReason = "",
-                            result = RequestResult.Success("Reporte rechazado.")
-                        )
+            runCatching { rejectReportUseCase(reportId, reason).getOrThrow() }
+                .fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(
+                                rejecting = false,
+                                rejectionReason = "",
+                                result = RequestResult.Success("Reporte rechazado.")
+                            )
+                        }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
                     }
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(result = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado.")) }
-                }
+                )
         }
     }
 

@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.features.report.list
 
+import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 
@@ -13,7 +14,8 @@ enum class MyReportsTab {
 data class MyReportsUiState(
     val reports: List<ReportSummary> = emptyList(),
     val selectedTab: MyReportsTab = MyReportsTab.ALL,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val result: RequestResult? = RequestResult.Loading
 ) {
     val filteredReports: List<ReportSummary>
         get() = when (selectedTab) {
