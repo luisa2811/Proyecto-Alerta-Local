@@ -6,7 +6,7 @@ import uniquindio.proyectoalertalocal.domain.model.Notification
 data class NotificationsUiState(
     val notifications: List<Notification> = emptyList(),
     val isLoading: Boolean = true,
-    val result: RequestResult? = null,
+    val result: RequestResult? = RequestResult.Loading,
     val navigation: NotificationNavigation? = null
 ) {
     val hasUnread: Boolean

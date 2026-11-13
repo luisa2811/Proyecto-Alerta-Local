@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.features.login
 
+import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.core.util.isValidEmail
 
@@ -10,7 +11,8 @@ data class LoginUiState(
     val selectedRole: UserRole = UserRole.RESIDENT,
     val snackbarMessage: String? = null,
     val isLoading: Boolean = false,
-    val showEmailError: Boolean = false
+    val showEmailError: Boolean = false,
+    val result: RequestResult? = null
 ) {
     val isEmailValid: Boolean
         get() = email.isValidEmail()

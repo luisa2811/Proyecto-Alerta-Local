@@ -38,7 +38,7 @@ class SupportReportUseCase @Inject constructor(
             )
         }
         val updated = report.copy(supportedBy = report.supportedBy + session.userId)
-        reportRepository.update(updated)
+        reportRepository.setSupport(reportId, session.userId, supported = true)
         checkNewAchievementsUseCase(report.authorId)
         return Result.success(updated)
     }

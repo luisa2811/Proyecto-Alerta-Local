@@ -13,7 +13,6 @@ class UpdateProfileUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(
         name: String,
-        email: String,
         phone: String?,
         displayNameInReports: Boolean
     ): Result<User> {
@@ -23,17 +22,8 @@ class UpdateProfileUseCase @Inject constructor(
         val currentUser = userRepository.findById(session.userId)
             ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, NO_ACTIVE_SESSION))
 
-        val trimmedEmail = email.trim()
-        val existingWithEmail = userRepository.findByEmail(trimmedEmail)
-        if (existingWithEmail != null && existingWithEmail.id != currentUser.id) {
-            return Result.failure(
-                AppException(AppError.EMAIL_ALREADY_REGISTERED, EMAIL_ALREADY_REGISTERED)
-            )
-        }
-
         val updatedUser = currentUser.copy(
             name = name.trim(),
-            email = trimmedEmail,
             phone = phone?.trim()?.ifBlank { null },
             displayNameInReports = displayNameInReports
         )
@@ -44,6 +34,5 @@ class UpdateProfileUseCase @Inject constructor(
 
     companion object {
         const val NO_ACTIVE_SESSION = "No existe una sesión activa."
-        const val EMAIL_ALREADY_REGISTERED = "Ya existe una cuenta registrada con este correo."
     }
 }

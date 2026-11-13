@@ -2,6 +2,8 @@ package uniquindio.proyectoalertalocal.domain.model
 
 enum class AppError {
     NO_ACTIVE_SESSION,
+    EMAIL_ALREADY_EXISTS,
+    NETWORK,
     REPORT_NOT_FOUND,
     INVALID_CREDENTIALS,
     MODERATOR_ACCOUNT_REQUIRES_MODERATOR_ROLE,

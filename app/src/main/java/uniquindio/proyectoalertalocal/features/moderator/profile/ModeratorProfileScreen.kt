@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,17 +43,33 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.core.util.RequestResult
 
 @Composable
 fun ModeratorProfileScreen(
     onBack: () -> Unit,
     onEditProfile: () -> Unit,
+    onShowMessage: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ModeratorProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val user = uiState.user
     val stats = uiState.stats
+
+    LaunchedEffect(uiState.result) {
+        when (val result = uiState.result) {
+            is RequestResult.Failure -> {
+                onShowMessage(result.errorMessage)
+                viewModel.onResultShown()
+            }
+            is RequestResult.Success -> {
+                onShowMessage(result.message)
+                viewModel.onResultShown()
+            }
+            RequestResult.Loading, null -> Unit
+        }
+    }
 
     Column(
         modifier = modifier

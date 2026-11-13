@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveModerationQueueUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.RejectReportUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.VerifyReportUseCase
@@ -29,14 +30,22 @@ class ModeratorPendingViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getCurrentUserUseCase().collect { user ->
-                _uiState.update { it.copy(commune = user?.assignedCommune.orEmpty()) }
-            }
+            getCurrentUserUseCase()
+                .catch { error ->
+                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                }
+                .collect { user ->
+                    _uiState.update { it.copy(commune = user?.assignedCommune.orEmpty()) }
+                }
         }
 
         viewModelScope.launch {
             observeModerationQueueUseCase()
-                .catch { _uiState.update { it.copy(isLoading = false) } }
+                .catch { error ->
+                    _uiState.update {
+                        it.copy(isLoading = false, result = error.toRequestFailure())
+                    }
+                }
                 .collect { queue ->
                     _uiState.update { it.copy(queue = queue, isLoading = false) }
                 }
@@ -48,14 +57,17 @@ class ModeratorPendingViewModel @Inject constructor(
     }
 
     fun onVerify(reportId: String) {
+        _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            verifyReportUseCase(reportId)
-                .onSuccess {
-                    _uiState.update { it.copy(result = RequestResult.Success("Reporte verificado.")) }
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(result = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado.")) }
-                }
+            runCatching { verifyReportUseCase(reportId).getOrThrow() }
+                .fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(result = RequestResult.Success("Reporte verificado.")) }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    }
+                )
         }
     }
 
@@ -80,20 +92,23 @@ class ModeratorPendingViewModel @Inject constructor(
         val reason = _uiState.value.rejectionReason
         val trimmed = reason.trim()
         if (trimmed.length < 5 || trimmed.length > 300) return
+        _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            rejectReportUseCase(reportId, reason)
-                .onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            rejectingReportId = null,
-                            rejectionReason = "",
-                            result = RequestResult.Success("Reporte rechazado.")
-                        )
+            runCatching { rejectReportUseCase(reportId, reason).getOrThrow() }
+                .fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(
+                                rejectingReportId = null,
+                                rejectionReason = "",
+                                result = RequestResult.Success("Reporte rechazado.")
+                            )
+                        }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
                     }
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(result = RequestResult.Failure(error.message ?: "Ocurrió un error inesperado.")) }
-                }
+                )
         }
     }
 

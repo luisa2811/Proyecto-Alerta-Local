@@ -10,7 +10,7 @@ class DeleteAccountUseCase @Inject constructor(
     private val userRepository: UserRepository,
     private val sessionRepository: SessionRepository
 ) {
-    suspend operator fun invoke(): Result<Unit> {
+    suspend operator fun invoke(password: String): Result<Unit> {
         val session = sessionRepository.session.value
             ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, NO_ACTIVE_SESSION))
 
@@ -18,7 +18,13 @@ class DeleteAccountUseCase @Inject constructor(
         val user = userRepository.findById(userId)
             ?: return Result.failure(AppException(AppError.ACCOUNT_NOT_FOUND, ACCOUNT_NOT_FOUND))
 
+        val reauthenticationFailure = userRepository.reauthenticate(password).exceptionOrNull()
+        if (reauthenticationFailure != null) {
+            return Result.failure(reauthenticationFailure)
+        }
+
         userRepository.delete(user.id)
+        userRepository.deleteAuthenticationUser()
         sessionRepository.clearSession()
         return Result.success(Unit)
     }

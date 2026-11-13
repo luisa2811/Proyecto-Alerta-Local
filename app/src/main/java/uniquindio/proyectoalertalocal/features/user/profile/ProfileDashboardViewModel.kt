@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.Reputation
 import uniquindio.proyectoalertalocal.domain.model.User
 import uniquindio.proyectoalertalocal.domain.model.UserRole
@@ -47,9 +48,9 @@ class ProfileDashboardViewModel @Inject constructor(
             ) { user, stats, reputation ->
                 buildState(user, stats, reputation)
             }
-                .catch {
+                .catch { error ->
                     _uiState.update {
-                        it.copy(result = RequestResult.Failure(UNEXPECTED_ERROR))
+                        it.copy(result = error.toRequestFailure())
                     }
                 }
                 .collect { newState ->
@@ -61,23 +62,43 @@ class ProfileDashboardViewModel @Inject constructor(
     }
 
     fun logout() {
+        _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            logoutUseCase()
+            runCatching { logoutUseCase() }
+                .fold(
+                    onSuccess = { _uiState.update { it.copy(result = null) } },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    }
+                )
         }
     }
 
-    fun deleteAccount() {
+    fun deleteAccount(password: String) {
         _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            deleteAccountUseCase().onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        result = RequestResult.Failure(
-                            error.message ?: UNEXPECTED_ERROR
+            runCatching { deleteAccountUseCase(password) }
+                .fold(
+                    onSuccess = { outcome ->
+                        outcome.fold(
+                            onSuccess = {
+                                _uiState.update {
+                                    it.copy(result = RequestResult.Success(ACCOUNT_DELETED_MESSAGE))
+                                }
+                            },
+                            onFailure = { error ->
+                                _uiState.update {
+                                    it.copy(result = error.toRequestFailure())
+                                }
+                            }
                         )
-                    )
-                }
-            }
+                    },
+                    onFailure = { error ->
+                        _uiState.update {
+                            it.copy(result = error.toRequestFailure())
+                        }
+                    }
+                )
         }
     }
 
@@ -131,8 +152,8 @@ class ProfileDashboardViewModel @Inject constructor(
     }
 
     companion object {
-        const val UNEXPECTED_ERROR = "Ocurrió un error inesperado."
         const val MAX_LEVEL_MESSAGE = "Nivel máximo alcanzado"
+        const val ACCOUNT_DELETED_MESSAGE = "Tu cuenta se eliminó correctamente."
         private val MEMBER_SINCE_FORMATTER = DateTimeFormatter.ofPattern(
             "MMMM yyyy",
             Locale.forLanguageTag("es-ES")

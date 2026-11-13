@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import uniquindio.proyectoalertalocal.domain.model.AppError
+import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.User
 import uniquindio.proyectoalertalocal.domain.repository.UserRepository
 
@@ -25,19 +27,27 @@ class UserRepositoryImpl @Inject constructor() : UserRepository {
     override suspend fun findByEmail(email: String): User? =
         mutableUsers.value.firstOrNull { it.email.equals(email, ignoreCase = true) }
 
-    override suspend fun login(email: String, password: String): User? =
-        mutableUsers.value.firstOrNull {
-            it.email.equals(email, ignoreCase = true) && it.password == password
+    override suspend fun register(user: User, password: String): String {
+        if (findByEmail(user.email) != null) {
+            throw AppException(
+                AppError.EMAIL_ALREADY_EXISTS,
+                "Ya existe una cuenta registrada con este correo."
+            )
         }
+        save(user)
+        return user.id
+    }
+
+    override suspend fun login(email: String, password: String): User? = null
+
+    override suspend fun reauthenticate(password: String): Result<Unit> = Result.success(Unit)
+
+    override suspend fun deleteAuthenticationUser() = Unit
 
     override suspend fun logout() = Unit
 
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> =
-        if (findByEmail(email) != null) {
-            Result.success(Unit)
-        } else {
-            Result.failure(Exception("No existe una cuenta asociada a este correo."))
-        }
+        Result.success(Unit)
 
     override suspend fun save(user: User) {
         mutableUsers.update { currentUsers ->

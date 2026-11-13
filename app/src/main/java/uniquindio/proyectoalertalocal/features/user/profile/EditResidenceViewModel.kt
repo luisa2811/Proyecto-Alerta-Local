@@ -7,9 +7,11 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.UpdateResidenceUseCase
 
@@ -24,24 +26,28 @@ class EditResidenceViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getCurrentUserUseCase().collect { user ->
-                if (user == null) return@collect
+            getCurrentUserUseCase()
+                .catch { error ->
+                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                }
+                .collect { user ->
+                    if (user == null) return@collect
 
-                _uiState.update { state ->
-                    if (state.isLoaded) {
-                        state
-                    } else {
-                        state.copy(
-                            address = user.address.orEmpty(),
-                            neighborhood = user.neighborhood.orEmpty(),
-                            complement = user.complement.orEmpty(),
-                            residenceLatitude = user.residenceLatitude,
-                            residenceLongitude = user.residenceLongitude,
-                            isLoaded = true
-                        )
+                    _uiState.update { state ->
+                        if (state.isLoaded) {
+                            state
+                        } else {
+                            state.copy(
+                                address = user.address.orEmpty(),
+                                neighborhood = user.neighborhood.orEmpty(),
+                                complement = user.complement.orEmpty(),
+                                residenceLatitude = user.residenceLatitude,
+                                residenceLongitude = user.residenceLongitude,
+                                isLoaded = true
+                            )
+                        }
                     }
                 }
-            }
         }
     }
 
@@ -73,26 +79,22 @@ class EditResidenceViewModel @Inject constructor(
 
         _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
-            updateResidenceUseCase(
-                address = currentState.address,
-                neighborhood = currentState.neighborhood,
-                complement = currentState.complement,
-                residenceLatitude = currentState.residenceLatitude,
-                residenceLongitude = currentState.residenceLongitude
-            ).fold(
+            runCatching {
+                updateResidenceUseCase(
+                    address = currentState.address,
+                    neighborhood = currentState.neighborhood,
+                    complement = currentState.complement,
+                    residenceLatitude = currentState.residenceLatitude,
+                    residenceLongitude = currentState.residenceLongitude
+                ).getOrThrow()
+            }.fold(
                 onSuccess = {
                     _uiState.update {
                         it.copy(result = RequestResult.Success(SUCCESS_MESSAGE))
                     }
                 },
                 onFailure = { error ->
-                    _uiState.update {
-                        it.copy(
-                            result = RequestResult.Failure(
-                                error.message ?: UNEXPECTED_ERROR
-                            )
-                        )
-                    }
+                    _uiState.update { it.copy(result = error.toRequestFailure()) }
                 }
             )
         }

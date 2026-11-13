@@ -27,16 +27,10 @@ class LoginUserUseCase @Inject constructor(
         moderatorCode: String,
         selectedRole: UserRole
     ): Result<User> {
-        val user = userRepository.findByEmail(email)
+        val user = userRepository.login(email, password)
             ?: return Result.failure(
                 AppException(AppError.INVALID_CREDENTIALS, INVALID_CREDENTIALS_MESSAGE)
             )
-
-        if (user.password != password) {
-            return Result.failure(
-                AppException(AppError.INVALID_CREDENTIALS, INVALID_CREDENTIALS_MESSAGE)
-            )
-        }
 
         if (user.role != selectedRole) {
             val (error, message) = when {
@@ -47,10 +41,12 @@ class LoginUserUseCase @Inject constructor(
                     AppError.MODERATOR_ACCESS_DENIED to MODERATOR_ACCESS_DENIED_MESSAGE
                 else -> AppError.INVALID_CREDENTIALS to INVALID_CREDENTIALS_MESSAGE
             }
+            userRepository.logout()
             return Result.failure(AppException(error, message))
         }
 
         if (selectedRole == UserRole.MODERATOR && user.moderatorCode != moderatorCode) {
+            userRepository.logout()
             return Result.failure(
                 AppException(AppError.INVALID_MODERATOR_CODE, INVALID_MODERATOR_CODE_MESSAGE)
             )

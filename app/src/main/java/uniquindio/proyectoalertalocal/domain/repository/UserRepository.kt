@@ -12,7 +12,13 @@ interface UserRepository {
 
     suspend fun findByEmail(email: String): User?
 
+    suspend fun register(user: User, password: String): String
+
     suspend fun login(email: String, password: String): User?
+
+    suspend fun reauthenticate(password: String): Result<Unit>
+
+    suspend fun deleteAuthenticationUser()
 
     suspend fun logout()
 
