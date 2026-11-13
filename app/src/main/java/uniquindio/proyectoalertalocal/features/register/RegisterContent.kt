@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,8 +24,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +57,7 @@ fun RegisterContent(
     onFullNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onNeighborhoodChange: (String) -> Unit,
+    onAddressChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
     onRegisterClick: () -> Unit,
@@ -128,13 +133,26 @@ fun RegisterContent(
         )
         Spacer(Modifier.height(12.dp))
         RegisterTextField(
+            label = "Dirección",
+            value = uiState.address,
+            placeholder = "Ej: Calle 10 # 15-20",
+            onValueChange = onAddressChange,
+            errorMessage = uiState.addressError
+        )
+        Spacer(Modifier.height(12.dp))
+        RegisterTextField(
             label = "Contraseña",
             value = uiState.password,
             placeholder = "••••••••••••",
             onValueChange = onPasswordChange,
             keyboardType = KeyboardType.Password,
-            isPassword = true,
-            errorMessage = uiState.passwordError
+            isPassword = true
+        )
+        PasswordRequirements(
+            meetsMinimumLength = uiState.meetsMinimumPasswordLength,
+            hasUppercase = uiState.hasPasswordUppercase,
+            hasNumber = uiState.hasPasswordNumber,
+            modifier = Modifier.padding(top = 8.dp)
         )
         Spacer(Modifier.height(12.dp))
         RegisterTextField(
@@ -159,6 +177,51 @@ fun RegisterContent(
             modifier = Modifier.padding(top = 26.dp)
         )
         CommunityPrompt(modifier = Modifier.padding(top = 34.dp, bottom = 16.dp))
+    }
+}
+
+@Composable
+private fun PasswordRequirements(
+    meetsMinimumLength: Boolean,
+    hasUppercase: Boolean,
+    hasNumber: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        PasswordRequirementRow("Mínimo 8 caracteres", meetsMinimumLength)
+        PasswordRequirementRow("Al menos una letra mayúscula", hasUppercase)
+        PasswordRequirementRow("Al menos un número", hasNumber)
+    }
+}
+
+@Composable
+private fun PasswordRequirementRow(
+    text: String,
+    isSatisfied: Boolean
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Check,
+            contentDescription = null,
+            tint = if (isSatisfied) {
+                DesignSystem.Colors.VerifiedGreen
+            } else {
+                DesignSystem.Colors.Placeholder
+            },
+            modifier = Modifier.size(16.dp)
+        )
+        Text(
+            text = text,
+            modifier = Modifier.padding(start = 6.dp),
+            color = DesignSystem.Colors.TextSecondary,
+            fontSize = 11.sp
+        )
     }
 }
 
@@ -391,6 +454,7 @@ private fun RegisterContentPreview() {
             onFullNameChange = {},
             onEmailChange = {},
             onNeighborhoodChange = {},
+            onAddressChange = {},
             onPasswordChange = {},
             onConfirmPasswordChange = {},
             onRegisterClick = {},
