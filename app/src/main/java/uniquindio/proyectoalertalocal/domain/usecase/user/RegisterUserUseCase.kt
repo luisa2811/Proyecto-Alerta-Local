@@ -14,6 +14,7 @@ class RegisterUserUseCase @Inject constructor(
         name: String,
         email: String,
         neighborhood: String,
+        address: String,
         password: String
     ): Result<User> {
         val user = User(
@@ -21,7 +22,8 @@ class RegisterUserUseCase @Inject constructor(
             name = name,
             email = email,
             role = UserRole.RESIDENT,
-            neighborhood = neighborhood
+            neighborhood = neighborhood,
+            address = address
         )
         return try {
             val userId = userRepository.register(user, password)

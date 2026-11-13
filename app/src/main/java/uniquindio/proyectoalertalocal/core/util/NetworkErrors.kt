@@ -1,5 +1,7 @@
 package uniquindio.proyectoalertalocal.core.util
 
+import android.util.Log
+import uniquindio.proyectoalertalocal.BuildConfig
 import uniquindio.proyectoalertalocal.domain.model.AppError
 import uniquindio.proyectoalertalocal.domain.model.AppException
 import java.util.concurrent.CancellationException
@@ -9,7 +11,11 @@ const val NETWORK_ERROR_MESSAGE =
 
 fun Throwable.asAppException(): AppException {
     if (this is CancellationException) throw this
-    return this as? AppException ?: AppException(AppError.NETWORK, NETWORK_ERROR_MESSAGE)
+    if (this is AppException) return this
+    if (BuildConfig.DEBUG) {
+        Log.e("AlertaLocal", "Error no controlado", this)
+    }
+    return AppException(AppError.NETWORK, NETWORK_ERROR_MESSAGE)
 }
 
 fun Throwable.toRequestFailure(): RequestResult.Failure {
