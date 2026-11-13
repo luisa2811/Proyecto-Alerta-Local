@@ -12,17 +12,12 @@ interface OpenRouterApi {
 
 data class OpenRouterRequest(
     val models: List<String>,
-    val messages: List<OpenRouterMessage>,
-    val reasoning: OpenRouterReasoning
+    val messages: List<OpenRouterMessage>
 )
 
 data class OpenRouterMessage(
     val role: String,
     val content: String
-)
-
-data class OpenRouterReasoning(
-    val effort: String
 )
 
 data class OpenRouterResponse(

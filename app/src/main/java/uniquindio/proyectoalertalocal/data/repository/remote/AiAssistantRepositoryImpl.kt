@@ -8,7 +8,6 @@ import jakarta.inject.Singleton
 import retrofit2.Retrofit
 import uniquindio.proyectoalertalocal.data.remote.ai.OpenRouterApi
 import uniquindio.proyectoalertalocal.data.remote.ai.OpenRouterMessage
-import uniquindio.proyectoalertalocal.data.remote.ai.OpenRouterReasoning
 import uniquindio.proyectoalertalocal.data.remote.ai.OpenRouterRequest
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportDraft
@@ -33,8 +32,7 @@ class AiAssistantRepositoryImpl @Inject constructor(
                         role = "user",
                         content = "Idioma: $languageTag\nTexto dictado: $transcript"
                     )
-                ),
-                reasoning = OpenRouterReasoning(effort = DISABLED_REASONING_EFFORT)
+                )
             )
         )
         val content = response.choices.firstOrNull()?.message?.content
@@ -116,7 +114,6 @@ class AiAssistantRepositoryImpl @Inject constructor(
                 "problema concreto, deja title y category en null."
         const val MODEL_BAIDU = "baidu/ernie-5.5-flash-preview:free"
         const val MODEL_NVIDIA = "nvidia/nemotron-3.5-super-vl:free"
-        const val DISABLED_REASONING_EFFORT = "none"
         val OPENROUTER_MODELS = listOf(MODEL_BAIDU, MODEL_NVIDIA)
     }
 }
