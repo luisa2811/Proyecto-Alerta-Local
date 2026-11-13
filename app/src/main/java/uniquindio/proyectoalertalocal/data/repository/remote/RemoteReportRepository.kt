@@ -2,6 +2,8 @@ package uniquindio.proyectoalertalocal.data.repository.remote
 
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ListenerRegistration
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,21 +16,43 @@ import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
 
 @Singleton
 class RemoteReportRepository @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
 ) : ReportRepository {
     private val mutableReports = MutableStateFlow<List<Report>>(emptyList())
     private val collection = firestore.collection(COLLECTION_REPORTS)
+    private var reportListener: ListenerRegistration? = null
 
     override val reports: StateFlow<List<Report>> = mutableReports.asStateFlow()
 
-    init {
-        collection.addSnapshotListener { snapshot, error ->
-            if (error == null) {
-                mutableReports.value = snapshot?.documents.orEmpty().mapNotNull { document ->
-                    document.toObject(ReportDto::class.java)?.copy(id = document.id)?.toDomain()
+    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        reportListener?.remove()
+        reportListener = null
+
+        if (firebaseAuth.currentUser == null) {
+            mutableReports.value = emptyList()
+        } else {
+            var registration: ListenerRegistration? = null
+            registration = collection.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    registration?.remove()
+                    if (reportListener === registration) {
+                        reportListener = null
+                    }
+                } else if (snapshot != null && reportListener === registration) {
+                    mutableReports.value = snapshot.documents.mapNotNull { document ->
+                        document.toObject(ReportDto::class.java)
+                            ?.copy(id = document.id)
+                            ?.toDomain()
+                    }
                 }
             }
+            reportListener = registration
         }
+    }
+
+    init {
+        auth.addAuthStateListener(authStateListener)
     }
 
     override suspend fun findById(id: String): Report? =

@@ -47,11 +47,7 @@ class UserRepositoryImpl @Inject constructor() : UserRepository {
     override suspend fun logout() = Unit
 
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> =
-        if (findByEmail(email) != null) {
-            Result.success(Unit)
-        } else {
-            Result.failure(Exception("No existe una cuenta asociada a este correo."))
-        }
+        Result.success(Unit)
 
     override suspend fun save(user: User) {
         mutableUsers.update { currentUsers ->

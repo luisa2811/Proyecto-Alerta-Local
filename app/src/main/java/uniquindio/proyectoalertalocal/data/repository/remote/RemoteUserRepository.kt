@@ -82,6 +82,7 @@ class RemoteUserRepository @Inject constructor(
             throw firestoreFailure
         }
 
+        auth.signOut()
         return authUser.uid
     }
 

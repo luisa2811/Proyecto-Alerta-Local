@@ -67,7 +67,7 @@ class PasswordRecoveryViewModel @Inject constructor(
 
     companion object {
         const val SUCCESS_MESSAGE =
-            "Te enviamos un enlace a tu correo para restablecer la contraseña."
+            "Si el correo está registrado, te enviaremos un enlace para restablecer la contraseña."
         private const val UNEXPECTED_ERROR = "Ocurrió un error inesperado."
     }
 }

@@ -31,7 +31,7 @@ data class UserDto(
         id = id,
         name = name,
         email = email,
-        role = UserRole.valueOf(role),
+        role = UserRole.entries.firstOrNull { it.name == role } ?: UserRole.RESIDENT,
         phone = phone,
         address = address,
         neighborhood = neighborhood,
@@ -40,8 +40,11 @@ data class UserDto(
         displayNameInReports = displayNameInReports,
         memberSince = memberSince?.let(Instant::ofEpochMilli),
         complement = complement,
-        earnedBadges = earnedBadges.map(Badge::valueOf).toSet(),
-        notifiedLevel = UserLevel.valueOf(notifiedLevel),
+        earnedBadges = earnedBadges.mapNotNull { badgeName ->
+            Badge.entries.firstOrNull { it.name == badgeName }
+        }.toSet(),
+        notifiedLevel = UserLevel.entries.firstOrNull { it.name == notifiedLevel }
+            ?: UserLevel.NOVICE,
         moderatorCode = moderatorCode,
         assignedCommune = assignedCommune,
         profilePictureUrl = profilePictureUrl,

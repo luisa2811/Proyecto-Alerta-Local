@@ -33,8 +33,10 @@ data class ReportDto(
         id = id,
         title = title,
         description = description,
-        category = ReportCategory.valueOf(category),
-        status = ReportStatus.valueOf(status),
+        category = ReportCategory.entries.firstOrNull { it.name == category }
+            ?: ReportCategory.SECURITY,
+        status = ReportStatus.entries.firstOrNull { it.name == status }
+            ?: ReportStatus.PENDING,
         authorId = authorId,
         location = location,
         neighborhood = neighborhood,
