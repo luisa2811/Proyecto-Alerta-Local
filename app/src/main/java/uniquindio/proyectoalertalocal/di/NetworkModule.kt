@@ -6,6 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Named
 import jakarta.inject.Singleton
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -48,14 +49,31 @@ object NetworkModule {
     @Provides
     @Singleton
     @Named("openrouter")
-    fun provideOpenRouterRetrofit(client: OkHttpClient): Retrofit =
-        Retrofit.Builder()
+    fun provideOpenRouterRetrofit(client: OkHttpClient): Retrofit {
+        val openRouterClient = client.newBuilder()
+            .addInterceptor(
+                Interceptor { chain ->
+                    val authenticatedRequest = chain.request()
+                        .newBuilder()
+                        .header(
+                            AUTHORIZATION_HEADER,
+                            "Bearer ${BuildConfig.OPENROUTER_API_KEY}"
+                        )
+                        .build()
+                    chain.proceed(authenticatedRequest)
+                }
+            )
+            .build()
+
+        return Retrofit.Builder()
             .baseUrl(OPENROUTER_BASE_URL)
-            .client(client)
+            .client(openRouterClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+    }
 
     private const val TIMEOUT_SECONDS = 20L
     private const val CLOUDINARY_BASE_URL = "https://api.cloudinary.com/"
     private const val OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/"
+    private const val AUTHORIZATION_HEADER = "Authorization"
 }
