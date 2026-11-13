@@ -6,7 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
 import uniquindio.proyectoalertalocal.data.repository.memory.FakeAiAssistantRepository
-import uniquindio.proyectoalertalocal.data.repository.memory.FakeImageStorageRepository
+import uniquindio.proyectoalertalocal.data.repository.remote.ImageStorageRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.local.SessionRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.remote.RemoteCommentRepository
 import uniquindio.proyectoalertalocal.data.repository.remote.RemoteNotificationRepository
@@ -26,7 +26,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindImageStorageRepository(
-        implementation: FakeImageStorageRepository
+        implementation: ImageStorageRepositoryImpl
     ): ImageStorageRepository
 
     @Binds
