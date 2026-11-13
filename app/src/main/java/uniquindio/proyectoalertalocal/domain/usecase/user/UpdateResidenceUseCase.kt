@@ -14,7 +14,9 @@ class UpdateResidenceUseCase @Inject constructor(
     suspend operator fun invoke(
         address: String,
         neighborhood: String,
-        complement: String?
+        complement: String?,
+        residenceLatitude: Double?,
+        residenceLongitude: Double?
     ): Result<User> {
         val session = sessionRepository.session.value
             ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, NO_ACTIVE_SESSION))
@@ -25,7 +27,9 @@ class UpdateResidenceUseCase @Inject constructor(
         val updatedUser = currentUser.copy(
             address = address.trim(),
             neighborhood = neighborhood.trim(),
-            complement = complement?.trim()?.ifBlank { null }
+            complement = complement?.trim()?.ifBlank { null },
+            residenceLatitude = residenceLatitude,
+            residenceLongitude = residenceLongitude
         )
 
         userRepository.update(updatedUser)

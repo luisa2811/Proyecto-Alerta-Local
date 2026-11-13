@@ -21,10 +21,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,19 +41,37 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mapbox.geojson.Point
 import uniquindio.proyectoalertalocal.R
+import uniquindio.proyectoalertalocal.core.component.MapBox
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 
 @Composable
 fun EditResidenceScreen(
     onBack: () -> Unit,
     onShowMessage: (String) -> Unit = {},
+    onPickLocation: (GeoPoint?) -> Unit,
+    selectedLocation: GeoPoint?,
+    onLocationPickedHandled: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EditResidenceViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val selectedMapPoint = uiState.residenceLatitude?.let { latitude ->
+        uiState.residenceLongitude?.let { longitude ->
+            Point.fromLngLat(longitude, latitude)
+        }
+    }
+
+    LaunchedEffect(selectedLocation) {
+        selectedLocation?.let {
+            viewModel.onLocationPicked(it.latitude, it.longitude)
+            onLocationPickedHandled()
+        }
+    }
 
     LaunchedEffect(uiState.result) {
         when (val result = uiState.result) {
@@ -101,27 +119,32 @@ fun EditResidenceScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp),
-                shape = RoundedCornerShape(16.dp),
-                color = DesignSystem.Colors.ResidenceMapBackground
+                    .height(160.dp),
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Map,
-                        contentDescription = null,
-                        tint = DesignSystem.Colors.ResidenceBlue,
-                        modifier = Modifier.size(28.dp)
+                Box {
+                    MapBox(
+                        modifier = Modifier.fillMaxSize(),
+                        center = selectedMapPoint ?: Point.fromLngLat(-75.6811, 4.5339),
+                        zoom = 15.5,
+                        selectedPoint = selectedMapPoint,
+                        interactive = false,
+                        showMyLocationButton = false
                     )
-                    Text(
-                        text = "Mapa (ilustración)",
-                        color = DesignSystem.Colors.ResidenceSecondaryText,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 6.dp)
-                    )
+                    OutlinedButton(
+                        onClick = {
+                            onPickLocation(
+                                selectedMapPoint?.let {
+                                    GeoPoint(it.latitude(), it.longitude())
+                                }
+                            )
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 8.dp)
+                    ) {
+                        Text("Elegir en el mapa")
+                    }
                 }
             }
 

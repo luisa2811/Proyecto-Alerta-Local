@@ -25,7 +25,9 @@ class UpdateReportUseCase @Inject constructor(
         title: String,
         description: String,
         category: ReportCategory,
-        location: String
+        location: String,
+        latitude: Double,
+        longitude: Double
     ): Result<Report> {
         val session = sessionRepository.session.value
             ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, ERROR_NO_SESSION))
@@ -43,6 +45,8 @@ class UpdateReportUseCase @Inject constructor(
             description = description.trim(),
             category = category,
             location = location.trim(),
+            latitude = latitude,
+            longitude = longitude,
             status = if (wasVerified) ReportStatus.PENDING else report.status,
             reviewedBy = if (wasVerified) null else report.reviewedBy,
             reviewedAt = if (wasVerified) null else report.reviewedAt

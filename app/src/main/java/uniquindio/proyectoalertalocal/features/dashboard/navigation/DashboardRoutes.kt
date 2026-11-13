@@ -23,6 +23,12 @@ sealed class DashboardRoutes {
     data object EditResidence : DashboardRoutes()
 
     @Serializable
+    data class LocationPicker(
+        val initialLatitude: Double? = null,
+        val initialLongitude: Double? = null
+    ) : DashboardRoutes()
+
+    @Serializable
     data object Alerts : DashboardRoutes()
 
     @Serializable

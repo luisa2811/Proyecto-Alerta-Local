@@ -12,21 +12,48 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
+import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 import uniquindio.proyectoalertalocal.domain.usecase.report.FilterReportsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.ObserveReportsUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 
 @HiltViewModel
 class ReportListViewModel @Inject constructor(
     private val observeReportsUseCase: ObserveReportsUseCase,
-    private val filterReportsUseCase: FilterReportsUseCase
+    private val filterReportsUseCase: FilterReportsUseCase,
+    private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReportListUiState())
     val uiState: StateFlow<ReportListUiState> = _uiState.asStateFlow()
+    private var origin: GeoPoint? = null
 
     init {
+        viewModelScope.launch {
+            getCurrentUserUseCase()
+                .catch { error ->
+                    _uiState.update {
+                        it.copy(result = error.toRequestFailure())
+                    }
+                }
+                .collect { user ->
+                    val latitude = user?.residenceLatitude
+                    val longitude = user?.residenceLongitude
+                    origin = if (latitude != null && longitude != null) {
+                        GeoPoint(latitude, longitude)
+                    } else {
+                        null
+                    }
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            filteredReports = applyFilters(currentState),
+                            result = null
+                        )
+                    }
+                }
+        }
         viewModelScope.launch {
             observeReportsUseCase()
                 .catch { error ->
@@ -69,7 +96,8 @@ class ReportListViewModel @Inject constructor(
         return filterReportsUseCase(
             reports = state.reports,
             category = state.selectedCategory,
-            proximity = state.selectedProximity
+            proximity = state.selectedProximity,
+            origin = origin
         )
     }
 }

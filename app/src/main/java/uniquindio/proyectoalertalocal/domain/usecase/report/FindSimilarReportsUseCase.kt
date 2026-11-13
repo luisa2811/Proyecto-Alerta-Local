@@ -6,9 +6,11 @@ import java.time.Duration
 import java.time.Instant
 import uniquindio.proyectoalertalocal.domain.model.AppError
 import uniquindio.proyectoalertalocal.domain.model.AppException
+import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
+import uniquindio.proyectoalertalocal.domain.model.distanceMeters
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
 import uniquindio.proyectoalertalocal.domain.repository.UserRepository
@@ -25,7 +27,11 @@ class FindSimilarReportsUseCase @Inject constructor(
         )
     }
 
-    suspend operator fun invoke(title: String, category: ReportCategory): Result<List<Report>> {
+    suspend operator fun invoke(
+        title: String,
+        category: ReportCategory,
+        newLocation: GeoPoint
+    ): Result<List<Report>> {
         val session = sessionRepository.session.value
             ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, ERROR_NO_SESSION))
         val userId = session.userId
@@ -38,7 +44,11 @@ class FindSimilarReportsUseCase @Inject constructor(
             if (report.possibleDuplicateOf != null) return@filter false
             if (report.category != category) return@filter false
             val sameNeighborhood = neighborhood.isNotEmpty() && report.neighborhood == neighborhood
-            val nearby = report.distanceMeters <= 500
+            val nearby = report.latitude?.let { latitude ->
+                report.longitude?.let { longitude ->
+                    distanceMeters(newLocation, GeoPoint(latitude, longitude)) <= 500
+                }
+            } ?: false
             if (!sameNeighborhood && !nearby) return@filter false
             if (report.status != ReportStatus.PENDING && report.status != ReportStatus.VERIFIED) return@filter false
             if (Duration.between(report.createdAt, now) > Duration.ofHours(48)) return@filter false

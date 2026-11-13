@@ -27,6 +27,4 @@ data class HomeUiState(
 
     val selectedAlert: ReportSummary?
         get() = filteredReports.firstOrNull { it.report.id == selectedAlertId }
-            ?: featuredReport
-            ?: filteredReports.firstOrNull()
 }

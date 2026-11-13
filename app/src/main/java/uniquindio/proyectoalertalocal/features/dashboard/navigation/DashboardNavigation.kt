@@ -4,13 +4,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.features.home.HomeScreen
+import uniquindio.proyectoalertalocal.features.location.LocationPickerScreen
 import uniquindio.proyectoalertalocal.features.moderator.pending.ModeratorPendingScreen
 import uniquindio.proyectoalertalocal.features.moderator.resolutions.ModeratorResolutionsScreen
 import uniquindio.proyectoalertalocal.features.moderator.detail.ModeratorReportDetailScreen
@@ -23,6 +27,9 @@ import uniquindio.proyectoalertalocal.features.report.list.ReportListScreen
 import uniquindio.proyectoalertalocal.features.user.profile.EditProfileScreen
 import uniquindio.proyectoalertalocal.features.user.profile.EditResidenceScreen
 import uniquindio.proyectoalertalocal.features.user.profile.ProfileDashboardScreen
+
+private const val PICKED_LOCATION_LATITUDE = "picked_location_latitude"
+private const val PICKED_LOCATION_LONGITUDE = "picked_location_longitude"
 
 @Composable
 fun DashboardNavigation(
@@ -104,10 +111,35 @@ fun DashboardNavigation(
             )
         }
 
-        composable<DashboardRoutes.EditResidence> {
+        composable<DashboardRoutes.EditResidence> { backStackEntry ->
+            val savedStateHandle = backStackEntry.savedStateHandle
+            val latitude by savedStateHandle
+                .getStateFlow<Double?>(PICKED_LOCATION_LATITUDE, null)
+                .collectAsStateWithLifecycle()
+            val longitude by savedStateHandle
+                .getStateFlow<Double?>(PICKED_LOCATION_LONGITUDE, null)
+                .collectAsStateWithLifecycle()
+            val selectedLocation = latitude?.let { selectedLatitude ->
+                longitude?.let { selectedLongitude ->
+                    GeoPoint(selectedLatitude, selectedLongitude)
+                }
+            }
             EditResidenceScreen(
                 onBack = { navController.popBackStack() },
-                onShowMessage = onShowMessage
+                onShowMessage = onShowMessage,
+                selectedLocation = selectedLocation,
+                onLocationPickedHandled = {
+                    savedStateHandle.remove<Double>(PICKED_LOCATION_LATITUDE)
+                    savedStateHandle.remove<Double>(PICKED_LOCATION_LONGITUDE)
+                },
+                onPickLocation = { point ->
+                    navController.navigate(
+                        DashboardRoutes.LocationPicker(
+                            initialLatitude = point?.latitude,
+                            initialLongitude = point?.longitude
+                        )
+                    )
+                }
             )
         }
 
@@ -126,10 +158,34 @@ fun DashboardNavigation(
             )
         }
 
-        composable<DashboardRoutes.CreateReport> {
+        composable<DashboardRoutes.CreateReport> { backStackEntry ->
+            val savedStateHandle = backStackEntry.savedStateHandle
+            val latitude by savedStateHandle
+                .getStateFlow<Double?>(PICKED_LOCATION_LATITUDE, null)
+                .collectAsStateWithLifecycle()
+            val longitude by savedStateHandle
+                .getStateFlow<Double?>(PICKED_LOCATION_LONGITUDE, null)
+                .collectAsStateWithLifecycle()
             CreateReportScreen(
                 onBack = { navController.popBackStack() },
                 onShowMessage = onShowMessage,
+                selectedLocation = latitude?.let { selectedLatitude ->
+                    longitude?.let { selectedLongitude ->
+                        GeoPoint(selectedLatitude, selectedLongitude)
+                    }
+                },
+                onLocationPickedHandled = {
+                    savedStateHandle.remove<Double>(PICKED_LOCATION_LATITUDE)
+                    savedStateHandle.remove<Double>(PICKED_LOCATION_LONGITUDE)
+                },
+                onPickLocation = { point ->
+                    navController.navigate(
+                        DashboardRoutes.LocationPicker(
+                            initialLatitude = point?.latitude,
+                            initialLongitude = point?.longitude
+                        )
+                    )
+                },
                 onPublished = {
                     navController.navigate(DashboardRoutes.MyReports) {
                         popUpTo<DashboardRoutes.Home>()
@@ -144,10 +200,34 @@ fun DashboardNavigation(
 
         composable<DashboardRoutes.EditReport> { backStackEntry ->
             val reportId = backStackEntry.toRoute<DashboardRoutes.EditReport>().reportId
+            val savedStateHandle = backStackEntry.savedStateHandle
+            val latitude by savedStateHandle
+                .getStateFlow<Double?>(PICKED_LOCATION_LATITUDE, null)
+                .collectAsStateWithLifecycle()
+            val longitude by savedStateHandle
+                .getStateFlow<Double?>(PICKED_LOCATION_LONGITUDE, null)
+                .collectAsStateWithLifecycle()
             CreateReportScreen(
                 reportId = reportId,
                 onBack = { navController.popBackStack() },
                 onShowMessage = onShowMessage,
+                selectedLocation = latitude?.let { selectedLatitude ->
+                    longitude?.let { selectedLongitude ->
+                        GeoPoint(selectedLatitude, selectedLongitude)
+                    }
+                },
+                onLocationPickedHandled = {
+                    savedStateHandle.remove<Double>(PICKED_LOCATION_LATITUDE)
+                    savedStateHandle.remove<Double>(PICKED_LOCATION_LONGITUDE)
+                },
+                onPickLocation = { point ->
+                    navController.navigate(
+                        DashboardRoutes.LocationPicker(
+                            initialLatitude = point?.latitude,
+                            initialLongitude = point?.longitude
+                        )
+                    )
+                },
                 onPublished = {
                     navController.navigate(DashboardRoutes.MyReports) {
                         popUpTo<DashboardRoutes.Home>()
@@ -221,6 +301,29 @@ fun DashboardNavigation(
                         popUpTo<DashboardRoutes.Home>()
                         launchSingleTop = true
                     }
+                }
+            )
+        }
+
+        composable<DashboardRoutes.LocationPicker> { backStackEntry ->
+            val route = backStackEntry.toRoute<DashboardRoutes.LocationPicker>()
+            val initialPoint = if (
+                route.initialLatitude != null && route.initialLongitude != null
+            ) {
+                GeoPoint(route.initialLatitude, route.initialLongitude)
+            } else {
+                null
+            }
+            LocationPickerScreen(
+                initialPoint = initialPoint,
+                onBack = { navController.popBackStack() },
+                onConfirm = { point ->
+                    val previousEntry = checkNotNull(navController.previousBackStackEntry) {
+                        "No hay una pantalla anterior para recibir la ubicación."
+                    }
+                    previousEntry.savedStateHandle[PICKED_LOCATION_LATITUDE] = point.latitude
+                    previousEntry.savedStateHandle[PICKED_LOCATION_LONGITUDE] = point.longitude
+                    navController.popBackStack()
                 }
             )
         }

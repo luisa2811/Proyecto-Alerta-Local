@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
+import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.usecase.report.CreateReportUseCase
@@ -71,6 +72,8 @@ class CreateReportViewModel @Inject constructor(
                                 title = report.title,
                                 description = report.description,
                                 location = report.location,
+                                latitude = report.latitude,
+                                longitude = report.longitude,
                                 originalStatus = report.status,
                                 result = null
                             )
@@ -104,6 +107,11 @@ class CreateReportViewModel @Inject constructor(
         validate()
     }
 
+    fun onLocationPicked(latitude: Double, longitude: Double) {
+        _uiState.update { it.copy(latitude = latitude, longitude = longitude) }
+        validate()
+    }
+
     private fun validate() {
         val state = _uiState.value
         val titleTrim = state.title.trim()
@@ -112,16 +120,23 @@ class CreateReportViewModel @Inject constructor(
         val validTitle = titleTrim.length in 5..80
         val validDescription = descriptionTrim.length in 10..500
         val validLocation = locationTrim.length in 5..120
-        val valid = state.category != null && validTitle && validDescription && validLocation && !state.isPublishing
+        val valid = state.category != null && validTitle && validDescription && validLocation &&
+            state.latitude != null && state.longitude != null && !state.isPublishing
         _uiState.update { it.copy(isFormValid = valid) }
     }
 
     fun publish() {
         val state = _uiState.value
         if (!state.isFormValid || state.category == null) return
+        val newLocation = GeoPoint(
+            latitude = state.latitude ?: return,
+            longitude = state.longitude ?: return
+        )
         _uiState.update { it.copy(result = RequestResult.Loading, isPublishing = true) }
         viewModelScope.launch {
-            runCatching { findSimilarReportsUseCase(state.title, state.category).getOrThrow() }
+            runCatching {
+                findSimilarReportsUseCase(state.title, state.category, newLocation).getOrThrow()
+            }
                 .fold(
                     onSuccess = { similar ->
                         if (similar.isEmpty()) {
@@ -146,10 +161,20 @@ class CreateReportViewModel @Inject constructor(
         val reportId = state.editingReportId ?: return
         val category = state.category ?: return
         if (!state.isFormValid) return
+        val latitude = state.latitude ?: return
+        val longitude = state.longitude ?: return
         _uiState.update { it.copy(result = RequestResult.Loading, isPublishing = true) }
         viewModelScope.launch {
             runCatching {
-                updateReportUseCase(reportId, state.title, state.description, category, state.location)
+                updateReportUseCase(
+                    reportId,
+                    state.title,
+                    state.description,
+                    category,
+                    state.location,
+                    latitude,
+                    longitude
+                )
                     .getOrThrow()
             }.fold(
                 onSuccess = {
@@ -195,6 +220,8 @@ class CreateReportViewModel @Inject constructor(
                             title = "",
                             description = "",
                             location = "",
+                            latitude = null,
+                            longitude = null,
                             isFormValid = false,
                             isPublishing = false,
                             navigation = CreateReportNavigation.ToReportDetail(reportId)
@@ -238,6 +265,8 @@ class CreateReportViewModel @Inject constructor(
     private fun createReport(possibleDuplicateOf: String? = null) {
         val state = _uiState.value
         val category = state.category ?: return
+        val latitude = state.latitude ?: return
+        val longitude = state.longitude ?: return
         _uiState.update { it.copy(result = RequestResult.Loading, isPublishing = true) }
         viewModelScope.launch {
             runCatching {
@@ -246,6 +275,8 @@ class CreateReportViewModel @Inject constructor(
                     state.description,
                     category,
                     state.location,
+                    latitude,
+                    longitude,
                     possibleDuplicateOf
                 ).getOrThrow()
             }.fold(
@@ -257,6 +288,8 @@ class CreateReportViewModel @Inject constructor(
                             title = "",
                             description = "",
                             location = "",
+                            latitude = null,
+                            longitude = null,
                             similarReports = emptyList(),
                             isFormValid = false,
                             isPublishing = false,

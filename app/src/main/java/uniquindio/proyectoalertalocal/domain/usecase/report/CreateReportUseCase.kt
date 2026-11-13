@@ -28,6 +28,8 @@ class CreateReportUseCase @Inject constructor(
         description: String,
         category: ReportCategory,
         location: String,
+        latitude: Double,
+        longitude: Double,
         possibleDuplicateOf: String? = null
     ): Result<Report> {
         val session = sessionRepository.session.value
@@ -58,6 +60,8 @@ class CreateReportUseCase @Inject constructor(
             neighborhood = user?.neighborhood.orEmpty(),
             createdAt = Instant.now(),
             distanceMeters = 0,
+            latitude = latitude,
+            longitude = longitude,
             possibleDuplicateOf = possibleDuplicateOf,
             code = "$categoryPrefix-${nextNumber.toString().padStart(2, '0')}"
         )
