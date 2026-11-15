@@ -17,8 +17,10 @@ import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
+import uniquindio.proyectoalertalocal.domain.model.ReportDraft
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.usecase.report.CreateReportUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.report.DraftReportFromVoiceUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.FindSimilarReportsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.ObserveReportDetailUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.SupportReportUseCase
@@ -34,7 +36,8 @@ class CreateReportViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val updateReportUseCase: UpdateReportUseCase,
     private val observeReportDetailUseCase: ObserveReportDetailUseCase,
-    private val uploadReportImagesUseCase: UploadReportImagesUseCase
+    private val uploadReportImagesUseCase: UploadReportImagesUseCase,
+    private val draftReportFromVoiceUseCase: DraftReportFromVoiceUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateReportUiState())
@@ -113,6 +116,53 @@ class CreateReportViewModel @Inject constructor(
 
     fun onLocationPicked(latitude: Double, longitude: Double) {
         _uiState.update { it.copy(latitude = latitude, longitude = longitude) }
+        validate()
+    }
+
+    fun generateDraftFromVoice(transcript: String, languageTag: String) {
+        if (transcript.isBlank()) return
+        _uiState.update {
+            it.copy(
+                isGeneratingDraft = true,
+                draftResult = RequestResult.Loading,
+                draftNotice = null
+            )
+        }
+        viewModelScope.launch {
+            runCatching {
+                draftReportFromVoiceUseCase(transcript, languageTag).getOrThrow()
+            }.fold(
+                onSuccess = { draft ->
+                    applyDraft(draft)
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            isGeneratingDraft = false,
+                            draftResult = error.toRequestFailure()
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun onDraftResultShown() {
+        _uiState.update { it.copy(draftResult = null) }
+    }
+
+    private fun applyDraft(draft: ReportDraft) {
+        _uiState.update { state ->
+            state.copy(
+                title = draft.title,
+                description = draft.description,
+                category = draft.category ?: state.category,
+                location = draft.addressHint?.takeIf(String::isNotBlank) ?: state.location,
+                isGeneratingDraft = false,
+                draftResult = null,
+                draftNotice = DRAFT_REVIEW_NOTICE
+            )
+        }
         validate()
     }
 
@@ -404,5 +454,6 @@ class CreateReportViewModel @Inject constructor(
 
     companion object {
         const val MAX_IMAGES = 3
+        const val DRAFT_REVIEW_NOTICE = "Revisa el borrador antes de publicar."
     }
 }

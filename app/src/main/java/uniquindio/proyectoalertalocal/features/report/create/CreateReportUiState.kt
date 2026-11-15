@@ -21,6 +21,9 @@ data class CreateReportUiState(
     val navigation: CreateReportNavigation? = null,
     val isPublishing: Boolean = false,
     val loadingMessage: String = "",
+    val isGeneratingDraft: Boolean = false,
+    val draftResult: RequestResult? = null,
+    val draftNotice: String? = null,
     val editingReportId: String? = null,
     val originalStatus: ReportStatus? = null
 )

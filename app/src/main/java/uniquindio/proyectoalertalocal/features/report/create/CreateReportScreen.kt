@@ -1,5 +1,12 @@
 package uniquindio.proyectoalertalocal.features.report.create
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +32,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -67,6 +75,7 @@ import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
 import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
+import java.util.Locale
 
 @Composable
 fun CreateReportScreen(
@@ -84,6 +93,21 @@ fun CreateReportScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showImagePicker by remember { mutableStateOf(false) }
     val isEditing = uiState.editingReportId != null
+    val speechRecognitionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { activityResult ->
+        if (activityResult.resultCode == Activity.RESULT_OK) {
+            val transcript = activityResult.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+            if (transcript != null) {
+                viewModel.generateDraftFromVoice(
+                    transcript = transcript,
+                    languageTag = Locale.getDefault().toLanguageTag()
+                )
+            }
+        }
+    }
     val selectedMapPoint = uiState.latitude?.let { latitude ->
         uiState.longitude?.let { longitude -> Point.fromLngLat(longitude, latitude) }
     }
@@ -113,6 +137,16 @@ fun CreateReportScreen(
             is RequestResult.Failure -> {
                 onShowMessage(result.errorMessage)
                 viewModel.onResultShown()
+            }
+            else -> Unit
+        }
+    }
+
+    LaunchedEffect(uiState.draftResult) {
+        when (val result = uiState.draftResult) {
+            is RequestResult.Failure -> {
+                onShowMessage(result.errorMessage)
+                viewModel.onDraftResultShown()
             }
             else -> Unit
         }
@@ -225,6 +259,66 @@ fun CreateReportScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp)
             ) {
+                if (!isEditing) {
+                    OutlinedButton(
+                        onClick = {
+                            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                putExtra(
+                                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                                )
+                                putExtra(
+                                    RecognizerIntent.EXTRA_LANGUAGE,
+                                    Locale.getDefault().toLanguageTag()
+                                )
+                            }
+                            try {
+                                speechRecognitionLauncher.launch(intent)
+                            } catch (_: ActivityNotFoundException) {
+                                onShowMessage(
+                                    "Tu teléfono no tiene reconocimiento de voz. Escribe el reporte."
+                                )
+                            }
+                        },
+                        enabled = !uiState.isGeneratingDraft,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                        shape = RoundedCornerShape(11.dp)
+                    ) {
+                        if (uiState.isGeneratingDraft) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Text(
+                                text = "Generando borrador...",
+                                modifier = Modifier.padding(start = 8.dp),
+                                fontSize = 12.sp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Filled.Mic,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "Dictar reporte",
+                                modifier = Modifier.padding(start = 8.dp),
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                    uiState.draftNotice?.let { notice ->
+                        Text(
+                            text = notice,
+                            color = DesignSystem.Colors.TextSecondary,
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
+                    }
+                }
+
                 Text(
                     text = "Categoría",
                     color = Color(0xFF444648),
