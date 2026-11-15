@@ -14,7 +14,8 @@ class UpdateProfileUseCase @Inject constructor(
     suspend operator fun invoke(
         name: String,
         phone: String?,
-        displayNameInReports: Boolean
+        displayNameInReports: Boolean,
+        profilePictureUrl: String? = null
     ): Result<User> {
         val session = sessionRepository.session.value
             ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, NO_ACTIVE_SESSION))
@@ -25,7 +26,8 @@ class UpdateProfileUseCase @Inject constructor(
         val updatedUser = currentUser.copy(
             name = name.trim(),
             phone = phone?.trim()?.ifBlank { null },
-            displayNameInReports = displayNameInReports
+            displayNameInReports = displayNameInReports,
+            profilePictureUrl = profilePictureUrl ?: currentUser.profilePictureUrl
         )
 
         userRepository.update(updatedUser)

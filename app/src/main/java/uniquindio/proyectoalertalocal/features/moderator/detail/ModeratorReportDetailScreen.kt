@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mapbox.geojson.Point
 import uniquindio.proyectoalertalocal.core.component.MapBox
 import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
+import uniquindio.proyectoalertalocal.core.component.ReportImageCarousel
 import uniquindio.proyectoalertalocal.core.component.ReportSeverityTag
 import uniquindio.proyectoalertalocal.core.component.ReportStatusTag
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
@@ -116,6 +117,8 @@ fun ModeratorReportDetailScreen(
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 20.dp)
             ) {
+                ReportImageCarousel(report.imageUrls)
+
                 Row(
                     modifier = Modifier.padding(top = 14.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),

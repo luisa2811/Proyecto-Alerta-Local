@@ -58,6 +58,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mapbox.geojson.Point
 import uniquindio.proyectoalertalocal.core.component.MapBox
 import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
+import uniquindio.proyectoalertalocal.core.component.ReportImageCarousel
 import uniquindio.proyectoalertalocal.core.component.ReportSeverityTag
 import uniquindio.proyectoalertalocal.core.component.ReportStatusTag
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
@@ -190,11 +191,7 @@ fun ReportDetailScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp)
             ) {
-                DemonstrationPhoto(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(190.dp)
-                )
+                ReportImageCarousel(report.imageUrls)
 
                 Row(
                     modifier = Modifier.padding(top = 14.dp),
@@ -563,23 +560,6 @@ private fun ResolveReportDialog(
             }
         }
     )
-}
-
-@Composable
-private fun DemonstrationPhoto(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFECE9E1)),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Filled.CameraAlt,
-            contentDescription = "Espacio de foto",
-            tint = DesignSystem.Colors.Placeholder,
-            modifier = Modifier.size(48.dp)
-        )
-    }
 }
 
 @Composable

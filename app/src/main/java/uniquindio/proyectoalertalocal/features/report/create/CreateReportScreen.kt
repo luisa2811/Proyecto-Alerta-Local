@@ -24,7 +24,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,6 +37,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,7 +56,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mapbox.geojson.Point
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.component.MapBox
+import uniquindio.proyectoalertalocal.core.component.ImagePickerBottomSheet
 import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
+import uniquindio.proyectoalertalocal.core.component.ReportImage
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 import uniquindio.proyectoalertalocal.core.component.color
 import uniquindio.proyectoalertalocal.core.component.label
@@ -77,6 +82,7 @@ fun CreateReportScreen(
     viewModel: CreateReportViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showImagePicker by remember { mutableStateOf(false) }
     val isEditing = uiState.editingReportId != null
     val selectedMapPoint = uiState.latitude?.let { latitude ->
         uiState.longitude?.let { longitude -> Point.fromLngLat(longitude, latitude) }
@@ -125,6 +131,18 @@ fun CreateReportScreen(
             null -> Unit
         }
     }
+
+    ImagePickerBottomSheet(
+        isVisible = showImagePicker,
+        onDismiss = { showImagePicker = false },
+        onImagePicked = {
+            viewModel.addImage(it.toString())
+            showImagePicker = false
+        },
+        onCameraPermissionDenied = {
+            onShowMessage("Se necesita el permiso de la cámara para tomar fotos.")
+        }
+    )
 
     if (uiState.similarReports.isNotEmpty()) {
         AlertDialog(
@@ -318,38 +336,79 @@ fun CreateReportScreen(
                     modifier = Modifier.padding(top = 17.dp)
                 )
 
+                Text(
+                    text = "Fotos",
+                    color = Color(0xFF444648),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(top = 17.dp)
+                )
                 Row(
-                    modifier = Modifier.padding(top = 17.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Fotos",
-                        color = Color(0xFF444648),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-                Row(
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(top = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Surface(
-                        modifier = Modifier.size(60.dp).clickable { onShowMessage("La carga de fotos se implementará más adelante.") },
-                        shape = RoundedCornerShape(11.dp),
-                        color = DesignSystem.Colors.FilterSurface
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(imageVector = Icons.Filled.CameraAlt, contentDescription = "Agregar foto", tint = DesignSystem.Colors.Placeholder, modifier = Modifier.size(22.dp))
+                    (uiState.retainedImageUrls + uiState.localImageUris).forEach { imageUri ->
+                        Box(
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(RoundedCornerShape(11.dp))
+                        ) {
+                            ReportImage(
+                                imageUrl = imageUri,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            Surface(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(3.dp)
+                                    .size(22.dp)
+                                    .clickable { viewModel.removeImage(imageUri) },
+                                shape = CircleShape,
+                                color = DesignSystem.Colors.White
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Close,
+                                        contentDescription = "Quitar foto",
+                                        tint = DesignSystem.Colors.TextPrimary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                            }
                         }
                     }
-                    OutlinedButton(
-                        onClick = { onShowMessage("La carga de fotos se implementará más adelante.") },
-                        modifier = Modifier.size(60.dp),
-                        shape = RoundedCornerShape(11.dp),
-                        contentPadding = PaddingValues(0.dp)
+                    if (uiState.retainedImageUrls.size + uiState.localImageUris.size <
+                        CreateReportViewModel.MAX_IMAGES
                     ) {
-                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Agregar foto", tint = DesignSystem.Colors.Placeholder, modifier = Modifier.size(23.dp))
+                        OutlinedButton(
+                            onClick = { showImagePicker = true },
+                            modifier = Modifier.height(72.dp),
+                            shape = RoundedCornerShape(11.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "Agregar foto",
+                                modifier = Modifier.padding(start = 5.dp),
+                                fontSize = 11.sp
+                            )
+                        }
                     }
+                }
+                if (uiState.retainedImageUrls.isEmpty() && uiState.localImageUris.isEmpty()) {
+                    Text(
+                        text = "Agrega al menos una foto.",
+                        color = DesignSystem.Colors.ModeratorRed,
+                        fontSize = 10.sp,
+                        modifier = Modifier.padding(top = 5.dp)
+                    )
                 }
             }
         }
@@ -366,6 +425,11 @@ fun CreateReportScreen(
         ) {
             if (uiState.result is RequestResult.Loading) {
                 CircularProgressIndicator(modifier = Modifier.size(18.dp), color = DesignSystem.Colors.White, strokeWidth = 2.dp)
+                Text(
+                    text = uiState.loadingMessage,
+                    modifier = Modifier.padding(start = 8.dp),
+                    fontSize = 13.sp
+                )
             } else {
                 Text(text = if (isEditing) "Guardar cambios" else "Publicar reporte", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }

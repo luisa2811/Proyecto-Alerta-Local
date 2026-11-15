@@ -15,12 +15,14 @@ import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.auth.LogoutUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.GetModeratorStatsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.user.UpdateProfilePhotoUseCase
 
 @HiltViewModel
 class ModeratorProfileViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val getModeratorStatsUseCase: GetModeratorStatsUseCase,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val updateProfilePhotoUseCase: UpdateProfilePhotoUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ModeratorProfileUiState())
@@ -56,6 +58,35 @@ class ModeratorProfileViewModel @Inject constructor(
             runCatching { logoutUseCase() }
                 .fold(
                     onSuccess = { _uiState.update { it.copy(result = null) } },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    }
+                )
+        }
+    }
+
+    fun updateProfilePhoto(localUri: String) {
+        _uiState.update { it.copy(result = RequestResult.Loading) }
+        viewModelScope.launch {
+            runCatching { updateProfilePhotoUseCase(localUri) }
+                .fold(
+                    onSuccess = { outcome ->
+                        outcome.fold(
+                            onSuccess = { user ->
+                                _uiState.update {
+                                    it.copy(
+                                        user = user,
+                                        result = RequestResult.Success(
+                                            "Foto de perfil actualizada."
+                                        )
+                                    )
+                                }
+                            },
+                            onFailure = { error ->
+                                _uiState.update { it.copy(result = error.toRequestFailure()) }
+                            }
+                        )
+                    },
                     onFailure = { error ->
                         _uiState.update { it.copy(result = error.toRequestFailure()) }
                     }

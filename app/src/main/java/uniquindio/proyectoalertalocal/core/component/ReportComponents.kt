@@ -412,6 +412,16 @@ fun ReportCard(
                 )
             }
 
+            report.imageUrls.firstOrNull()?.let { imageUrl ->
+                ReportImage(
+                    imageUrl = imageUrl,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .height(150.dp)
+                )
+            }
+
             Text(
                 text = report.title,
                 modifier = Modifier.padding(top = 8.dp),

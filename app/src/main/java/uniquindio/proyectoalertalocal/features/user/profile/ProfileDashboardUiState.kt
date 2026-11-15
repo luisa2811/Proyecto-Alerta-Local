@@ -5,6 +5,7 @@ import uniquindio.proyectoalertalocal.domain.model.Badge
 
 data class ProfileDashboardUiState(
     val fullName: String = "",
+    val profilePictureUrl: String? = null,
     val memberSince: String? = null,
     val levelName: String? = null,
     val points: Int = 0,

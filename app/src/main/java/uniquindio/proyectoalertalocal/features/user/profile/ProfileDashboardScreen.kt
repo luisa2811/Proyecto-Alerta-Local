@@ -41,6 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,10 +51,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.core.component.ImagePickerBottomSheet
 import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
@@ -69,6 +73,7 @@ fun ProfileDashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
+    var showImagePicker by remember { mutableStateOf(false) }
     var deletePassword by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(uiState.result) {
@@ -87,6 +92,18 @@ fun ProfileDashboardScreen(
             RequestResult.Loading, null -> Unit
         }
     }
+
+    ImagePickerBottomSheet(
+        isVisible = showImagePicker,
+        onDismiss = { showImagePicker = false },
+        onImagePicked = {
+            viewModel.updateProfilePhoto(it.toString())
+            showImagePicker = false
+        },
+        onCameraPermissionDenied = {
+            onShowMessage("Se necesita el permiso de la cámara para tomar fotos.")
+        }
+    )
 
     if (showDeleteAccountDialog) {
         AlertDialog(
@@ -177,15 +194,31 @@ fun ProfileDashboardScreen(
                         .padding(top = 14.dp)
                         .size(68.dp)
                         .clip(CircleShape)
-                        .background(DesignSystem.Colors.Primary),
+                        .background(DesignSystem.Colors.Primary)
+                        .clickable { showImagePicker = true },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = getAuthorInitials(uiState.fullName),
-                        color = Color.White,
-                        fontSize = 23.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    if (uiState.profilePictureUrl == null) {
+                        Text(
+                            text = getAuthorInitials(uiState.fullName),
+                            color = Color.White,
+                            fontSize = 23.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    } else {
+                        AsyncImage(
+                            model = uiState.profilePictureUrl,
+                            contentDescription = "Foto de perfil",
+                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(
+                                android.R.drawable.sym_def_app_icon
+                            ),
+                            error = painterResource(
+                                android.R.drawable.sym_def_app_icon
+                            )
+                        )
+                    }
                 }
                 Text(
                     text = uiState.fullName,
