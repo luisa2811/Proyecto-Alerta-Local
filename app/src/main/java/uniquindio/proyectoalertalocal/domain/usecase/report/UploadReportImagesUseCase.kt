@@ -6,14 +6,10 @@ import uniquindio.proyectoalertalocal.domain.repository.ImageStorageRepository
 class UploadReportImagesUseCase @Inject constructor(
     private val imageStorageRepository: ImageStorageRepository
 ) {
-    suspend operator fun invoke(localUris: List<String>): Result<List<String>> {
-        val imageUrls = mutableListOf<String>()
-        for (localUri in localUris) {
-            val imageUrl = imageStorageRepository.uploadImage(localUri).getOrElse {
-                return Result.failure(it)
+    suspend operator fun invoke(localUris: List<String>): Result<List<String>> =
+        runCatching {
+            localUris.map { localUri ->
+                imageStorageRepository.uploadImage(localUri).getOrThrow()
             }
-            imageUrls += imageUrl
         }
-        return Result.success(imageUrls)
-    }
 }

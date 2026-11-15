@@ -2,12 +2,15 @@ package uniquindio.proyectoalertalocal.features.register
 
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.isValidEmail
-import uniquindio.proyectoalertalocal.core.util.isStrongPassword
+import uniquindio.proyectoalertalocal.core.util.hasMinimumPasswordLength
+import uniquindio.proyectoalertalocal.core.util.hasNumber
+import uniquindio.proyectoalertalocal.core.util.hasUppercaseLetter
 
 data class RegisterUiState(
     val fullName: String = "",
     val email: String = "",
     val neighborhood: String = "",
+    val address: String = "",
     val password: String = "",
     val confirmPassword: String = "",
     val result: RequestResult? = null
@@ -19,9 +22,18 @@ data class RegisterUiState(
             null
         }
 
-    val passwordError: String?
-        get() = if (password.isNotBlank() && !password.isStrongPassword()) {
-            "La contraseña no cumple los requisitos de seguridad."
+    val meetsMinimumPasswordLength: Boolean
+        get() = password.hasMinimumPasswordLength()
+
+    val hasPasswordUppercase: Boolean
+        get() = password.hasUppercaseLetter()
+
+    val hasPasswordNumber: Boolean
+        get() = password.hasNumber()
+
+    val addressError: String?
+        get() = if (address.isNotBlank() && address.trim().length !in 5..120) {
+            "La dirección debe tener entre 5 y 120 caracteres."
         } else {
             null
         }
@@ -38,8 +50,12 @@ data class RegisterUiState(
             email.isNotBlank() &&
             emailError == null &&
             neighborhood.isNotBlank() &&
+            address.trim().length in 5..120 &&
+            addressError == null &&
             password.isNotBlank() &&
-            passwordError == null &&
+            meetsMinimumPasswordLength &&
+            hasPasswordUppercase &&
+            hasPasswordNumber &&
             confirmPassword.isNotBlank() &&
             confirmPasswordError == null &&
             result == null

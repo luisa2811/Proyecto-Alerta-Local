@@ -32,6 +32,10 @@ class RegisterViewModel @Inject constructor(
         _uiState.update { it.copy(neighborhood = value, result = null) }
     }
 
+    fun onAddressChange(value: String) {
+        _uiState.update { it.copy(address = value, result = null) }
+    }
+
     fun onPasswordChange(value: String) {
         _uiState.update { it.copy(password = value, result = null) }
     }
@@ -51,6 +55,7 @@ class RegisterViewModel @Inject constructor(
                     name = currentState.fullName.trim(),
                     email = currentState.email.trim(),
                     neighborhood = currentState.neighborhood.trim(),
+                    address = currentState.address.trim(),
                     password = currentState.password
                 )
             }.fold(
@@ -74,6 +79,8 @@ class RegisterViewModel @Inject constructor(
     }
 
     fun clearResult() {
-        _uiState.update { it.copy(result = null) }
+        _uiState.update {
+            it.copy(result = null, password = "", confirmPassword = "")
+        }
     }
 }

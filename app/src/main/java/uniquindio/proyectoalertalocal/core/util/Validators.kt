@@ -7,7 +7,13 @@ private val EMAIL_PATTERN = Regex(
 
 fun String.isValidEmail(): Boolean = EMAIL_PATTERN.matches(trim())
 
+fun String.hasMinimumPasswordLength(): Boolean = length >= 8
+
+fun String.hasUppercaseLetter(): Boolean = any(Char::isUpperCase)
+
+fun String.hasNumber(): Boolean = any(Char::isDigit)
+
 fun String.isStrongPassword(): Boolean =
-    length >= 8 &&
-        any(Char::isUpperCase) &&
-        any(Char::isDigit)
+    hasMinimumPasswordLength() &&
+        hasUppercaseLetter() &&
+        hasNumber()
