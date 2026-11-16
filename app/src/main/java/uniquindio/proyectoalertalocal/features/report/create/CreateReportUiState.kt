@@ -15,9 +15,15 @@ data class CreateReportUiState(
     val isFormValid: Boolean = false,
     val result: RequestResult? = null,
     val similarReports: List<Report> = emptyList(),
+    val retainedImageUrls: List<String> = emptyList(),
+    val localImageUris: List<String> = emptyList(),
     val currentUserId: String? = null,
     val navigation: CreateReportNavigation? = null,
     val isPublishing: Boolean = false,
+    val loadingMessage: String = "",
+    val isGeneratingDraft: Boolean = false,
+    val draftResult: RequestResult? = null,
+    val draftNotice: String? = null,
     val editingReportId: String? = null,
     val originalStatus: ReportStatus? = null
 )

@@ -30,7 +30,8 @@ class CreateReportUseCase @Inject constructor(
         location: String,
         latitude: Double,
         longitude: Double,
-        possibleDuplicateOf: String? = null
+        possibleDuplicateOf: String? = null,
+        imageUrls: List<String> = emptyList()
     ): Result<Report> {
         val session = sessionRepository.session.value
             ?: return Result.failure(AppException(AppError.NO_ACTIVE_SESSION, ERROR_NO_SESSION))
@@ -63,6 +64,7 @@ class CreateReportUseCase @Inject constructor(
             latitude = latitude,
             longitude = longitude,
             possibleDuplicateOf = possibleDuplicateOf,
+            imageUrls = imageUrls,
             code = "$categoryPrefix-${nextNumber.toString().padStart(2, '0')}"
         )
         reportRepository.save(report)

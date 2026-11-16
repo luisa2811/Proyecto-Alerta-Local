@@ -5,6 +5,7 @@ import uniquindio.proyectoalertalocal.core.util.isValidEmail
 
 data class EditProfileUiState(
     val fullName: String = "",
+    val profilePictureUrl: String? = null,
     val email: String = "",
     val emailVerified: Boolean = false,
     val phone: String = "",
@@ -13,7 +14,8 @@ data class EditProfileUiState(
     val neighborhood: String = "",
     val displayNameInReports: Boolean = true,
     val isLoaded: Boolean = false,
-    val result: RequestResult? = null
+    val result: RequestResult? = null,
+    val photoResult: RequestResult? = null
 ) {
     val nameError: String?
         get() = if (isLoaded && fullName.isBlank()) {

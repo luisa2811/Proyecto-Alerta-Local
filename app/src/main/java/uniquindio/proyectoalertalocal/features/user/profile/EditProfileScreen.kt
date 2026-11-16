@@ -38,21 +38,27 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.core.component.ImagePickerBottomSheet
 import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
@@ -65,6 +71,7 @@ fun EditProfileScreen(
     viewModel: EditProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showImagePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.result) {
         when (val result = uiState.result) {
@@ -80,6 +87,32 @@ fun EditProfileScreen(
             RequestResult.Loading, null -> Unit
         }
     }
+
+    LaunchedEffect(uiState.photoResult) {
+        when (val result = uiState.photoResult) {
+            is RequestResult.Success -> {
+                onShowMessage(result.message)
+                viewModel.clearPhotoResult()
+            }
+            is RequestResult.Failure -> {
+                onShowMessage(result.errorMessage)
+                viewModel.clearPhotoResult()
+            }
+            RequestResult.Loading, null -> Unit
+        }
+    }
+
+    ImagePickerBottomSheet(
+        isVisible = showImagePicker,
+        onDismiss = { showImagePicker = false },
+        onImagePicked = {
+            viewModel.updateProfilePhoto(it.toString())
+            showImagePicker = false
+        },
+        onCameraPermissionDenied = {
+            onShowMessage("Se necesita el permiso de la cámara para tomar fotos.")
+        }
+    )
 
     Column(
         modifier = Modifier
@@ -108,7 +141,11 @@ fun EditProfileScreen(
                 .padding(horizontal = 23.dp)
                 .padding(bottom = 24.dp)
         ) {
-            ProfilePhoto(initials = getAuthorInitials(uiState.fullName))
+            ProfilePhoto(
+                initials = getAuthorInitials(uiState.fullName),
+                photoUrl = uiState.profilePictureUrl,
+                onClick = { showImagePicker = true }
+            )
             Spacer(Modifier.height(24.dp))
 
             SectionTitle(
@@ -217,7 +254,11 @@ fun EditProfileScreen(
 }
 
 @Composable
-private fun ProfilePhoto(initials: String) {
+private fun ProfilePhoto(
+    initials: String,
+    photoUrl: String?,
+    onClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -229,21 +270,37 @@ private fun ProfilePhoto(initials: String) {
                 modifier = Modifier
                     .size(96.dp)
                     .clip(CircleShape)
-                    .background(DesignSystem.Colors.ProfileLightBlue),
+                    .background(DesignSystem.Colors.ProfileLightBlue)
+                    .clickable(onClick = onClick),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = initials,
-                    color = Color(0xFF0C2850),
-                    fontSize = 27.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                if (photoUrl == null) {
+                    Text(
+                        text = initials,
+                        color = Color(0xFF0C2850),
+                        fontSize = 27.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                } else {
+                    AsyncImage(
+                        model = photoUrl,
+                        contentDescription = "Foto de perfil",
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(
+                            android.R.drawable.sym_def_app_icon
+                        ),
+                        error = painterResource(
+                            android.R.drawable.sym_def_app_icon
+                        )
+                    )
+                }
             }
             Surface(
                 color = DesignSystem.Colors.ProfileGold,
                 shape = CircleShape,
                 shadowElevation = 3.dp,
-                modifier = Modifier.size(34.dp)
+                modifier = Modifier.size(34.dp).clickable(onClick = onClick)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(

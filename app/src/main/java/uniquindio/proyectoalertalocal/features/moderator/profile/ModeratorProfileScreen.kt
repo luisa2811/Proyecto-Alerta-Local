@@ -30,18 +30,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
+import uniquindio.proyectoalertalocal.core.component.ImagePickerBottomSheet
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 
@@ -56,6 +63,7 @@ fun ModeratorProfileScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val user = uiState.user
     val stats = uiState.stats
+    var showImagePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.result) {
         when (val result = uiState.result) {
@@ -70,6 +78,18 @@ fun ModeratorProfileScreen(
             RequestResult.Loading, null -> Unit
         }
     }
+
+    ImagePickerBottomSheet(
+        isVisible = showImagePicker,
+        onDismiss = { showImagePicker = false },
+        onImagePicked = {
+            viewModel.updateProfilePhoto(it.toString())
+            showImagePicker = false
+        },
+        onCameraPermissionDenied = {
+            onShowMessage("Se necesita el permiso de la cámara para tomar fotos.")
+        }
+    )
 
     Column(
         modifier = modifier
@@ -123,17 +143,34 @@ fun ModeratorProfileScreen(
 
             // Círculo con iniciales
             Surface(
-                modifier = Modifier.size(72.dp),
+                modifier = Modifier
+                    .size(72.dp)
+                    .clickable { showImagePicker = true },
                 shape = CircleShape,
                 color = DesignSystem.Colors.ModeratorNavy
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = initials,
-                        color = DesignSystem.Colors.White,
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    if (user?.profilePictureUrl == null) {
+                        Text(
+                            text = initials,
+                            color = DesignSystem.Colors.White,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    } else {
+                        AsyncImage(
+                            model = user.profilePictureUrl,
+                            contentDescription = "Foto de perfil",
+                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(
+                                android.R.drawable.sym_def_app_icon
+                            ),
+                            error = painterResource(
+                                android.R.drawable.sym_def_app_icon
+                            )
+                        )
+                    }
                 }
             }
 

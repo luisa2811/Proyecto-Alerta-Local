@@ -26,6 +26,7 @@ import uniquindio.proyectoalertalocal.domain.usecase.user.DeleteAccountUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetUserReputationUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetUserStatsUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.user.UpdateProfilePhotoUseCase
 
 @HiltViewModel
 class ProfileDashboardViewModel @Inject constructor(
@@ -33,7 +34,8 @@ class ProfileDashboardViewModel @Inject constructor(
     private val getUserStatsUseCase: GetUserStatsUseCase,
     private val getUserReputationUseCase: GetUserReputationUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val deleteAccountUseCase: DeleteAccountUseCase
+    private val deleteAccountUseCase: DeleteAccountUseCase,
+    private val updateProfilePhotoUseCase: UpdateProfilePhotoUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileDashboardUiState())
@@ -102,6 +104,35 @@ class ProfileDashboardViewModel @Inject constructor(
         }
     }
 
+    fun updateProfilePhoto(localUri: String) {
+        _uiState.update { it.copy(result = RequestResult.Loading) }
+        viewModelScope.launch {
+            runCatching { updateProfilePhotoUseCase(localUri) }
+                .fold(
+                    onSuccess = { outcome ->
+                        outcome.fold(
+                            onSuccess = { user ->
+                                _uiState.update {
+                                    it.copy(
+                                        profilePictureUrl = user.profilePictureUrl,
+                                        result = RequestResult.Success(
+                                            "Foto de perfil actualizada."
+                                        )
+                                    )
+                                }
+                            },
+                            onFailure = { error ->
+                                _uiState.update { it.copy(result = error.toRequestFailure()) }
+                            }
+                        )
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    }
+                )
+        }
+    }
+
     fun onResultShown() {
         _uiState.update { it.copy(result = null) }
     }
@@ -118,6 +149,7 @@ class ProfileDashboardViewModel @Inject constructor(
 
         return ProfileDashboardUiState(
             fullName = user.name,
+            profilePictureUrl = user.profilePictureUrl,
             memberSince = user.memberSince?.let(::memberSinceLabel),
             levelName = visibleReputation?.level?.displayName,
             points = visibleReputation?.points ?: 0,

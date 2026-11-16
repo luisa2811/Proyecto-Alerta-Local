@@ -14,11 +14,13 @@ import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.UpdateProfileUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.user.UpdateProfilePhotoUseCase
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val updateProfileUseCase: UpdateProfileUseCase
+    private val updateProfileUseCase: UpdateProfileUseCase,
+    private val updateProfilePhotoUseCase: UpdateProfilePhotoUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
@@ -37,11 +39,13 @@ class EditProfileViewModel @Inject constructor(
                         if (state.isLoaded) {
                             state.copy(
                                 address = user.address.orEmpty(),
-                                neighborhood = user.neighborhood.orEmpty()
+                                neighborhood = user.neighborhood.orEmpty(),
+                                profilePictureUrl = user.profilePictureUrl
                             )
                         } else {
                             state.copy(
                                 fullName = user.name,
+                                profilePictureUrl = user.profilePictureUrl,
                                 email = user.email,
                                 emailVerified = user.emailVerified,
                                 phone = normalizePhone(user.phone),
@@ -106,8 +110,43 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
+    fun updateProfilePhoto(localUri: String) {
+        _uiState.update { it.copy(photoResult = RequestResult.Loading) }
+        viewModelScope.launch {
+            runCatching { updateProfilePhotoUseCase(localUri) }
+                .fold(
+                    onSuccess = { outcome ->
+                        outcome.fold(
+                            onSuccess = { user ->
+                                _uiState.update {
+                                    it.copy(
+                                        profilePictureUrl = user.profilePictureUrl,
+                                        photoResult = RequestResult.Success(
+                                            "Foto de perfil actualizada."
+                                        )
+                                    )
+                                }
+                            },
+                            onFailure = { error ->
+                                _uiState.update {
+                                    it.copy(photoResult = error.toRequestFailure())
+                                }
+                            }
+                        )
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(photoResult = error.toRequestFailure()) }
+                    }
+                )
+        }
+    }
+
     fun clearResult() {
         _uiState.update { it.copy(result = null) }
+    }
+
+    fun clearPhotoResult() {
+        _uiState.update { it.copy(photoResult = null) }
     }
 
     private fun normalizePhone(phone: String?): String =

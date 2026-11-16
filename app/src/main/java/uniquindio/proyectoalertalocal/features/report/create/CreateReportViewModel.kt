@@ -17,11 +17,14 @@ import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
+import uniquindio.proyectoalertalocal.domain.model.ReportDraft
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.usecase.report.CreateReportUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.report.DraftReportFromVoiceUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.FindSimilarReportsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.ObserveReportDetailUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.SupportReportUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.report.UploadReportImagesUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.UpdateReportUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 
@@ -32,7 +35,9 @@ class CreateReportViewModel @Inject constructor(
     private val supportReportUseCase: SupportReportUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val updateReportUseCase: UpdateReportUseCase,
-    private val observeReportDetailUseCase: ObserveReportDetailUseCase
+    private val observeReportDetailUseCase: ObserveReportDetailUseCase,
+    private val uploadReportImagesUseCase: UploadReportImagesUseCase,
+    private val draftReportFromVoiceUseCase: DraftReportFromVoiceUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateReportUiState())
@@ -74,6 +79,8 @@ class CreateReportViewModel @Inject constructor(
                                 location = report.location,
                                 latitude = report.latitude,
                                 longitude = report.longitude,
+                                retainedImageUrls = report.imageUrls,
+                                localImageUris = emptyList(),
                                 originalStatus = report.status,
                                 result = null
                             )
@@ -112,6 +119,75 @@ class CreateReportViewModel @Inject constructor(
         validate()
     }
 
+    fun generateDraftFromVoice(transcript: String, languageTag: String) {
+        if (transcript.isBlank()) return
+        _uiState.update {
+            it.copy(
+                isGeneratingDraft = true,
+                draftResult = RequestResult.Loading,
+                draftNotice = null
+            )
+        }
+        viewModelScope.launch {
+            runCatching {
+                draftReportFromVoiceUseCase(transcript, languageTag).getOrThrow()
+            }.fold(
+                onSuccess = { draft ->
+                    applyDraft(draft)
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            isGeneratingDraft = false,
+                            draftResult = error.toRequestFailure()
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun onDraftResultShown() {
+        _uiState.update { it.copy(draftResult = null) }
+    }
+
+    private fun applyDraft(draft: ReportDraft) {
+        _uiState.update { state ->
+            state.copy(
+                title = draft.title,
+                description = draft.description,
+                category = draft.category ?: state.category,
+                location = draft.addressHint?.takeIf(String::isNotBlank) ?: state.location,
+                isGeneratingDraft = false,
+                draftResult = null,
+                draftNotice = DRAFT_REVIEW_NOTICE
+            )
+        }
+        validate()
+    }
+
+    fun addImage(localUri: String) {
+        _uiState.update { state ->
+            if (state.retainedImageUrls.size + state.localImageUris.size >= MAX_IMAGES) {
+                state
+            } else {
+                state.copy(localImageUris = state.localImageUris + localUri)
+            }
+        }
+        validate()
+    }
+
+    fun removeImage(imageUri: String) {
+        _uiState.update { state ->
+            if (imageUri in state.localImageUris) {
+                state.copy(localImageUris = state.localImageUris - imageUri)
+            } else {
+                state.copy(retainedImageUrls = state.retainedImageUrls - imageUri)
+            }
+        }
+        validate()
+    }
+
     private fun validate() {
         val state = _uiState.value
         val titleTrim = state.title.trim()
@@ -120,8 +196,11 @@ class CreateReportViewModel @Inject constructor(
         val validTitle = titleTrim.length in 5..80
         val validDescription = descriptionTrim.length in 10..500
         val validLocation = locationTrim.length in 5..120
+        val hasRequiredPhoto = state.retainedImageUrls.isNotEmpty() || state.localImageUris.isNotEmpty()
+        val withinPhotoLimit = state.retainedImageUrls.size + state.localImageUris.size <= MAX_IMAGES
         val valid = state.category != null && validTitle && validDescription && validLocation &&
             state.latitude != null && state.longitude != null && !state.isPublishing
+            && hasRequiredPhoto && withinPhotoLimit
         _uiState.update { it.copy(isFormValid = valid) }
     }
 
@@ -163,19 +242,31 @@ class CreateReportViewModel @Inject constructor(
         if (!state.isFormValid) return
         val latitude = state.latitude ?: return
         val longitude = state.longitude ?: return
-        _uiState.update { it.copy(result = RequestResult.Loading, isPublishing = true) }
+        _uiState.update {
+            it.copy(
+                result = RequestResult.Loading,
+                isPublishing = true,
+                loadingMessage = "Guardando cambios..."
+            )
+        }
         viewModelScope.launch {
             runCatching {
+                val uploadedImageUrls = if (state.localImageUris.isNotEmpty()) {
+                    _uiState.update { it.copy(loadingMessage = "Subiendo fotos...") }
+                    uploadReportImagesUseCase(state.localImageUris).getOrThrow()
+                } else {
+                    emptyList()
+                }
                 updateReportUseCase(
-                    reportId,
-                    state.title,
-                    state.description,
-                    category,
-                    state.location,
-                    latitude,
-                    longitude
-                )
-                    .getOrThrow()
+                    reportId = reportId,
+                    title = state.title,
+                    description = state.description,
+                    category = category,
+                    location = state.location,
+                    latitude = latitude,
+                    longitude = longitude,
+                    imageUrls = state.retainedImageUrls + uploadedImageUrls
+                ).getOrThrow()
             }.fold(
                 onSuccess = {
                     val message = if (state.originalStatus == ReportStatus.VERIFIED) {
@@ -183,11 +274,17 @@ class CreateReportViewModel @Inject constructor(
                     } else {
                         "Cambios guardados correctamente."
                     }
-                    _uiState.update { it.copy(result = RequestResult.Success(message), isPublishing = false) }
+                    _uiState.update {
+                        it.copy(
+                            result = RequestResult.Success(message),
+                            isPublishing = false,
+                            loadingMessage = ""
+                        )
+                    }
                 },
                 onFailure = { error ->
                     _uiState.update {
-                        it.copy(result = error.toRequestFailure(), isPublishing = false)
+                        it.copy(result = error.toRequestFailure(), isPublishing = false, loadingMessage = "")
                     }
                 }
             )
@@ -222,8 +319,11 @@ class CreateReportViewModel @Inject constructor(
                             location = "",
                             latitude = null,
                             longitude = null,
+                            retainedImageUrls = emptyList(),
+                            localImageUris = emptyList(),
                             isFormValid = false,
                             isPublishing = false,
+                            loadingMessage = "",
                             navigation = CreateReportNavigation.ToReportDetail(reportId)
                         )
                     }
@@ -239,8 +339,11 @@ class CreateReportViewModel @Inject constructor(
                                     title = "",
                                     description = "",
                                     location = "",
+                                    retainedImageUrls = emptyList(),
+                                    localImageUris = emptyList(),
                                     isFormValid = false,
                                     isPublishing = false,
+                                    loadingMessage = "",
                                     navigation = CreateReportNavigation.ToReportDetail(reportId)
                                 )
                             }
@@ -267,17 +370,31 @@ class CreateReportViewModel @Inject constructor(
         val category = state.category ?: return
         val latitude = state.latitude ?: return
         val longitude = state.longitude ?: return
-        _uiState.update { it.copy(result = RequestResult.Loading, isPublishing = true) }
+        _uiState.update {
+            it.copy(
+                result = RequestResult.Loading,
+                isPublishing = true,
+                loadingMessage = "Publicando reporte..."
+            )
+        }
         viewModelScope.launch {
             runCatching {
+                val uploadedImageUrls = if (state.localImageUris.isNotEmpty()) {
+                    _uiState.update { it.copy(loadingMessage = "Subiendo fotos...") }
+                    uploadReportImagesUseCase(state.localImageUris).getOrThrow()
+                } else {
+                    emptyList()
+                }
+                _uiState.update { it.copy(loadingMessage = "Publicando reporte...") }
                 createReportUseCase(
-                    state.title,
-                    state.description,
-                    category,
-                    state.location,
-                    latitude,
-                    longitude,
-                    possibleDuplicateOf
+                    title = state.title,
+                    description = state.description,
+                    category = category,
+                    location = state.location,
+                    latitude = latitude,
+                    longitude = longitude,
+                    possibleDuplicateOf = possibleDuplicateOf,
+                    imageUrls = state.retainedImageUrls + uploadedImageUrls
                 ).getOrThrow()
             }.fold(
                 onSuccess = {
@@ -290,16 +407,19 @@ class CreateReportViewModel @Inject constructor(
                             location = "",
                             latitude = null,
                             longitude = null,
+                            retainedImageUrls = emptyList(),
+                            localImageUris = emptyList(),
                             similarReports = emptyList(),
                             isFormValid = false,
                             isPublishing = false,
+                            loadingMessage = "",
                             navigation = CreateReportNavigation.ToMyReports
                         )
                     }
                 },
                 onFailure = { error ->
                     _uiState.update {
-                        it.copy(result = error.toRequestFailure(), isPublishing = false)
+                        it.copy(result = error.toRequestFailure(), isPublishing = false, loadingMessage = "")
                     }
                 }
             )
@@ -330,5 +450,10 @@ class CreateReportViewModel @Inject constructor(
         val state = _uiState.value
         if (state.location.isEmpty()) return null
         return if (state.location.trim().length in 5..120) null else "La dirección debe tener entre 5 y 120 caracteres."
+    }
+
+    companion object {
+        const val MAX_IMAGES = 3
+        const val DRAFT_REVIEW_NOTICE = "Revisa el borrador antes de publicar."
     }
 }
