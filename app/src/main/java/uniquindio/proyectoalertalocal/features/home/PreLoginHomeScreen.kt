@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,14 +55,14 @@ fun PreLoginHomeScreen(
         ) {
             Image(
                 painter = painterResource(R.drawable.logo_alerta_local),
-                contentDescription = "Logo de Alerta Local",
+                contentDescription = stringResource(R.string.brand_logo_description),
                 modifier = Modifier
                     .size(42.dp)
                     .clip(RoundedCornerShape(10.dp)),
                 contentScale = ContentScale.Crop
             )
             Text(
-                text = "Alerta Local",
+                text = stringResource(R.string.brand_name),
                 modifier = Modifier.padding(start = 10.dp),
                 color = DesignSystem.Colors.PrimaryDark,
                 fontSize = 18.sp,
@@ -71,7 +72,7 @@ fun PreLoginHomeScreen(
 
         Spacer(Modifier.height(38.dp))
         Text(
-            text = "Tu barrio, más conectado",
+            text = stringResource(R.string.prelogin_title),
             color = DesignSystem.Colors.PrimaryDark,
             fontSize = 28.sp,
             lineHeight = 34.sp,
@@ -79,7 +80,7 @@ fun PreLoginHomeScreen(
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Infórmate y participa en el cuidado de tu comunidad.",
+            text = stringResource(R.string.prelogin_description),
             modifier = Modifier.padding(top = 10.dp),
             color = DesignSystem.Colors.TextSecondary,
             fontSize = 14.sp,
@@ -105,7 +106,7 @@ fun PreLoginHomeScreen(
                         tint = DesignSystem.Colors.PrimaryDark
                     )
                     Text(
-                        "La Esperanza · mapa demostrativo",
+                        stringResource(R.string.prelogin_map_caption),
                         modifier = Modifier.padding(start = 7.dp),
                         color = DesignSystem.Colors.PrimaryDark,
                         fontSize = 12.sp,
@@ -130,13 +131,13 @@ fun PreLoginHomeScreen(
                         )
                         Column(modifier = Modifier.padding(start = 11.dp)) {
                             Text(
-                                "Alertas cercanas",
+                                stringResource(R.string.prelogin_nearby_alerts),
                                 color = DesignSystem.Colors.PrimaryDark,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "Reportes, servicios y novedades del barrio",
+                                stringResource(R.string.prelogin_nearby_description),
                                 modifier = Modifier.padding(top = 4.dp),
                                 color = DesignSystem.Colors.TextSecondary,
                                 fontSize = 11.sp
@@ -156,7 +157,7 @@ fun PreLoginHomeScreen(
             shape = RoundedCornerShape(13.dp),
             colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.PrimaryDark)
         ) {
-            Text("Iniciar sesión", fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.login_sign_in), fontWeight = FontWeight.SemiBold)
         }
         OutlinedButton(
             onClick = onRegister,
@@ -166,7 +167,7 @@ fun PreLoginHomeScreen(
                 .height(50.dp),
             shape = RoundedCornerShape(13.dp)
         ) {
-            Text("Crear una cuenta", color = DesignSystem.Colors.PrimaryDark, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.login_create_account), color = DesignSystem.Colors.PrimaryDark, fontWeight = FontWeight.SemiBold)
         }
     }
 }

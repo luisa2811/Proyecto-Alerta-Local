@@ -27,13 +27,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import uniquindio.proyectoalertalocal.core.component.label
+import uniquindio.proyectoalertalocal.core.component.labelRes
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 import uniquindio.proyectoalertalocal.features.moderator.component.ModeratorTopBar
@@ -68,16 +70,16 @@ fun ModeratorResolutionsScreen(
     if (uiState.reopeningReportId != null) {
         AlertDialog(
             onDismissRequest = { viewModel.cancelReopen() },
-            title = { Text("¿Reabrir este reporte?") },
-            text = { Text("Volverá a la lista de activos.") },
+            title = { Text(stringResource(R.string.moderator_reopen_title)) },
+            text = { Text(stringResource(R.string.moderator_reopen_body)) },
             confirmButton = {
                 TextButton(onClick = { viewModel.confirmReopen() }) {
-                    Text("Reabrir")
+                    Text(stringResource(R.string.moderator_reopen))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.cancelReopen() }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -93,9 +95,15 @@ fun ModeratorResolutionsScreen(
                 onTabSelected = { index ->
                     ResolutionTab.entries.getOrNull(index)?.let(viewModel::selectTab)
                 },
-                title = "Gestión de Resoluciones",
-                subtitle = if (uiState.neighborhood.isNotEmpty()) "Moderando la ${uiState.neighborhood}" else null,
-                tabLabels = listOf("Activas / En curso", "Por finalizar", "Resueltas"),
+                title = stringResource(R.string.moderator_resolutions_title),
+                subtitle = uiState.neighborhood.takeIf { it.isNotEmpty() }?.let {
+                    stringResource(R.string.moderator_queue_subtitle, it)
+                },
+                tabLabels = listOf(
+                    stringResource(R.string.moderator_resolution_tab_active),
+                    stringResource(R.string.moderator_resolution_tab_finish),
+                    stringResource(R.string.moderator_resolution_tab_resolved)
+                ),
                 tabCounts = listOf(
                     uiState.board?.active?.size ?: 0,
                     uiState.board?.toFinish?.size ?: 0,
@@ -120,7 +128,7 @@ fun ModeratorResolutionsScreen(
             val board = uiState.board
             if (board == null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "No hay resoluciones disponibles.", color = DesignSystem.Colors.TextSecondary)
+                    Text(text = stringResource(R.string.moderator_resolution_empty), color = DesignSystem.Colors.TextSecondary)
                 }
                 return@Box
             }
@@ -147,7 +155,7 @@ fun ModeratorResolutionsScreen(
 
                 if (filteredItems.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = "No hay resoluciones disponibles.", color = DesignSystem.Colors.TextSecondary)
+                        Text(text = stringResource(R.string.moderator_resolution_empty), color = DesignSystem.Colors.TextSecondary)
                     }
                     return@Column
                 }
@@ -163,7 +171,7 @@ fun ModeratorResolutionsScreen(
                             selectedTab = uiState.selectedTab,
                             resolverName = board.resolverNames[summary.report.id],
                             note = uiState.notes[summary.report.id].orEmpty(),
-                            noteError = if ((uiState.notes[summary.report.id].orEmpty()).length > 300) "La nota no puede superar 300 caracteres." else null,
+                            noteError = uiState.noteErrors[summary.report.id],
                             onNoteChange = { viewModel.onNoteChange(summary.report.id, it) },
                             onResolve = { viewModel.resolveReport(summary.report.id) },
                             onReopen = { viewModel.startReopen(summary.report.id) },
@@ -196,7 +204,7 @@ private fun CategoryFilters(
                 onClick = { onCategorySelected(null) },
                 label = { 
                     Text(
-                        "Todas (${items.size})",
+                        stringResource(R.string.moderator_all_categories_count, items.size),
                         fontSize = 11.sp
                     ) 
                 },
@@ -215,7 +223,11 @@ private fun CategoryFilters(
                     onClick = { onCategorySelected(category) },
                     label = { 
                         Text(
-                            "${category.label()} ($count)",
+                            stringResource(
+                                R.string.moderator_category_count,
+                                stringResource(category.labelRes()),
+                                count
+                            ),
                             fontSize = 11.sp
                         ) 
                     },

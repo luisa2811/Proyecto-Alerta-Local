@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,9 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.R
 
 @Composable
 fun QuickReasonChip(
@@ -66,18 +69,21 @@ fun RejectionForm(
             .padding(10.dp)
     ) {
         Text(
-            text = "Motivo del rechazo",
+            text = stringResource(R.string.moderator_rejection_form_title),
             color = DesignSystem.Colors.TextPrimary,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold
         )
         Column(modifier = Modifier.padding(top = 6.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                QuickReasonChip(label = "Ubicación incorrecta", onClick = { onUseQuickReason("Ubicación incorrecta") })
-                QuickReasonChip(label = "Foto poco clara", onClick = { onUseQuickReason("Foto poco clara") })
+                val locationReason = stringResource(R.string.moderator_quick_reason_location)
+                val photoReason = stringResource(R.string.moderator_quick_reason_photo)
+                QuickReasonChip(label = locationReason, onClick = { onUseQuickReason(locationReason) })
+                QuickReasonChip(label = photoReason, onClick = { onUseQuickReason(photoReason) })
             }
             Spacer(modifier = Modifier.height(6.dp))
-            QuickReasonChip(label = "Duplicado", onClick = { onUseQuickReason("Duplicado") })
+            val duplicateReason = stringResource(R.string.moderator_quick_reason_duplicate)
+            QuickReasonChip(label = duplicateReason, onClick = { onUseQuickReason(duplicateReason) })
         }
         Surface(
             modifier = Modifier
@@ -94,7 +100,19 @@ fun RejectionForm(
                     .fillMaxWidth()
                     .height(70.dp)
                     .padding(10.dp),
-                textStyle = TextStyle(color = DesignSystem.Colors.TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
+                textStyle = TextStyle(color = DesignSystem.Colors.TextPrimary, fontSize = 12.sp, lineHeight = 17.sp),
+                decorationBox = { field ->
+                    Box {
+                        if (reason.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.moderator_reason_hint),
+                                color = DesignSystem.Colors.Placeholder,
+                                fontSize = 12.sp
+                            )
+                        }
+                        field()
+                    }
+                }
             )
         }
         if (reasonError != null) {
@@ -115,7 +133,7 @@ fun RejectionForm(
                 onClick = onCancel,
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Cancelar")
+                Text(stringResource(R.string.action_cancel))
             }
             Button(
                 onClick = onConfirm,
@@ -123,7 +141,7 @@ fun RejectionForm(
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.ModeratorRed)
             ) {
-                Text("Confirmar rechazo", color = DesignSystem.Colors.White)
+                Text(stringResource(R.string.moderator_confirm_rejection), color = DesignSystem.Colors.White)
             }
         }
     }

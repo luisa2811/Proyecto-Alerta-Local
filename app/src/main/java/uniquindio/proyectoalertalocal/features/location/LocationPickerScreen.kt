@@ -18,11 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import com.mapbox.geojson.Point
 import uniquindio.proyectoalertalocal.core.component.MapBox
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.domain.model.GeoPoint
+import uniquindio.proyectoalertalocal.R
 
 @Composable
 fun LocationPickerScreen(
@@ -46,7 +48,7 @@ fun LocationPickerScreen(
             .padding(bottom = 16.dp)
     ) {
         ScreenHeader(
-            title = "Elegir ubicación",
+            title = stringResource(R.string.map_choose_location),
             onBack = onBack
         )
         Box(
@@ -60,7 +62,7 @@ fun LocationPickerScreen(
                 center = initialMapPoint ?: Point.fromLngLat(-75.6811, 4.5339),
                 zoom = 16.0,
                 selectedPoint = selectedPoint,
-                myLocationButtonLabel = "Usar mi ubicación",
+                myLocationButtonLabel = stringResource(R.string.map_use_my_location),
                 onMapClick = { selectedPoint = it },
                 onUserLocation = { selectedPoint = it }
             )
@@ -87,7 +89,7 @@ fun LocationPickerScreen(
             )
         ) {
             Text(
-                text = "Confirmar ubicación",
+                text = stringResource(R.string.map_confirm_location),
                 fontSize = 14.sp
             )
         }

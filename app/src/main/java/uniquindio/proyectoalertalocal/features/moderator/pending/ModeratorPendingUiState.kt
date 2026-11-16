@@ -14,17 +14,11 @@ data class ModeratorPendingUiState(
     val selectedTab: ModerationTab = ModerationTab.PENDING,
     val rejectingReportId: String? = null,
     val rejectionReason: String = "",
+    val rejectionError: String? = null,
     val result: RequestResult? = null,
     val isLoading: Boolean = true,
     val commune: String = ""
 ) {
-    val rejectionError: String?
-        get() {
-            if (rejectionReason.isEmpty()) return null
-            val trimmed = rejectionReason.trim()
-            return if (trimmed.length in 5..300) null else "El motivo debe tener entre 5 y 300 caracteres."
-        }
-
     val isRejectionValid: Boolean
         get() {
             val trimmed = rejectionReason.trim()

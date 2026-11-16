@@ -15,6 +15,7 @@ data class ModeratorResolutionsUiState(
     val selectedTab: ResolutionTab = ResolutionTab.ACTIVE,
     val selectedCategory: ReportCategory? = null,
     val notes: Map<String, String> = emptyMap(),
+    val noteErrors: Map<String, String> = emptyMap(),
     val reopeningReportId: String? = null,
     val result: RequestResult? = null,
     val isLoading: Boolean = true,

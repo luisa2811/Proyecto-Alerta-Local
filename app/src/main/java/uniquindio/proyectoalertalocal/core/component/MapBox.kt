@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -237,7 +238,7 @@ fun MapBox(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.MyLocation,
-                        contentDescription = myLocationButtonLabel ?: "Mi ubicación",
+                        contentDescription = myLocationButtonLabel ?: stringResource(R.string.map_my_location_description),
                         modifier = Modifier.size(20.dp)
                     )
                     myLocationButtonLabel?.let { label ->

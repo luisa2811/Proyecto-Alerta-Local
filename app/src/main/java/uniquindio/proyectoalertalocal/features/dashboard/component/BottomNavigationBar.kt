@@ -18,10 +18,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.features.dashboard.navigation.DashboardDestination
 
@@ -68,7 +70,7 @@ fun BottomNavigationBar(
                             ) {
                                 Icon(
                                     imageVector = destination.icon,
-                                    contentDescription = "Crear reporte",
+                                    contentDescription = stringResource(R.string.navigation_create_report),
                                     tint = DesignSystem.Colors.White,
                                     modifier = Modifier.size(26.dp)
                                 )
@@ -76,7 +78,7 @@ fun BottomNavigationBar(
                         } else {
                             Icon(
                                 imageVector = destination.icon,
-                                contentDescription = destination.label
+                                contentDescription = stringResource(destination.labelRes)
                             )
                         }
                     }
@@ -103,7 +105,7 @@ fun BottomNavigationBar(
                         iconComposable()
                     }
                 },
-                label = { Text(destination.label) },
+                label = { Text(stringResource(destination.labelRes)) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = DesignSystem.Colors.PrimaryDark,
                     selectedTextColor = DesignSystem.Colors.PrimaryDark,

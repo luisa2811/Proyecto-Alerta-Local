@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.core.util.ResourceProvider
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
@@ -28,7 +29,9 @@ class ReportListViewModel @Inject constructor(
     private val resources: ResourceProvider
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ReportListUiState())
+    private val _uiState = MutableStateFlow(
+        ReportListUiState(neighborhood = resources.getString(R.string.neighborhood_fallback))
+    )
     val uiState: StateFlow<ReportListUiState> = _uiState.asStateFlow()
 
     init {
@@ -50,7 +53,7 @@ class ReportListViewModel @Inject constructor(
                     _uiState.update { currentState ->
                         val updatedState = currentState.copy(
                             neighborhood = user?.neighborhood?.takeIf { it.isNotBlank() }
-                                ?: "Mi barrio",
+                                ?: resources.getString(R.string.neighborhood_fallback),
                             residenceLocation = residenceLocation,
                             origin = currentState.deviceLocation ?: residenceLocation,
                             result = null

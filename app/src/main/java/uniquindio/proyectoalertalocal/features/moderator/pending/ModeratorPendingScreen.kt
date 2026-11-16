@@ -19,9 +19,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.features.moderator.component.ModerationReportCard
@@ -58,8 +60,15 @@ fun ModeratorPendingScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             ModeratorTopBar(
-                title = "Cola de moderación",
-                subtitle = if (uiState.commune.isNotEmpty()) "Moderando la ${uiState.commune}" else null,
+                title = stringResource(R.string.moderator_queue_title),
+                subtitle = uiState.commune.takeIf { it.isNotEmpty() }?.let {
+                    stringResource(R.string.moderator_queue_subtitle, it)
+                },
+                tabLabels = listOf(
+                    stringResource(R.string.moderator_tab_pending),
+                    stringResource(R.string.moderator_tab_verified),
+                    stringResource(R.string.moderator_tab_rejected)
+                ),
                 averageReviewMinutes = uiState.queue?.averageReviewMinutes,
                 selectedIndex = uiState.selectedTab.ordinal,
                 pendingCount = uiState.queue?.pending?.size ?: 0,
@@ -88,7 +97,7 @@ fun ModeratorPendingScreen(
             val queue = uiState.queue
             if (queue == null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "No hay reportes en este estado.", color = DesignSystem.Colors.TextSecondary)
+                    Text(text = stringResource(R.string.moderator_empty_state), color = DesignSystem.Colors.TextSecondary)
                 }
                 return@Box
             }
@@ -101,9 +110,9 @@ fun ModeratorPendingScreen(
 
             if (items.isEmpty()) {
                 val message = if (uiState.selectedTab == ModerationTab.PENDING) {
-                    "No hay reportes pendientes por revisar."
+                    stringResource(R.string.moderator_empty_pending)
                 } else {
-                    "No hay reportes en este estado."
+                    stringResource(R.string.moderator_empty_state)
                 }
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = message, color = DesignSystem.Colors.TextSecondary)

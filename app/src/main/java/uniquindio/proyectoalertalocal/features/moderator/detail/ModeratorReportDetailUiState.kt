@@ -11,15 +11,9 @@ data class ModeratorReportDetailUiState(
     val reportsById: Map<String, uniquindio.proyectoalertalocal.domain.model.Report> = emptyMap(),
     val rejecting: Boolean = false,
     val rejectionReason: String = "",
+    val rejectionError: String? = null,
     val result: RequestResult? = null
 ) {
-    val rejectionError: String?
-        get() {
-            if (rejectionReason.isEmpty()) return null
-            val trimmed = rejectionReason.trim()
-            return if (trimmed.length >= 5 && trimmed.length <= 300) null else "El motivo debe tener entre 5 y 300 caracteres."
-        }
-
     val isRejectionValid: Boolean
         get() {
             val trimmed = rejectionReason.trim()

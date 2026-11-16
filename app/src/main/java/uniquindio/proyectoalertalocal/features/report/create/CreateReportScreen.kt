@@ -54,6 +54,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -69,7 +70,7 @@ import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
 import uniquindio.proyectoalertalocal.core.component.ReportImage
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 import uniquindio.proyectoalertalocal.core.component.color
-import uniquindio.proyectoalertalocal.core.component.label
+import uniquindio.proyectoalertalocal.core.component.labelRes
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
@@ -93,6 +94,8 @@ fun CreateReportScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showImagePicker by remember { mutableStateOf(false) }
     val isEditing = uiState.editingReportId != null
+    val cameraPermissionMessage = stringResource(R.string.reports_camera_permission)
+    val speechUnavailableMessage = stringResource(R.string.reports_speech_unavailable)
     val speechRecognitionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { activityResult ->
@@ -173,15 +176,13 @@ fun CreateReportScreen(
             viewModel.addImage(it.toString())
             showImagePicker = false
         },
-        onCameraPermissionDenied = {
-            onShowMessage("Se necesita el permiso de la cámara para tomar fotos.")
-        }
+        onCameraPermissionDenied = { onShowMessage(cameraPermissionMessage) }
     )
 
     if (uiState.similarReports.isNotEmpty()) {
         AlertDialog(
             onDismissRequest = { viewModel.cancelSimilar() },
-            title = { Text("¿Es el mismo problema?") },
+            title = { Text(stringResource(R.string.reports_duplicate_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     uiState.similarReports.forEach { report ->
@@ -200,17 +201,21 @@ fun CreateReportScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
-                                    Text(text = report.category.label(), fontSize = 10.sp)
+                                    Text(text = stringResource(report.category.labelRes()), fontSize = 10.sp)
                                     Text(text = report.createdAt.toRelativeTime(), fontSize = 10.sp, color = DesignSystem.Colors.TextSecondary)
-                                    Text(text = "${report.supportedBy.size} apoyos", fontSize = 10.sp, color = DesignSystem.Colors.TextSecondary)
+                                    Text(
+                                        text = stringResource(R.string.reports_support_count, report.supportedBy.size),
+                                        fontSize = 10.sp,
+                                        color = DesignSystem.Colors.TextSecondary
+                                    )
                                 }
                                 if (report.authorId == uiState.currentUserId) {
                                     TextButton(onClick = { viewModel.openOwnReport(report.id) }) {
-                                        Text("Ver mi reporte")
+                                        Text(stringResource(R.string.reports_duplicate_own))
                                     }
                                 } else {
                                     TextButton(onClick = { viewModel.supportSimilar(report.id) }) {
-                                        Text("Respaldar este reporte")
+                                        Text(stringResource(R.string.reports_duplicate_support))
                                     }
                                 }
                             }
@@ -220,12 +225,12 @@ fun CreateReportScreen(
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.publishAnyway() }) {
-                    Text("Publicar de todas formas")
+                    Text(stringResource(R.string.reports_duplicate_publish_anyway))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.cancelSimilar() }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.reports_cancel))
                 }
             }
         )
@@ -237,13 +242,13 @@ fun CreateReportScreen(
             .background(DesignSystem.Colors.Background)
     ) {
         ScreenHeader(
-            title = if (isEditing) "Editar reporte" else "Nuevo reporte",
+            title = stringResource(if (isEditing) R.string.reports_edit_title else R.string.reports_new_title),
             onBack = onBack,
             titleColor = Color(0xFF282A2C),
             trailingContent = {
                 androidx.compose.foundation.Image(
                     painter = painterResource(R.drawable.logo_alerta_local),
-                    contentDescription = "Logo de Alerta Local",
+                    contentDescription = stringResource(R.string.brand_logo_description),
                     modifier = Modifier
                         .size(28.dp)
                         .clip(RoundedCornerShape(6.dp)),
@@ -275,9 +280,7 @@ fun CreateReportScreen(
                             try {
                                 speechRecognitionLauncher.launch(intent)
                             } catch (_: ActivityNotFoundException) {
-                                onShowMessage(
-                                    "Tu teléfono no tiene reconocimiento de voz. Escribe el reporte."
-                                )
+                                onShowMessage(speechUnavailableMessage)
                             }
                         },
                         enabled = !uiState.isGeneratingDraft,
@@ -292,7 +295,7 @@ fun CreateReportScreen(
                                 strokeWidth = 2.dp
                             )
                             Text(
-                                text = "Generando borrador...",
+                                text = stringResource(R.string.reports_generating_draft),
                                 modifier = Modifier.padding(start = 8.dp),
                                 fontSize = 12.sp
                             )
@@ -303,7 +306,7 @@ fun CreateReportScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = "Dictar reporte",
+                                text = stringResource(R.string.reports_dictate),
                                 modifier = Modifier.padding(start = 8.dp),
                                 fontSize = 12.sp
                             )
@@ -320,7 +323,7 @@ fun CreateReportScreen(
                 }
 
                 Text(
-                    text = "Categoría",
+                    text = stringResource(R.string.reports_category),
                     color = Color(0xFF444648),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium
@@ -342,7 +345,7 @@ fun CreateReportScreen(
                             color = if (isSelected) category.color() else DesignSystem.Colors.FilterSurface
                         ) {
                             Text(
-                                text = category.label(),
+                                text = stringResource(category.labelRes()),
                                 modifier = Modifier.padding(horizontal = 15.dp, vertical = 8.dp),
                                 color = if (isSelected) DesignSystem.Colors.White else Color(0xFF4F5254),
                                 fontSize = 11.sp,
@@ -353,24 +356,24 @@ fun CreateReportScreen(
                 }
 
                 ReportField(
-                    label = "Título",
+                    label = stringResource(R.string.reports_field_title),
                     value = uiState.title,
-                    placeholder = "Ej: Poste de luz apagado",
+                    placeholder = stringResource(R.string.reports_title_example),
                     onValueChange = viewModel::onTitleChange,
                     error = viewModel.titleError(),
                     modifier = Modifier.padding(top = 17.dp)
                 )
                 ReportField(
-                    label = "Descripción",
+                    label = stringResource(R.string.reports_field_description),
                     value = uiState.description,
-                    placeholder = "Cuenta qué pasó, cuándo y cualquier detalle útil...",
+                    placeholder = stringResource(R.string.reports_description_hint),
                     onValueChange = viewModel::onDescriptionChange,
                     multiline = true,
                     error = viewModel.descriptionError(),
                     modifier = Modifier.padding(top = 17.dp)
                 )
                 Text(
-                    text = "Ubicación",
+                    text = stringResource(R.string.reports_location),
                     color = Color(0xFF444648),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
@@ -408,30 +411,30 @@ fun CreateReportScreen(
                     shape = RoundedCornerShape(11.dp)
                 ) {
                     Text(
-                        text = "Elegir en el mapa",
+                        text = stringResource(R.string.reports_choose_map),
                         color = DesignSystem.Colors.PrimaryDark,
                         fontSize = 12.sp
                     )
                 }
                 if (selectedMapPoint == null) {
                     Text(
-                        text = "Selecciona la ubicación en el mapa.",
+                        text = stringResource(R.string.reports_select_map_location),
                         color = DesignSystem.Colors.ModeratorRed,
                         fontSize = 10.sp,
                         modifier = Modifier.padding(top = 5.dp)
                     )
                 }
                 ReportField(
-                    label = "Dirección o punto de referencia",
+                    label = stringResource(R.string.reports_address_or_reference),
                     value = uiState.location,
-                    placeholder = "Ej: Cra 15 con Calle 8, frente al parque",
+                    placeholder = stringResource(R.string.reports_address_example),
                     onValueChange = viewModel::onLocationChange,
                     error = viewModel.locationError(),
                     modifier = Modifier.padding(top = 17.dp)
                 )
 
                 Text(
-                    text = "Fotos",
+                    text = stringResource(R.string.reports_photos),
                     color = Color(0xFF444648),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
@@ -466,7 +469,7 @@ fun CreateReportScreen(
                                 Box(contentAlignment = Alignment.Center) {
                                     Icon(
                                         imageVector = Icons.Filled.Close,
-                                        contentDescription = "Quitar foto",
+                                        contentDescription = stringResource(R.string.reports_remove_photo),
                                         tint = DesignSystem.Colors.TextPrimary,
                                         modifier = Modifier.size(14.dp)
                                     )
@@ -489,7 +492,7 @@ fun CreateReportScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = "Agregar foto",
+                                text = stringResource(R.string.reports_add_photo),
                                 modifier = Modifier.padding(start = 5.dp),
                                 fontSize = 11.sp
                             )
@@ -498,7 +501,7 @@ fun CreateReportScreen(
                 }
                 if (uiState.retainedImageUrls.isEmpty() && uiState.localImageUris.isEmpty()) {
                     Text(
-                        text = "Agrega al menos una foto.",
+                        text = stringResource(R.string.reports_photo_required),
                         color = DesignSystem.Colors.ModeratorRed,
                         fontSize = 10.sp,
                         modifier = Modifier.padding(top = 5.dp)
@@ -525,7 +528,11 @@ fun CreateReportScreen(
                     fontSize = 13.sp
                 )
             } else {
-                Text(text = if (isEditing) "Guardar cambios" else "Publicar reporte", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = stringResource(if (isEditing) R.string.reports_save_changes else R.string.reports_publish),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }

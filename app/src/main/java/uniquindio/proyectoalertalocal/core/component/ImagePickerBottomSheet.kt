@@ -25,9 +25,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import uniquindio.proyectoalertalocal.core.util.createTempImageUri
+import uniquindio.proyectoalertalocal.R
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +78,7 @@ fun ImagePickerBottomSheet(
                     .padding(bottom = 24.dp)
             ) {
                 ListItem(
-                    headlineContent = { Text("Tomar foto") },
+                    headlineContent = { Text(stringResource(R.string.image_picker_camera)) },
                     leadingContent = {
                         Icon(Icons.Filled.CameraAlt, contentDescription = null)
                     },
@@ -96,7 +98,7 @@ fun ImagePickerBottomSheet(
                     }
                 )
                 ListItem(
-                    headlineContent = { Text("Elegir de la galería") },
+                    headlineContent = { Text(stringResource(R.string.image_picker_gallery)) },
                     leadingContent = {
                         Icon(Icons.Filled.PhotoLibrary, contentDescription = null)
                     },

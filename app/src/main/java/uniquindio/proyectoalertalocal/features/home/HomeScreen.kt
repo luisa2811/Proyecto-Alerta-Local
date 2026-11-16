@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -61,6 +62,7 @@ import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.lastKnownGeoPoint
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
@@ -77,6 +79,7 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val directionsComingMessage = stringResource(R.string.reports_directions_coming)
     val unreadNotificationsViewModel: UnreadNotificationsViewModel = hiltViewModel()
     val hasUnread by unreadNotificationsViewModel.hasUnread.collectAsStateWithLifecycle()
     val unreadResult by unreadNotificationsViewModel.result.collectAsStateWithLifecycle()
@@ -110,7 +113,7 @@ fun HomeScreen(
             hasUnreadNotifications = hasUnread,
             onEditLocation = onEditAddress,
             neighborhoodText = uiState.neighborhood,
-            addressText = "Cra 15 #8-42"
+            addressText = ""
         )
         ReportCategoryFilters(
             selectedCategory = uiState.selectedCategory,
@@ -133,7 +136,7 @@ fun HomeScreen(
                     onUserLocation = viewModel::updateDeviceLocation,
                     onCreateReport = onCreateReport,
                     onGetDirections = {
-                        onShowMessage("La función Cómo llegar estará disponible próximamente.")
+                        onShowMessage(directionsComingMessage)
                     },
                     onOpenDetail = { reportId ->
                         onOpenReportDetail(reportId)
@@ -148,8 +151,8 @@ fun HomeScreen(
                 when {
                     uiState.reports.isEmpty() -> {
                         ReportEmptyState(
-                            message = "Aún no hay alertas en tu barrio.",
-                            actionLabel = "Crear un reporte",
+                            message = stringResource(R.string.reports_empty_neighborhood),
+                            actionLabel = stringResource(R.string.reports_create),
                             onAction = onCreateReport,
                             modifier = Modifier
                                 .weight(1f)
@@ -159,7 +162,7 @@ fun HomeScreen(
 
                     uiState.filteredReports.isEmpty() -> {
                         ReportEmptyState(
-                            message = "No hay alertas con estos filtros.",
+                            message = stringResource(R.string.reports_empty_filters),
                             actionLabel = null,
                             onAction = null,
                             modifier = Modifier
@@ -209,8 +212,8 @@ private fun ViewControls(
                 .background(DesignSystem.Colors.FilterSurface)
                 .padding(3.dp)
         ) {
-            ViewOption("Lista", HomeView.LIST, selectedView, onViewSelect)
-            ViewOption("Mapa", HomeView.MAP, selectedView, onViewSelect)
+            ViewOption(stringResource(R.string.reports_list), HomeView.LIST, selectedView, onViewSelect)
+            ViewOption(stringResource(R.string.reports_map), HomeView.MAP, selectedView, onViewSelect)
         }
     }
 }
@@ -279,7 +282,7 @@ private fun ReportMap(
                 shadowElevation = 3.dp
             ) {
                 Text(
-                    text = "No hay alertas con estos filtros.",
+                    text = stringResource(R.string.reports_empty_filters),
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                     color = DesignSystem.Colors.TextSecondary,
                     fontSize = 13.sp
@@ -304,7 +307,7 @@ private fun ReportMap(
         ) {
             Icon(
                 imageVector = Icons.Filled.Add,
-                contentDescription = "Crear un reporte",
+                contentDescription = stringResource(R.string.reports_create),
                 modifier = Modifier.size(32.dp)
             )
         }
@@ -349,7 +352,7 @@ private fun AlertList(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = "Alerta destacada",
+                            text = stringResource(R.string.reports_featured),
                             modifier = Modifier.padding(start = 4.dp),
                             color = DesignSystem.Colors.HeaderText,
                             fontSize = 12.sp,
@@ -419,7 +422,11 @@ private fun SelectedAlertCard(
                 ReportStatusTag(status = status)
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = "${report.distanceMeters} m · ${report.createdAt.toRelativeTime()}",
+                    text = stringResource(
+                        R.string.reports_distance_time,
+                        report.distanceMeters,
+                        report.createdAt.toRelativeTime()
+                    ),
                     color = DesignSystem.Colors.HomeSecondaryText,
                     fontSize = 10.sp,
                     maxLines = 1
@@ -474,7 +481,7 @@ private fun SelectedAlertCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = " · Residente",
+                    text = stringResource(R.string.reports_resident_prefix),
                     color = DesignSystem.Colors.Placeholder,
                     fontSize = 10.sp,
                     maxLines = 1
@@ -507,7 +514,7 @@ private fun SelectedAlertCard(
                         tint = DesignSystem.Colors.PrimaryDark
                     )
                     Text(
-                        text = "Cómo llegar",
+                        text = stringResource(R.string.reports_directions),
                         modifier = Modifier.padding(start = 5.dp),
                         color = DesignSystem.Colors.PrimaryDark,
                         fontSize = 11.sp,
@@ -527,7 +534,7 @@ private fun SelectedAlertCard(
                     )
                 ) {
                     Text(
-                        text = "Ver detalle",
+                        text = stringResource(R.string.reports_view_detail),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold
                     )

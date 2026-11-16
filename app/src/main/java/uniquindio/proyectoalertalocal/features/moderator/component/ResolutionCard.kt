@@ -32,6 +32,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
@@ -39,6 +40,7 @@ import uniquindio.proyectoalertalocal.core.component.ReportSeverityTag
 import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 import uniquindio.proyectoalertalocal.features.moderator.resolutions.ResolutionTab
 
@@ -71,7 +73,7 @@ fun ResolutionCard(
                         shape = CircleShape
                     ) {
                         Text(
-                            "Resuelto",
+                            stringResource(R.string.moderator_resolved),
                             modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
                             color = DesignSystem.Colors.ModeratorGreen,
                             fontSize = 10.sp,
@@ -114,7 +116,7 @@ fun ResolutionCard(
                     fontSize = 11.sp
                 )
                 Text(
-                    text = " · ${report.createdAt.toRelativeTime()}",
+                    text = stringResource(R.string.moderator_time_prefix, report.createdAt.toRelativeTime()),
                     color = DesignSystem.Colors.TextSecondary,
                     fontSize = 11.sp
                 )
@@ -152,7 +154,7 @@ fun ResolutionCard(
             when (selectedTab) {
                 ResolutionTab.ACTIVE, ResolutionTab.TO_FINISH -> {
                     Text(
-                        "Nota o acta de conclusión",
+                        stringResource(R.string.moderator_resolution_note),
                         modifier = Modifier.padding(top = 10.dp),
                         color = DesignSystem.Colors.TextPrimary,
                         fontSize = 12.sp,
@@ -195,7 +197,7 @@ fun ResolutionCard(
                             modifier = Modifier.weight(1f)
                         ) {
                             Icon(Icons.Filled.Info, contentDescription = null, modifier = Modifier.size(15.dp))
-                            Text("Detalles", modifier = Modifier.padding(start = 4.dp), fontSize = 11.sp)
+                            Text(stringResource(R.string.moderator_details), modifier = Modifier.padding(start = 4.dp), fontSize = 11.sp)
                         }
                         Button(
                             onClick = onResolve,
@@ -204,14 +206,14 @@ fun ResolutionCard(
                             colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.ModeratorGreen)
                         ) {
                             Icon(Icons.Filled.CheckCircleOutline, contentDescription = null, modifier = Modifier.size(15.dp))
-                            Text("Marcar como resuelto", color = DesignSystem.Colors.White, modifier = Modifier.padding(start = 4.dp), fontSize = 11.sp)
+                            Text(stringResource(R.string.moderator_mark_resolved), color = DesignSystem.Colors.White, modifier = Modifier.padding(start = 4.dp), fontSize = 11.sp)
                         }
                     }
                 }
                 ResolutionTab.RESOLVED -> {
                     if (resolverName != null) {
                         Text(
-                            "Resolución registrada por $resolverName",
+                            stringResource(R.string.moderator_resolution_by, resolverName),
                             modifier = Modifier.padding(top = 10.dp),
                             color = DesignSystem.Colors.TextSecondary,
                             fontSize = 11.sp
@@ -241,11 +243,11 @@ fun ResolutionCard(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         TextButton(onClick = onDetails) {
-                            Text("Ver detalle completo", fontSize = 11.sp)
+                            Text(stringResource(R.string.moderator_view_full_detail), fontSize = 11.sp)
                         }
                         OutlinedButton(onClick = onReopen) {
                             Icon(Icons.Filled.History, contentDescription = null, modifier = Modifier.size(15.dp))
-                            Text("Reabrir", modifier = Modifier.padding(start = 4.dp), fontSize = 11.sp)
+                            Text(stringResource(R.string.moderator_reopen), modifier = Modifier.padding(start = 4.dp), fontSize = 11.sp)
                         }
                     }
                 }

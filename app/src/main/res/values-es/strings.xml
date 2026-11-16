@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">Alerta Local</string>
+    <string name="brand_name">Alerta Local</string>
+    <string name="brand_logo_description">Logo de Alerta Local</string>
+    <string name="action_back">Volver</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_confirm">Confirmar</string>
+    <string name="neighborhood_fallback">Mi barrio</string>
+    <string name="onboarding_title">Una comunidad más segura empieza aquí</string>
+    <string name="onboarding_description">Comparte alertas de tu barrio, conoce lo que ocurre cerca y ayuda a tus vecinos con información oportuna.</string>
+    <string name="onboarding_continue">Conocer la aplicación</string>
+    <string name="prelogin_title">Tu barrio, más conectado</string>
+    <string name="prelogin_description">Infórmate y participa en el cuidado de tu comunidad.</string>
+    <string name="prelogin_map_caption">La Esperanza · mapa demostrativo</string>
+    <string name="prelogin_nearby_alerts">Alertas cercanas</string>
+    <string name="prelogin_nearby_description">Reportes, servicios y novedades del barrio</string>
+    <string name="login_sign_in">Iniciar sesión</string>
+    <string name="login_create_account">Crear una cuenta</string>
+    <string name="header_location_description">Ubicación</string>
+    <string name="header_address_prefix"> · %1$s</string>
+    <string name="header_edit_location">Editar ubicación</string>
+    <string name="header_notifications">Abrir notificaciones</string>
+    <string name="header_filter_proximity">Filtrar por proximidad</string>
+    <string name="navigation_create_report">Crear reporte</string>
+    <string name="navigation_home">Inicio</string>
+    <string name="navigation_alerts">Alertas</string>
+    <string name="navigation_create">Crear</string>
+    <string name="navigation_my_reports">Mis reportes</string>
+    <string name="image_picker_camera">Tomar foto</string>
+    <string name="image_picker_gallery">Elegir de la galería</string>
+    <string name="image_report_description">Foto del reporte</string>
+    <string name="time_just_now">hace un momento</string>
+    <string name="time_separator_prefix"> · %1$s</string>
+    <plurals name="time_minutes_ago">
+        <item quantity="one">hace %d min</item>
+        <item quantity="other">hace %d min</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">hace %d h</item>
+        <item quantity="other">hace %d h</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="one">hace %d día</item>
+        <item quantity="other">hace %d días</item>
+    </plurals>
+</resources>

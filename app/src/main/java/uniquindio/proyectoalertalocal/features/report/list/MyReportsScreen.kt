@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.features.report.list
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
@@ -44,6 +46,7 @@ import uniquindio.proyectoalertalocal.core.component.ReportEmptyState
 import uniquindio.proyectoalertalocal.core.component.ReportSeverityTag
 import uniquindio.proyectoalertalocal.core.component.ReportStatusTag
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
@@ -76,7 +79,7 @@ fun MyReportsScreen(
             .background(DesignSystem.Colors.Background)
     ) {
         ScreenHeader(
-            title = "Mis reportes",
+            title = stringResource(R.string.navigation_my_reports),
             onBack = onBack
         )
 
@@ -94,8 +97,8 @@ fun MyReportsScreen(
 
             uiState.reports.isEmpty() -> {
                 ReportEmptyState(
-                    message = "Aún no has creado reportes.",
-                    actionLabel = "Crear un reporte",
+                    message = stringResource(R.string.reports_no_own_reports),
+                    actionLabel = stringResource(R.string.reports_create),
                     onAction = onCreateReport,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -103,7 +106,7 @@ fun MyReportsScreen(
 
             uiState.filteredReports.isEmpty() -> {
                 ReportEmptyState(
-                    message = "No tienes reportes en este estado.",
+                    message = stringResource(R.string.reports_no_reports_in_status),
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -152,7 +155,7 @@ private fun MyReportsTabs(
                 color = if (isSelected) DesignSystem.Colors.PrimaryDark else DesignSystem.Colors.FilterSurface
             ) {
                 Text(
-                    text = tab.displayLabel(),
+                    text = stringResource(tab.labelRes()),
                     modifier = Modifier.padding(horizontal = 15.dp, vertical = 7.dp),
                     color = if (isSelected) DesignSystem.Colors.White else DesignSystem.Colors.TextSecondary,
                     fontSize = 12.sp,
@@ -163,11 +166,12 @@ private fun MyReportsTabs(
     }
 }
 
-private fun MyReportsTab.displayLabel(): String = when (this) {
-    MyReportsTab.ALL -> "Todos"
-    MyReportsTab.VERIFIED -> "Verificados"
-    MyReportsTab.IN_REVIEW -> "En revisión"
-    MyReportsTab.RESOLVED -> "Resueltos"
+@StringRes
+private fun MyReportsTab.labelRes(): Int = when (this) {
+    MyReportsTab.ALL -> R.string.reports_tab_all
+    MyReportsTab.VERIFIED -> R.string.reports_tab_verified
+    MyReportsTab.IN_REVIEW -> R.string.reports_tab_review
+    MyReportsTab.RESOLVED -> R.string.reports_tab_resolved
 }
 
 @Composable
@@ -213,7 +217,7 @@ private fun MyReportCard(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Place,
-                    contentDescription = "Dirección",
+                    contentDescription = stringResource(R.string.reports_address),
                     tint = DesignSystem.Colors.HomeSecondaryText,
                     modifier = Modifier.size(14.dp)
                 )
@@ -234,7 +238,7 @@ private fun MyReportCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${summary.supportCount} apoyos",
+                    text = stringResource(R.string.reports_support_count, summary.supportCount),
                     color = DesignSystem.Colors.ReportCounterText,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium
@@ -261,8 +265,9 @@ private fun MyReportCard(
     }
 }
 
+@Composable
 private fun statusMessageFor(report: Report): String? = when (report.status) {
-    ReportStatus.PENDING -> "En revisión por moderadores vecinales."
+    ReportStatus.PENDING -> stringResource(R.string.reports_review_status)
     ReportStatus.REJECTED -> report.rejectionReason?.takeIf { it.isNotBlank() }
     ReportStatus.RESOLVED -> report.resolutionNote?.takeIf { it.isNotBlank() }
     else -> null
@@ -300,13 +305,13 @@ private fun NewIncidentCard(
             }
             Column(modifier = Modifier.padding(start = 10.dp)) {
                 Text(
-                    text = "¿Ocurrió un nuevo incidente?",
+                    text = stringResource(R.string.reports_unresolved_prompt),
                     color = DesignSystem.Colors.ReportTitleText,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "Crear un reporte",
+                    text = stringResource(R.string.reports_create_new),
                     modifier = Modifier.padding(top = 2.dp),
                     color = DesignSystem.Colors.TextSecondary,
                     fontSize = 11.sp

@@ -9,7 +9,7 @@ import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 data class ReportListUiState(
     val selectedCategory: ReportCategory? = null,
     val selectedProximity: ProximityFilter = ProximityFilter.NEARBY,
-    val neighborhood: String = "Mi barrio",
+    val neighborhood: String = "",
     val origin: GeoPoint? = null,
     val deviceLocation: GeoPoint? = null,
     val residenceLocation: GeoPoint? = null,

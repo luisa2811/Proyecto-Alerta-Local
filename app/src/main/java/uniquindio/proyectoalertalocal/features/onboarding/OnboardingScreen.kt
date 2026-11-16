@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,7 +45,7 @@ fun OnboardingScreen(
     ) {
         Image(
             painter = painterResource(R.drawable.logo_alerta_local),
-            contentDescription = "Logo de Alerta Local",
+            contentDescription = stringResource(R.string.brand_logo_description),
             modifier = Modifier
                 .size(92.dp)
                 .clip(RoundedCornerShape(22.dp)),
@@ -58,7 +59,7 @@ fun OnboardingScreen(
             modifier = Modifier.size(56.dp)
         )
         Text(
-            text = "Una comunidad más segura empieza aquí",
+            text = stringResource(R.string.onboarding_title),
             modifier = Modifier.padding(top = 24.dp),
             color = DesignSystem.Colors.Primary,
             fontSize = 26.sp,
@@ -67,7 +68,7 @@ fun OnboardingScreen(
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Comparte alertas de tu barrio, conoce lo que ocurre cerca y ayuda a tus vecinos con información oportuna.",
+            text = stringResource(R.string.onboarding_description),
             modifier = Modifier.padding(top = 14.dp),
             color = DesignSystem.Colors.TextSecondary,
             fontSize = 15.sp,
@@ -82,7 +83,7 @@ fun OnboardingScreen(
             shape = RoundedCornerShape(13.dp),
             colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.Primary)
         ) {
-            Text("Conocer la aplicación", fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.onboarding_continue), fontWeight = FontWeight.SemiBold)
         }
     }
 }
