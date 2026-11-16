@@ -46,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -287,12 +288,8 @@ private fun ProfilePhoto(
                         contentDescription = "Foto de perfil",
                         modifier = Modifier.fillMaxSize().clip(CircleShape),
                         contentScale = ContentScale.Crop,
-                        placeholder = painterResource(
-                            android.R.drawable.sym_def_app_icon
-                        ),
-                        error = painterResource(
-                            android.R.drawable.sym_def_app_icon
-                        )
+                        placeholder = rememberVectorPainter(Icons.Filled.Person),
+                        error = rememberVectorPainter(Icons.Filled.Person)
                     )
                 }
             }
