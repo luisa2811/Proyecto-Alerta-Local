@@ -40,6 +40,11 @@ android {
         )
         buildConfigField(
             "String",
+            "MAPBOX_ACCESS_TOKEN",
+            "\"${mapboxAccessToken}\""
+        )
+        buildConfigField(
+            "String",
             "CLOUDINARY_CLOUD_NAME",
             "\"${localProperties.getProperty("CLOUDINARY_CLOUD_NAME", "")}\""
         )

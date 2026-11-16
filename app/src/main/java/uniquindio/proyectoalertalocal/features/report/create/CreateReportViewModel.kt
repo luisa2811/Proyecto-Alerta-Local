@@ -22,6 +22,7 @@ import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import uniquindio.proyectoalertalocal.domain.usecase.report.CreateReportUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.DraftReportFromVoiceUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.FindSimilarReportsUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.report.GeocodeAddressUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.ObserveReportDetailUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.SupportReportUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.UploadReportImagesUseCase
@@ -37,7 +38,8 @@ class CreateReportViewModel @Inject constructor(
     private val updateReportUseCase: UpdateReportUseCase,
     private val observeReportDetailUseCase: ObserveReportDetailUseCase,
     private val uploadReportImagesUseCase: UploadReportImagesUseCase,
-    private val draftReportFromVoiceUseCase: DraftReportFromVoiceUseCase
+    private val draftReportFromVoiceUseCase: DraftReportFromVoiceUseCase,
+    private val geocodeAddressUseCase: GeocodeAddressUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateReportUiState())
@@ -164,6 +166,42 @@ class CreateReportViewModel @Inject constructor(
             )
         }
         validate()
+        val addressHint = draft.addressHint
+        val state = _uiState.value
+        if (!addressHint.isNullOrBlank() && state.latitude == null && state.longitude == null) {
+            viewModelScope.launch {
+                val user = getCurrentUserUseCase()
+                    .catch { error ->
+                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        emit(null)
+                    }
+                    .first()
+                val userLatitude = user?.residenceLatitude
+                val userLongitude = user?.residenceLongitude
+                val proximity = if (userLatitude != null && userLongitude != null) {
+                    GeoPoint(latitude = userLatitude, longitude = userLongitude)
+                } else {
+                    DEFAULT_GEOCODING_PROXIMITY
+                }
+                if (_uiState.value.latitude != null || _uiState.value.longitude != null) {
+                    return@launch
+                }
+                val point = geocodeAddressUseCase(addressHint, proximity).getOrNull()
+                    ?: return@launch
+                _uiState.update { currentState ->
+                    if (currentState.latitude != null || currentState.longitude != null) {
+                        currentState
+                    } else {
+                        currentState.copy(
+                            latitude = point.latitude,
+                            longitude = point.longitude,
+                            draftNotice = GEOCODED_LOCATION_NOTICE
+                        )
+                    }
+                }
+                validate()
+            }
+        }
     }
 
     fun addImage(localUri: String) {
@@ -455,5 +493,11 @@ class CreateReportViewModel @Inject constructor(
     companion object {
         const val MAX_IMAGES = 3
         const val DRAFT_REVIEW_NOTICE = "Revisa el borrador antes de publicar."
+        private const val GEOCODED_LOCATION_NOTICE =
+            "Ubicación aproximada según el dictado. Confírmala en el mapa."
+        private val DEFAULT_GEOCODING_PROXIMITY = GeoPoint(
+            latitude = 4.5339,
+            longitude = -75.6811
+        )
     }
 }

@@ -30,6 +30,7 @@ object NetworkModule {
                 HttpLoggingInterceptor().apply {
                     level = HttpLoggingInterceptor.Level.BASIC
                     redactHeader(AUTHORIZATION_HEADER)
+                    redactQueryParams(ACCESS_TOKEN_QUERY_PARAMETER)
                 }
             )
         }
@@ -73,8 +74,20 @@ object NetworkModule {
             .build()
     }
 
+    @Provides
+    @Singleton
+    @Named("mapbox")
+    fun provideMapboxRetrofit(client: OkHttpClient): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(MAPBOX_BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
     private const val TIMEOUT_SECONDS = 20L
     private const val CLOUDINARY_BASE_URL = "https://api.cloudinary.com/"
     private const val OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/"
+    private const val MAPBOX_BASE_URL = "https://api.mapbox.com/"
     private const val AUTHORIZATION_HEADER = "Authorization"
+    private const val ACCESS_TOKEN_QUERY_PARAMETER = "access_token"
 }
