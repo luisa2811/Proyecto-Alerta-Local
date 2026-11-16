@@ -11,11 +11,14 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
@@ -33,8 +36,8 @@ fun ReportImage(
             .clip(RoundedCornerShape(12.dp))
             .background(DesignSystem.Colors.FilterSurface),
         contentScale = ContentScale.Crop,
-        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
-        error = painterResource(android.R.drawable.stat_notify_error)
+        placeholder = rememberVectorPainter(Icons.Filled.Image),
+        error = rememberVectorPainter(Icons.Filled.BrokenImage)
     )
 }
 
