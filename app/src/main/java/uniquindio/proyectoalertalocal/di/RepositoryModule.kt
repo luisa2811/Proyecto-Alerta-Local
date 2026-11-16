@@ -6,6 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
 import uniquindio.proyectoalertalocal.data.repository.remote.AiAssistantRepositoryImpl
+import uniquindio.proyectoalertalocal.data.repository.remote.GeocodingRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.remote.ImageStorageRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.local.SessionRepositoryImpl
 import uniquindio.proyectoalertalocal.data.repository.remote.RemoteCommentRepository
@@ -14,6 +15,7 @@ import uniquindio.proyectoalertalocal.data.repository.remote.RemoteReportReposit
 import uniquindio.proyectoalertalocal.data.repository.remote.RemoteUserRepository
 import uniquindio.proyectoalertalocal.domain.repository.CommentRepository
 import uniquindio.proyectoalertalocal.domain.repository.AiAssistantRepository
+import uniquindio.proyectoalertalocal.domain.repository.GeocodingRepository
 import uniquindio.proyectoalertalocal.domain.repository.ImageStorageRepository
 import uniquindio.proyectoalertalocal.domain.repository.NotificationRepository
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
@@ -23,6 +25,12 @@ import uniquindio.proyectoalertalocal.domain.repository.UserRepository
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
+    @Binds
+    @Singleton
+    abstract fun bindGeocodingRepository(
+        implementation: GeocodingRepositoryImpl
+    ): GeocodingRepository
+
     @Binds
     @Singleton
     abstract fun bindImageStorageRepository(
