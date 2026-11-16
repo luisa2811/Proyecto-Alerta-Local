@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -61,6 +62,9 @@ fun RegisterContent(
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
     onRegisterClick: () -> Unit,
+    emailErrorMessage: String? = null,
+    addressErrorMessage: String? = null,
+    confirmPasswordErrorMessage: String? = null,
     onLoginClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -79,14 +83,14 @@ fun RegisterContent(
         RegisterLogo()
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Alerta Local",
+            text = stringResource(R.string.auth_app_title),
             color = DesignSystem.Colors.Primary,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = "Reportes ciudadanos de tu barrio",
+            text = stringResource(R.string.auth_tagline),
             color = DesignSystem.Colors.TextSecondary,
             fontSize = 12.sp,
             textAlign = TextAlign.Center
@@ -94,7 +98,7 @@ fun RegisterContent(
 
         Spacer(Modifier.height(22.dp))
         Text(
-            text = "CREAR CUENTA NUEVA",
+            text = stringResource(R.string.auth_create_account_title),
             color = DesignSystem.Colors.TextPrimary,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
@@ -102,7 +106,7 @@ fun RegisterContent(
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = "Únete a la red vecinal y apoya a tu comunidad",
+            text = stringResource(R.string.auth_register_subtitle),
             color = DesignSystem.Colors.TextSecondary,
             fontSize = 12.sp,
             textAlign = TextAlign.Center
@@ -110,38 +114,38 @@ fun RegisterContent(
 
         Spacer(Modifier.height(16.dp))
         RegisterTextField(
-            label = "Nombre completo",
+            label = stringResource(R.string.auth_full_name),
             value = uiState.fullName,
-            placeholder = "Ej: María Jiménez",
+            placeholder = stringResource(R.string.auth_name_example),
             onValueChange = onFullNameChange
         )
         Spacer(Modifier.height(12.dp))
         RegisterTextField(
-            label = "Correo electrónico",
+            label = stringResource(R.string.auth_email),
             value = uiState.email,
-            placeholder = "nombre@correo.com",
+            placeholder = stringResource(R.string.auth_email_hint),
             onValueChange = onEmailChange,
             keyboardType = KeyboardType.Email,
-            errorMessage = uiState.emailError
+            errorMessage = emailErrorMessage
         )
         Spacer(Modifier.height(12.dp))
         RegisterTextField(
-            label = "Barrio o sector",
+            label = stringResource(R.string.auth_neighborhood),
             value = uiState.neighborhood,
-            placeholder = "Ej: Barrio La Esperanza",
+            placeholder = stringResource(R.string.auth_neighborhood_example),
             onValueChange = onNeighborhoodChange
         )
         Spacer(Modifier.height(12.dp))
         RegisterTextField(
-            label = "Dirección",
+            label = stringResource(R.string.auth_address),
             value = uiState.address,
-            placeholder = "Ej: Calle 10 # 15-20",
+            placeholder = stringResource(R.string.auth_address_example),
             onValueChange = onAddressChange,
-            errorMessage = uiState.addressError
+            errorMessage = addressErrorMessage
         )
         Spacer(Modifier.height(12.dp))
         RegisterTextField(
-            label = "Contraseña",
+            label = stringResource(R.string.auth_password),
             value = uiState.password,
             placeholder = "••••••••••••",
             onValueChange = onPasswordChange,
@@ -156,13 +160,13 @@ fun RegisterContent(
         )
         Spacer(Modifier.height(12.dp))
         RegisterTextField(
-            label = "Confirmar contraseña",
+            label = stringResource(R.string.auth_confirm_password),
             value = uiState.confirmPassword,
             placeholder = "••••••••••••",
             onValueChange = onConfirmPasswordChange,
             keyboardType = KeyboardType.Password,
             isPassword = true,
-            errorMessage = uiState.confirmPasswordError
+            errorMessage = confirmPasswordErrorMessage
         )
 
         LegalNotice(modifier = Modifier.padding(top = 16.dp))
@@ -191,9 +195,9 @@ private fun PasswordRequirements(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        PasswordRequirementRow("Mínimo 8 caracteres", meetsMinimumLength)
-        PasswordRequirementRow("Al menos una letra mayúscula", hasUppercase)
-        PasswordRequirementRow("Al menos un número", hasNumber)
+        PasswordRequirementRow(stringResource(R.string.auth_minimum_password), meetsMinimumLength)
+        PasswordRequirementRow(stringResource(R.string.auth_uppercase_password), hasUppercase)
+        PasswordRequirementRow(stringResource(R.string.auth_number_password), hasNumber)
     }
 }
 
@@ -236,7 +240,7 @@ private fun RegisterLogo() {
     ) {
     Image(
         painter = painterResource(id = R.drawable.logo_alerta_local),
-        contentDescription = "Logo de Alerta Local",
+        contentDescription = stringResource(R.string.auth_logo_description),
         modifier = Modifier
             .fillMaxSize()
             .padding(8.dp),
@@ -321,7 +325,7 @@ private fun RegisterTextField(
 private fun LegalNotice(modifier: Modifier = Modifier) {
     val legalText = buildAnnotatedString {
         withStyle(SpanStyle(color = DesignSystem.Colors.TextSecondary)) {
-            append("Al registrarte aceptas los ")
+            append(stringResource(R.string.auth_terms_prefix))
         }
         withStyle(
             SpanStyle(
@@ -329,10 +333,10 @@ private fun LegalNotice(modifier: Modifier = Modifier) {
                 textDecoration = TextDecoration.Underline
             )
         ) {
-            append("Términos de servicio")
+            append(stringResource(R.string.auth_terms))
         }
         withStyle(SpanStyle(color = DesignSystem.Colors.TextSecondary)) {
-            append(" y la ")
+            append(stringResource(R.string.auth_and))
         }
         withStyle(
             SpanStyle(
@@ -340,7 +344,7 @@ private fun LegalNotice(modifier: Modifier = Modifier) {
                 textDecoration = TextDecoration.Underline
             )
         ) {
-            append("Política de privacidad.")
+            append(stringResource(R.string.auth_privacy))
         }
     }
     Text(
@@ -370,7 +374,7 @@ private fun RegisterButton(
             contentColor = DesignSystem.Colors.White
         )
     ) {
-        Text(text = "Registrarme", fontSize = 14.sp)
+        Text(text = stringResource(R.string.auth_register_button), fontSize = 14.sp)
     }
 }
 
@@ -408,7 +412,7 @@ private fun LoginPrompt(
 ) {
     val prompt = buildAnnotatedString {
         withStyle(SpanStyle(color = DesignSystem.Colors.TextPrimary)) {
-            append("¿Ya tienes una cuenta? ")
+            append(stringResource(R.string.auth_have_account))
         }
         withStyle(
             SpanStyle(
@@ -416,7 +420,7 @@ private fun LoginPrompt(
                 fontWeight = FontWeight.SemiBold
             )
         ) {
-            append("Iniciar sesión")
+            append(stringResource(R.string.auth_sign_in))
         }
     }
     Text(
@@ -431,10 +435,10 @@ private fun LoginPrompt(
 private fun CommunityPrompt(modifier: Modifier = Modifier) {
     val prompt = buildAnnotatedString {
         withStyle(SpanStyle(color = DesignSystem.Colors.Placeholder)) {
-            append("¿Eres líder comunitario o moderador? ")
+            append(stringResource(R.string.auth_community_leader))
         }
         withStyle(SpanStyle(color = DesignSystem.Colors.TextPrimary)) {
-            append("Ingresar aquí")
+            append(stringResource(R.string.auth_enter_here))
         }
     }
     Text(

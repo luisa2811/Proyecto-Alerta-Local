@@ -11,10 +11,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.AppError
 import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Notification
+import uniquindio.proyectoalertalocal.domain.model.NotificationType
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.usecase.notification.MarkAllNotificationsAsReadUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.notification.ObserveNotificationsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.notification.SetNotificationReadUseCase
@@ -26,7 +29,8 @@ class NotificationsViewModel @Inject constructor(
     private val observeNotificationsUseCase: ObserveNotificationsUseCase,
     private val markAllNotificationsAsReadUseCase: MarkAllNotificationsAsReadUseCase,
     private val setNotificationReadUseCase: SetNotificationReadUseCase,
-    private val observeReportDetailUseCase: ObserveReportDetailUseCase
+    private val observeReportDetailUseCase: ObserveReportDetailUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NotificationsUiState())
@@ -37,7 +41,7 @@ class NotificationsViewModel @Inject constructor(
             observeNotificationsUseCase()
                 .catch { error ->
                     _uiState.update {
-                        it.copy(isLoading = false, result = error.toRequestFailure())
+                        it.copy(isLoading = false, result = error.toRequestFailure(resources))
                     }
                 }
                 .collect { notifications ->
@@ -62,7 +66,7 @@ class NotificationsViewModel @Inject constructor(
                 .fold(
                     onSuccess = { _uiState.update { it.copy(result = null) } },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -76,11 +80,15 @@ class NotificationsViewModel @Inject constructor(
                     setNotificationReadUseCase(notification.id, true).getOrThrow()
                 }
                 when {
-                    notification.title == NEW_ACHIEVEMENT_TITLE ->
+                    notification.type == NotificationType.NEW_BADGE ||
+                        notification.type == NotificationType.NEW_LEVEL ->
                         NotificationNavigation.ToProfile
                     notification.reportId.isNullOrBlank() -> null
                     observeReportDetailUseCase(notification.reportId).first() == null ->
-                        throw AppException(AppError.REPORT_NOT_FOUND, REPORT_NOT_AVAILABLE)
+                        throw AppException(
+                            AppError.REPORT_NOT_FOUND,
+                            resources.getString(R.string.notifications_report_unavailable)
+                        )
                     else -> NotificationNavigation.ToReport(notification.reportId)
                 }
             }.fold(
@@ -88,7 +96,7 @@ class NotificationsViewModel @Inject constructor(
                     _uiState.update { it.copy(result = null, navigation = navigation) }
                 },
                 onFailure = { error ->
-                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                 }
             )
         }
@@ -103,7 +111,7 @@ class NotificationsViewModel @Inject constructor(
                 }.fold(
                     onSuccess = { _uiState.update { it.copy(result = null) } },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
             }
@@ -118,9 +126,4 @@ class NotificationsViewModel @Inject constructor(
         _uiState.update { it.copy(result = null) }
     }
 
-    companion object {
-        const val NEW_ACHIEVEMENT_TITLE = "¡Nuevo logro!"
-        const val REPORT_NOT_AVAILABLE = "La publicación relacionada ya no está disponible."
-        const val UNEXPECTED_ERROR = "Ocurrió un error inesperado."
-    }
 }

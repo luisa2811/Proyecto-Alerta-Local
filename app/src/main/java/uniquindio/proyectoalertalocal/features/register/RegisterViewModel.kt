@@ -10,15 +10,27 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.user.RegisterUserUseCase
+import uniquindio.proyectoalertalocal.R
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val registerUserUseCase: RegisterUserUseCase
+    private val registerUserUseCase: RegisterUserUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
+
+    fun emailErrorMessage(): String? =
+        _uiState.value.emailErrorRes?.let { resources.getString(it) }
+
+    fun addressErrorMessage(): String? =
+        _uiState.value.addressErrorRes?.let { resources.getString(it) }
+
+    fun confirmPasswordErrorMessage(): String? =
+        _uiState.value.confirmPasswordErrorRes?.let { resources.getString(it) }
 
     fun onFullNameChange(value: String) {
         _uiState.update { it.copy(fullName = value, result = null) }
@@ -63,16 +75,20 @@ class RegisterViewModel @Inject constructor(
                     registerResult.fold(
                         onSuccess = {
                             _uiState.update {
-                                it.copy(result = RequestResult.Success("Cuenta creada correctamente."))
+                                it.copy(
+                                    result = RequestResult.Success(
+                                        resources.getString(R.string.auth_success_account_created)
+                                    )
+                                )
                             }
                         },
                         onFailure = { error ->
-                            _uiState.update { it.copy(result = error.toRequestFailure()) }
+                            _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                         }
                     )
                 },
                 onFailure = { error ->
-                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                 }
             )
         }

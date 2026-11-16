@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -73,6 +74,7 @@ fun EditProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showImagePicker by remember { mutableStateOf(false) }
+    val cameraPermissionMessage = stringResource(R.string.profile_camera_permission)
 
     LaunchedEffect(uiState.result) {
         when (val result = uiState.result) {
@@ -111,7 +113,7 @@ fun EditProfileScreen(
             showImagePicker = false
         },
         onCameraPermissionDenied = {
-            onShowMessage("Se necesita el permiso de la cámara para tomar fotos.")
+            onShowMessage(cameraPermissionMessage)
         }
     )
 
@@ -121,13 +123,13 @@ fun EditProfileScreen(
             .background(DesignSystem.Colors.Background)
     ) {
         ScreenHeader(
-            title = "Editar mis datos",
+            title = stringResource(R.string.profile_edit_title),
             onBack = onBack,
             titleColor = DesignSystem.Colors.TextPrimary,
             trailingContent = {
                 Image(
                     painter = painterResource(R.drawable.logo_alerta_local),
-                    contentDescription = "Alerta Local",
+                    contentDescription = stringResource(R.string.profile_logo_description),
                     modifier = Modifier
                         .size(30.dp)
                         .clip(CircleShape)
@@ -150,43 +152,43 @@ fun EditProfileScreen(
             Spacer(Modifier.height(24.dp))
 
             SectionTitle(
-                title = "Información Personal",
+                title = stringResource(R.string.profile_personal_information),
                 icon = Icons.Filled.Person
             )
             Spacer(Modifier.height(14.dp))
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 PersonalField(
-                    label = "NOMBRE COMPLETO",
+                    label = stringResource(R.string.profile_full_name),
                     value = uiState.fullName,
                     icon = Icons.Filled.Badge,
-                    error = uiState.nameError,
+                    error = viewModel.nameErrorMessage(),
                     onValueChange = viewModel::changeFullName
                 )
                 PersonalField(
-                    label = "CORREO ELECTRÓNICO",
+                    label = stringResource(R.string.profile_email),
                     value = uiState.email,
                     icon = Icons.Filled.AlternateEmail,
                     verified = uiState.emailVerified,
                     keyboardType = KeyboardType.Email,
-                    error = uiState.emailError,
+                    error = viewModel.emailErrorMessage(),
                     readOnly = true,
                     onValueChange = {}
                 )
                 PersonalField(
-                    label = "TELÉFONO MÓVIL",
+                    label = stringResource(R.string.profile_mobile_phone),
                     value = uiState.phone,
                     icon = Icons.Filled.Phone,
                     verified = uiState.phoneVerified,
                     keyboardType = KeyboardType.Phone,
                     prefix = "+57",
-                    error = uiState.phoneError,
+                    error = viewModel.phoneErrorMessage(),
                     onValueChange = viewModel::changePhone
                 )
             }
 
             Spacer(Modifier.height(30.dp))
             SectionTitle(
-                title = "Ubicación y Residencia",
+                title = stringResource(R.string.profile_location_residence),
                 icon = Icons.Filled.LocationOn
             )
             Spacer(Modifier.height(14.dp))
@@ -198,7 +200,7 @@ fun EditProfileScreen(
 
             Spacer(Modifier.height(24.dp))
             SectionTitle(
-                title = "Preferencias y Privacidad",
+                title = stringResource(R.string.profile_preferences_privacy),
                 icon = Icons.Filled.Shield
             )
             Spacer(Modifier.height(14.dp))
@@ -233,7 +235,7 @@ fun EditProfileScreen(
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
-                        text = "Guardar cambios",
+                        text = stringResource(R.string.profile_save_changes),
                         color = DesignSystem.Colors.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
@@ -242,7 +244,7 @@ fun EditProfileScreen(
                 }
             }
             Text(
-                text = "Cancelar",
+                text = stringResource(R.string.profile_cancel),
                 color = Color(0xFF30323A),
                 fontSize = 14.sp,
                 modifier = Modifier
@@ -285,7 +287,7 @@ private fun ProfilePhoto(
                 } else {
                     AsyncImage(
                         model = photoUrl,
-                        contentDescription = "Foto de perfil",
+                        contentDescription = stringResource(R.string.profile_photo_description),
                         modifier = Modifier.fillMaxSize().clip(CircleShape),
                         contentScale = ContentScale.Crop,
                         placeholder = rememberVectorPainter(Icons.Filled.Person),
@@ -302,7 +304,7 @@ private fun ProfilePhoto(
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Filled.CameraAlt,
-                        contentDescription = "Actualizar foto de perfil",
+                        contentDescription = stringResource(R.string.profile_photo_description),
                         tint = DesignSystem.Colors.White,
                         modifier = Modifier.size(19.dp)
                     )
@@ -310,7 +312,7 @@ private fun ProfilePhoto(
             }
         }
         Text(
-            text = "Toca para actualizar tu foto de perfil",
+            text = stringResource(R.string.profile_update_photo),
             color = Color(0xFF52545C),
             fontSize = 12.sp,
             modifier = Modifier.padding(top = 5.dp)
@@ -385,7 +387,7 @@ private fun PersonalField(
                         modifier = Modifier.size(12.dp)
                     )
                     Text(
-                        text = "Verificado",
+                        text = stringResource(R.string.profile_verified),
                         color = Color(0xFF536981),
                         fontSize = 10.sp,
                         modifier = Modifier.padding(start = 3.dp)
@@ -485,14 +487,14 @@ private fun LocationCard(
                     .padding(start = 9.dp)
             ) {
                 Text(
-                    text = address.ifBlank { "Dirección" },
+                    text = address.ifBlank { stringResource(R.string.profile_address) },
                     color = if (address.isBlank()) Color(0xFF8A8D94) else Color(0xFF292A31),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Text(
-                    text = neighborhood.ifBlank { "Barrio o sector" },
+                    text = neighborhood.ifBlank { stringResource(R.string.profile_neighborhood) },
                     color = if (neighborhood.isBlank()) Color(0xFF8A8D94) else Color(0xFF555963),
                     fontSize = 12.sp,
                     modifier = Modifier
@@ -519,7 +521,7 @@ private fun LocationCard(
                 modifier = Modifier.size(18.dp)
             )
             Text(
-                text = "Editar residencia",
+                text = stringResource(R.string.profile_edit_residence),
                 color = Color(0xFF4F5D6E),
                 fontSize = 13.sp,
                 modifier = Modifier
@@ -549,7 +551,7 @@ private fun LocationCard(
                 modifier = Modifier.size(17.dp)
             )
             Text(
-                text = "Tu dirección exacta se mantiene privada ante otros residentes y solo es visible por personal de respuesta municipal.",
+                text = stringResource(R.string.profile_exact_address_privacy),
                 color = Color(0xFF42444C),
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
@@ -571,13 +573,13 @@ private fun PrivacyCard(showName: Boolean, onToggle: () -> Unit) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "Mostrar mi nombre en reportes",
+                text = stringResource(R.string.profile_show_name_in_reports),
                 color = Color(0xFF24252C),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = "Vecinos autorizados verán \"María J.\" en vez de Anónimo",
+                text = stringResource(R.string.profile_anonymous_name_preview),
                 color = Color(0xFF4E5058),
                 fontSize = 11.sp,
                 lineHeight = 15.sp,

@@ -7,6 +7,7 @@ import uniquindio.proyectoalertalocal.domain.model.AuthorNames
 import uniquindio.proyectoalertalocal.domain.model.AppError
 import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Comment
+import uniquindio.proyectoalertalocal.domain.model.NotificationType
 import uniquindio.proyectoalertalocal.domain.repository.CommentRepository
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
@@ -45,6 +46,8 @@ class AddCommentUseCase @Inject constructor(
                 userId = report.authorId,
                 title = "Nuevo comentario",
                 message = "$commenterName comentó tu reporte \"${report.title}\".",
+                type = NotificationType.COMMENT,
+                args = listOf(report.title, commenterName),
                 reportId = report.id
             )
         }

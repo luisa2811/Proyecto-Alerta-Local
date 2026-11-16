@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PersonOutline
@@ -71,6 +72,7 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarState = remember { SnackbarHostState() }
+    val emailErrorMessage = viewModel.emailErrorMessage()
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -95,6 +97,7 @@ fun LoginScreen(
     ) { innerPadding ->
         LoginContent(
             uiState = uiState,
+            emailErrorMessage = emailErrorMessage,
             onEmailChange = viewModel::changeEmail,
             onPasswordChange = viewModel::changePassword,
             onModeratorCodeChange = viewModel::changeModeratorCode,
@@ -110,6 +113,7 @@ fun LoginScreen(
 @Composable
 private fun LoginContent(
     uiState: LoginUiState,
+    emailErrorMessage: String?,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onModeratorCodeChange: (String) -> Unit,
@@ -131,14 +135,14 @@ private fun LoginContent(
         AlertLocalLogo()
         Spacer(modifier = Modifier.height(18.dp))
         Text(
-            text = "Alerta Local",
+            text = stringResource(R.string.auth_app_title),
             color = DesignSystem.Colors.PrimaryDark,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Reportes ciudadanos de tu barrio",
+            text = stringResource(R.string.auth_tagline),
             color = DesignSystem.Colors.TextSecondary,
             fontSize = 13.sp
         )
@@ -151,20 +155,20 @@ private fun LoginContent(
 
         Spacer(modifier = Modifier.height(20.dp))
         FormField(
-            label = "Correo electrónico",
+            label = stringResource(R.string.auth_email),
             value = uiState.email,
             onValueChange = onEmailChange,
-            placeholder = "nombre@correo.com",
+            placeholder = stringResource(R.string.auth_email_hint),
             keyboardType = KeyboardType.Email,
-            errorMessage = uiState.emailError
+            errorMessage = emailErrorMessage
         )
 
         Spacer(modifier = Modifier.height(16.dp))
         FormField(
-            label = "Contraseña",
+            label = stringResource(R.string.auth_password),
             value = uiState.password,
             onValueChange = onPasswordChange,
-            placeholder = "password123",
+            placeholder = stringResource(R.string.auth_password),
             keyboardType = KeyboardType.Password,
             hideText = true
         )
@@ -172,10 +176,10 @@ private fun LoginContent(
         if (uiState.selectedRole == UserRole.MODERATOR) {
             Spacer(modifier = Modifier.height(16.dp))
             FormField(
-                label = "Código de credencial de moderador",
+                label = stringResource(R.string.auth_moderator_code),
                 value = uiState.moderatorCode,
                 onValueChange = onModeratorCodeChange,
-                placeholder = "Ej: MOD-8824-B",
+                placeholder = stringResource(R.string.auth_moderator_code_example),
                 keyboardType = KeyboardType.Ascii,
                 required = true
             )
@@ -193,7 +197,7 @@ private fun LoginContent(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Acceso restringido con auditoría pericial y cívica",
+                    text = stringResource(R.string.auth_restricted_access),
                     color = DesignSystem.Colors.TextSecondary,
                     fontSize = 11.sp
                 )
@@ -201,7 +205,7 @@ private fun LoginContent(
         }
 
         Text(
-            text = "¿Olvidaste tu contraseña?",
+            text = stringResource(R.string.auth_forgot_password),
             modifier = Modifier
                 .align(Alignment.End)
                 .padding(top = 22.dp)
@@ -225,9 +229,9 @@ private fun LoginContent(
         ) {
             Text(
                 text = if (uiState.selectedRole == UserRole.MODERATOR) {
-                    "Acceder como moderador"
+                    stringResource(R.string.auth_sign_in_moderator)
                 } else {
-                    "Iniciar sesión"
+                    stringResource(R.string.auth_sign_in_button)
                 },
                 fontSize = 14.sp
             )
@@ -238,7 +242,7 @@ private fun LoginContent(
 
             val registerText = buildAnnotatedString {
                 withStyle(SpanStyle(color = DesignSystem.Colors.PrimaryDark)) {
-                    append("¿Eres nuevo? ")
+                    append(stringResource(R.string.auth_new_user))
                 }
                 withStyle(
                     SpanStyle(
@@ -246,7 +250,7 @@ private fun LoginContent(
                         fontWeight = FontWeight.SemiBold
                     )
                 ) {
-                    append("Crear una cuenta")
+                    append(stringResource(R.string.auth_create_account))
                 }
             }
             Text(
@@ -264,7 +268,7 @@ private fun LoginContent(
 private fun AlertLocalLogo() {
     Image(
         painter = painterResource(id = R.drawable.logo_alerta_local),
-        contentDescription = "Logo de Alerta Local",
+        contentDescription = stringResource(R.string.auth_logo_description),
         modifier = Modifier
             .size(80.dp)
             .clip(RoundedCornerShape(12.dp)),
@@ -286,13 +290,15 @@ private fun RoleSelector(
         verticalAlignment = Alignment.CenterVertically
     ) {
         RoleOption(
-            name = "Residente",
+            name = stringResource(R.string.auth_resident),
+            isResident = true,
             selected = selectedRole == UserRole.RESIDENT,
             onSelect = { onRoleSelect(UserRole.RESIDENT) },
             modifier = Modifier.weight(1f)
         )
         RoleOption(
-            name = "Moderador",
+            name = stringResource(R.string.auth_moderator),
+            isResident = false,
             selected = selectedRole == UserRole.MODERATOR,
             onSelect = { onRoleSelect(UserRole.MODERATOR) },
             modifier = Modifier.weight(1f)
@@ -303,6 +309,7 @@ private fun RoleSelector(
 @Composable
 private fun RoleOption(
     name: String,
+    isResident: Boolean,
     selected: Boolean,
     onSelect: () -> Unit,
     modifier: Modifier = Modifier
@@ -319,7 +326,7 @@ private fun RoleOption(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = if (name == "Residente") {
+            imageVector = if (isResident) {
                 Icons.Outlined.PersonOutline
             } else {
                 Icons.Outlined.Shield
@@ -363,7 +370,7 @@ private fun FormField(
             )
             if (required) {
                 Text(
-                    text = "Requerido",
+                    text = stringResource(R.string.auth_required),
                     modifier = Modifier
                         .clip(RoundedCornerShape(50))
                         .background(Color(0xFFFFF0EB))
@@ -469,6 +476,7 @@ private fun LoginScreenPreview() {
     ProyectoAlertaLocalTheme {
         LoginContent(
             uiState = LoginUiState(),
+            emailErrorMessage = null,
             onEmailChange = {},
             onPasswordChange = {},
             onModeratorCodeChange = {},

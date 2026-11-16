@@ -6,6 +6,7 @@ import uniquindio.proyectoalertalocal.domain.model.AppError
 import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
+import uniquindio.proyectoalertalocal.domain.model.NotificationType
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
@@ -47,6 +48,8 @@ class ReopenReportUseCase @Inject constructor(
             userId = report.authorId,
             title = "Reporte reabierto",
             message = "Un moderador reabrió tu reporte \"${report.title}\".",
+            type = NotificationType.REOPENED,
+            args = listOf(report.title),
             reportId = report.id
         )
 

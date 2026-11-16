@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveModerationQueueUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.RejectReportUseCase
@@ -22,7 +23,8 @@ class ModeratorPendingViewModel @Inject constructor(
     private val observeModerationQueueUseCase: ObserveModerationQueueUseCase,
     private val verifyReportUseCase: VerifyReportUseCase,
     private val rejectReportUseCase: RejectReportUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ModeratorPendingUiState())
@@ -32,7 +34,7 @@ class ModeratorPendingViewModel @Inject constructor(
         viewModelScope.launch {
             getCurrentUserUseCase()
                 .catch { error ->
-                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                 }
                 .collect { user ->
                     _uiState.update { it.copy(commune = user?.assignedCommune.orEmpty()) }
@@ -43,7 +45,7 @@ class ModeratorPendingViewModel @Inject constructor(
             observeModerationQueueUseCase()
                 .catch { error ->
                     _uiState.update {
-                        it.copy(isLoading = false, result = error.toRequestFailure())
+                        it.copy(isLoading = false, result = error.toRequestFailure(resources))
                     }
                 }
                 .collect { queue ->
@@ -65,7 +67,7 @@ class ModeratorPendingViewModel @Inject constructor(
                         _uiState.update { it.copy(result = RequestResult.Success("Reporte verificado.")) }
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -106,7 +108,7 @@ class ModeratorPendingViewModel @Inject constructor(
                         }
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }

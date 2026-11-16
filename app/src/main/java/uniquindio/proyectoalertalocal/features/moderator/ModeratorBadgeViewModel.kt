@@ -11,12 +11,14 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveModerationQueueUseCase
 
 @HiltViewModel
 class ModeratorBadgeViewModel @Inject constructor(
-    private val observeModerationQueueUseCase: ObserveModerationQueueUseCase
+    private val observeModerationQueueUseCase: ObserveModerationQueueUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _pendingCount = MutableStateFlow(0)
@@ -28,7 +30,7 @@ class ModeratorBadgeViewModel @Inject constructor(
         viewModelScope.launch {
             observeModerationQueueUseCase()
                 .catch { error ->
-                    _result.value = error.toRequestFailure()
+                    _result.value = error.toRequestFailure(resources)
                 }
                 .collect { queue ->
                     _pendingCount.update { queue.pending.size }

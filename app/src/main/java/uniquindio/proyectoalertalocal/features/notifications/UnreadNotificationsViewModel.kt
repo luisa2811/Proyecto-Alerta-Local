@@ -12,12 +12,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.notification.ObserveNotificationsUseCase
 
 @HiltViewModel
 class UnreadNotificationsViewModel @Inject constructor(
-    observeNotificationsUseCase: ObserveNotificationsUseCase
+    observeNotificationsUseCase: ObserveNotificationsUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
     private val mutableResult = MutableStateFlow<RequestResult?>(RequestResult.Loading)
     val result: StateFlow<RequestResult?> = mutableResult
@@ -27,7 +29,7 @@ class UnreadNotificationsViewModel @Inject constructor(
             notifications.any { !it.isRead }
         }
         .onEach { mutableResult.value = null }
-        .catch { error -> mutableResult.value = error.toRequestFailure() }
+        .catch { error -> mutableResult.value = error.toRequestFailure(resources) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.UserRole
@@ -24,7 +25,8 @@ class ModeratorResolutionsViewModel @Inject constructor(
     private val observeResolutionsUseCase: ObserveResolutionsUseCase,
     private val resolveReportUseCase: ResolveReportUseCase,
     private val reopenReportUseCase: ReopenReportUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ModeratorResolutionsUiState())
@@ -34,7 +36,7 @@ class ModeratorResolutionsViewModel @Inject constructor(
         viewModelScope.launch {
             getCurrentUserUseCase()
                 .catch { error ->
-                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                 }
                 .collect { user ->
                     _uiState.update { it.copy(neighborhood = user?.assignedCommune.orEmpty()) }
@@ -44,7 +46,7 @@ class ModeratorResolutionsViewModel @Inject constructor(
             observeResolutionsUseCase()
                 .catch { error ->
                     _uiState.update {
-                        it.copy(isLoading = false, result = error.toRequestFailure())
+                        it.copy(isLoading = false, result = error.toRequestFailure(resources))
                     }
                 }
                 .collect { board ->
@@ -78,7 +80,7 @@ class ModeratorResolutionsViewModel @Inject constructor(
                         }
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -107,7 +109,7 @@ class ModeratorResolutionsViewModel @Inject constructor(
                         }
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }

@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -107,7 +108,7 @@ fun PasswordRecoveryScreen(
                 } else {
                     RecoveryEmailForm(
                         email = uiState.email,
-                        emailError = uiState.emailError,
+                        emailErrorMessage = viewModel.emailErrorMessage(),
                         isEmailValid = uiState.isEmailValid,
                         isLoading = uiState.result is RequestResult.Loading,
                         onEmailChange = viewModel::onEmailChanged,
@@ -123,7 +124,7 @@ fun PasswordRecoveryScreen(
 @Composable
 private fun RecoveryHeader(onBack: () -> Unit) {
     ScreenHeader(
-        title = "Recuperar Contraseña",
+        title = stringResource(R.string.auth_recover_password_title),
         onBack = onBack,
         modifier = Modifier.background(DesignSystem.Colors.Background),
         titleColor = DesignSystem.Colors.RecoveryNavy,
@@ -135,7 +136,7 @@ private fun RecoveryHeader(onBack: () -> Unit) {
 @Composable
 private fun RecoveryEmailForm(
     email: String,
-    emailError: String?,
+    emailErrorMessage: String?,
     isEmailValid: Boolean,
     isLoading: Boolean,
     onEmailChange: (String) -> Unit,
@@ -146,7 +147,7 @@ private fun RecoveryEmailForm(
     RecoveryLogo()
     Spacer(Modifier.height(18.dp))
     Text(
-        text = "¿Olvidaste tu contraseña?",
+        text = stringResource(R.string.auth_recover_question),
         color = DesignSystem.Colors.RecoveryNavy,
         fontSize = 23.sp,
         lineHeight = 28.sp,
@@ -155,7 +156,7 @@ private fun RecoveryEmailForm(
     )
     Spacer(Modifier.height(5.dp))
     Text(
-        text = "Ingresa el correo electrónico asociado a tu cuenta de Alerta Local y te enviaremos un enlace para restablecerla.",
+        text = stringResource(R.string.auth_recover_description),
         color = DesignSystem.Colors.TextSecondary,
         fontSize = 13.sp,
         lineHeight = 19.sp,
@@ -170,23 +171,23 @@ private fun RecoveryEmailForm(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Correo electrónico",
+                stringResource(R.string.auth_email),
                 color = DesignSystem.Colors.RecoveryNavy,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold
             )
-            Text("Requerido", color = DesignSystem.Colors.TextPrimary, fontSize = 11.sp)
+            Text(stringResource(R.string.auth_required), color = DesignSystem.Colors.TextPrimary, fontSize = 11.sp)
         }
         Spacer(Modifier.height(6.dp))
         RecoveryTextField(
             value = email,
             onValueChange = onEmailChange,
-            placeholder = "nombre@correo.com",
+            placeholder = stringResource(R.string.auth_email_hint),
             keyboardType = KeyboardType.Email
         )
-        if (emailError != null) {
+        if (emailErrorMessage != null) {
             Text(
-                text = emailError,
+                text = emailErrorMessage,
                 color = DesignSystem.Colors.ModeratorRed,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp)
@@ -195,11 +196,11 @@ private fun RecoveryEmailForm(
         Spacer(Modifier.height(14.dp))
         NoticeCard(
             icon = Icons.Outlined.Info,
-            message = "Recibirás un enlace seguro en tu correo electrónico."
+            message = stringResource(R.string.auth_secure_link_message)
         )
         Spacer(Modifier.height(18.dp))
         RecoveryButton(
-            label = "Enviar enlace",
+            label = stringResource(R.string.auth_send_link),
             icon = Icons.AutoMirrored.Outlined.ArrowForward,
             enabled = isEmailValid && !isLoading,
             onClick = onSendLink
@@ -209,9 +210,9 @@ private fun RecoveryEmailForm(
     Spacer(Modifier.height(18.dp))
     ProtectionNotice()
     Spacer(Modifier.height(24.dp))
-    Text("¿Recordaste tu contraseña?", color = DesignSystem.Colors.TextSecondary, fontSize = 13.sp)
+    Text(stringResource(R.string.auth_remember_password), color = DesignSystem.Colors.TextSecondary, fontSize = 13.sp)
     Text(
-        text = "Iniciar sesión  ↗",
+        text = stringResource(R.string.auth_sign_in) + "  ↗",
         modifier = Modifier
             .padding(top = 4.dp)
             .clickable(onClick = onBackToLogin),
@@ -227,7 +228,7 @@ private fun RecoverySuccess(onBackToLogin: () -> Unit) {
     RecoveryLogo()
     Spacer(Modifier.height(20.dp))
     Text(
-        text = "Revisa tu correo",
+        text = stringResource(R.string.auth_review_email),
         color = DesignSystem.Colors.RecoveryNavy,
         fontSize = 23.sp,
         fontWeight = FontWeight.Bold,
@@ -237,12 +238,12 @@ private fun RecoverySuccess(onBackToLogin: () -> Unit) {
     RecoveryCard {
         NoticeCard(
             icon = Icons.Outlined.CheckCircle,
-            message = PasswordRecoveryViewModel.SUCCESS_MESSAGE,
+            message = stringResource(R.string.auth_success_reset_email),
             iconTint = DesignSystem.Colors.RecoveryNavy
         )
         Spacer(Modifier.height(18.dp))
         RecoveryButton(
-            label = "Volver al Login",
+            label = stringResource(R.string.auth_back_to_login),
             icon = Icons.AutoMirrored.Outlined.ArrowForward,
             onClick = onBackToLogin
         )
@@ -253,7 +254,7 @@ private fun RecoverySuccess(onBackToLogin: () -> Unit) {
 private fun RecoveryLogo() {
     Image(
         painter = painterResource(id = R.drawable.logo_alerta_local),
-        contentDescription = "Logo de Alerta Local",
+        contentDescription = stringResource(R.string.auth_logo_description),
         modifier = Modifier
             .size(80.dp)
             .clip(RoundedCornerShape(12.dp)),
@@ -371,13 +372,13 @@ private fun ProtectionNotice() {
         }
         Column(Modifier.padding(start = 12.dp)) {
             Text(
-                "Protección vecinal",
+                stringResource(R.string.auth_neighbor_protection),
                 color = DesignSystem.Colors.RecoveryNavy,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                "Nunca solicitamos contraseñas por WhatsApp ni llamadas telefónicas.",
+                stringResource(R.string.auth_no_password_calls),
                 color = DesignSystem.Colors.TextSecondary,
                 fontSize = 12.sp,
                 lineHeight = 16.sp

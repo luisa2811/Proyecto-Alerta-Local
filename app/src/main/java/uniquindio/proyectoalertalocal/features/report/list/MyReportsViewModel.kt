@@ -11,12 +11,14 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.report.ObserveMyReportsUseCase
 
 @HiltViewModel
 class MyReportsViewModel @Inject constructor(
-    private val observeMyReportsUseCase: ObserveMyReportsUseCase
+    private val observeMyReportsUseCase: ObserveMyReportsUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MyReportsUiState())
@@ -27,7 +29,7 @@ class MyReportsViewModel @Inject constructor(
             observeMyReportsUseCase()
                 .catch { error ->
                     _uiState.update {
-                        it.copy(isLoading = false, result = error.toRequestFailure())
+                        it.copy(isLoading = false, result = error.toRequestFailure(resources))
                     }
                 }
                 .collect { reports ->

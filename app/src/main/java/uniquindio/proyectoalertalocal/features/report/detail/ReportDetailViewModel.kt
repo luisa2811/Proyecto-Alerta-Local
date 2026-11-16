@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.comment.AddCommentUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.comment.ObserveCommentsUseCase
@@ -31,7 +32,8 @@ class ReportDetailViewModel @Inject constructor(
     private val addCommentUseCase: AddCommentUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val resolveReportUseCase: ResolveReportUseCase,
-    private val deleteReportUseCase: DeleteReportUseCase
+    private val deleteReportUseCase: DeleteReportUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReportDetailUiState())
@@ -47,7 +49,7 @@ class ReportDetailViewModel @Inject constructor(
                 _uiState.update { it.copy(currentUserId = user?.id) }
             }
             .catch { error ->
-                _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
+                _uiState.update { it.copy(actionResult = error.toRequestFailure(resources)) }
             }
             .launchIn(viewModelScope)
     }
@@ -81,7 +83,7 @@ class ReportDetailViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = throwable.toRequestFailure().errorMessage
+                        errorMessage = throwable.toRequestFailure(resources).errorMessage
                     )
                 }
             }
@@ -92,7 +94,7 @@ class ReportDetailViewModel @Inject constructor(
                 _uiState.update { it.copy(comments = comments) }
             }
             .catch { error ->
-                _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
+                _uiState.update { it.copy(actionResult = error.toRequestFailure(resources)) }
             }
             .launchIn(viewModelScope)
     }
@@ -107,7 +109,7 @@ class ReportDetailViewModel @Inject constructor(
                         _uiState.update { it.copy(actionResult = RequestResult.Success("OK")) }
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
+                        _uiState.update { it.copy(actionResult = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -141,7 +143,7 @@ class ReportDetailViewModel @Inject constructor(
                         }
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
+                        _uiState.update { it.copy(actionResult = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -182,7 +184,7 @@ class ReportDetailViewModel @Inject constructor(
                         }
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
+                        _uiState.update { it.copy(actionResult = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -214,7 +216,7 @@ class ReportDetailViewModel @Inject constructor(
                         }
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(actionResult = error.toRequestFailure()) }
+                        _uiState.update { it.copy(actionResult = error.toRequestFailure(resources)) }
                     }
                 )
         }

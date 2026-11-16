@@ -11,26 +11,38 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.UpdateProfileUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.UpdateProfilePhotoUseCase
+import uniquindio.proyectoalertalocal.R
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val updateProfileUseCase: UpdateProfileUseCase,
-    private val updateProfilePhotoUseCase: UpdateProfilePhotoUseCase
+    private val updateProfilePhotoUseCase: UpdateProfilePhotoUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
     val uiState: StateFlow<EditProfileUiState> = _uiState.asStateFlow()
 
+    fun nameErrorMessage(): String? =
+        _uiState.value.nameErrorRes?.let { resources.getString(it) }
+
+    fun emailErrorMessage(): String? =
+        _uiState.value.emailErrorRes?.let { resources.getString(it) }
+
+    fun phoneErrorMessage(): String? =
+        _uiState.value.phoneErrorRes?.let { resources.getString(it) }
+
     init {
         viewModelScope.launch {
             getCurrentUserUseCase()
                 .catch { error ->
-                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                 }
                 .collect { user ->
                     if (user == null) return@collect
@@ -95,16 +107,16 @@ class EditProfileViewModel @Inject constructor(
                     outcome.fold(
                         onSuccess = {
                             _uiState.update {
-                                it.copy(result = RequestResult.Success(SUCCESS_MESSAGE))
+                                it.copy(result = RequestResult.Success(resources.getString(SUCCESS_MESSAGE)))
                             }
                         },
                         onFailure = { error ->
-                            _uiState.update { it.copy(result = error.toRequestFailure()) }
+                            _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                         }
                     )
                 },
                 onFailure = { error ->
-                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                 }
             )
         }
@@ -122,20 +134,20 @@ class EditProfileViewModel @Inject constructor(
                                     it.copy(
                                         profilePictureUrl = user.profilePictureUrl,
                                         photoResult = RequestResult.Success(
-                                            "Foto de perfil actualizada."
+                                            resources.getString(R.string.profile_photo_updated)
                                         )
                                     )
                                 }
                             },
                             onFailure = { error ->
                                 _uiState.update {
-                                    it.copy(photoResult = error.toRequestFailure())
+                                    it.copy(photoResult = error.toRequestFailure(resources))
                                 }
                             }
                         )
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(photoResult = error.toRequestFailure()) }
+                        _uiState.update { it.copy(photoResult = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -153,8 +165,7 @@ class EditProfileViewModel @Inject constructor(
         phone.orEmpty().filter(Char::isDigit).takeLast(PHONE_DIGITS)
 
     companion object {
-        const val SUCCESS_MESSAGE = "Cambios guardados correctamente."
-        const val UNEXPECTED_ERROR = "Ocurrió un error inesperado."
+        private const val SUCCESS_MESSAGE = R.string.profile_changes_saved
         private const val PHONE_DIGITS = 10
     }
 }

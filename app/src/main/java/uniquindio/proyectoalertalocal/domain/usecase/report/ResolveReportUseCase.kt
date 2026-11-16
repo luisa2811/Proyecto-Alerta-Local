@@ -6,6 +6,7 @@ import uniquindio.proyectoalertalocal.domain.model.AppError
 import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
+import uniquindio.proyectoalertalocal.domain.model.NotificationType
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
@@ -59,6 +60,8 @@ class ResolveReportUseCase @Inject constructor(
                 userId = report.authorId,
                 title = "Reporte resuelto",
                 message = "Tu reporte \"${report.title}\" fue marcado como resuelto.",
+                type = NotificationType.RESOLVED,
+                args = listOf(report.title),
                 reportId = report.id
             )
         }

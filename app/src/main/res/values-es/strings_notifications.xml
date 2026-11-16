@@ -1,0 +1,23 @@
+<resources>
+    <string name="notifications_title">Notificaciones</string>
+    <string name="notifications_empty">No tienes notificaciones disponibles.</string>
+    <string name="notifications_mark_read">Marcar leídas</string>
+    <string name="notifications_mark_unread">Marcar como no leída</string>
+    <string name="notifications_accept">Aceptar</string>
+    <string name="notifications_cancel">Cancelar</string>
+    <string name="notifications_confirmation_title">Notificación</string>
+    <string name="notifications_report_unavailable">La publicación relacionada ya no está disponible.</string>
+    <string name="notification_comment_title">Nuevo comentario</string>
+    <string name="notification_comment_message">%2$s comentó en tu reporte «%1$s».</string>
+    <string name="notification_verified_title">Reporte verificado</string>
+    <string name="notification_verified_message">Un moderador verificó tu reporte «%1$s».</string>
+    <string name="notification_rejected_title">Reporte rechazado</string>
+    <string name="notification_rejected_message">Tu reporte «%1$s» fue rechazado: %2$s</string>
+    <string name="notification_resolved_title">Reporte resuelto</string>
+    <string name="notification_resolved_message">Tu reporte «%1$s» fue marcado como resuelto.</string>
+    <string name="notification_reopened_title">Reporte reabierto</string>
+    <string name="notification_reopened_message">Un moderador reabrió tu reporte «%1$s».</string>
+    <string name="notification_achievement_title">Nuevo logro</string>
+    <string name="notification_badge_message">Obtuviste la insignia %1$s.</string>
+    <string name="notification_level_message">Alcanzaste el nivel %1$s.</string>
+</resources>

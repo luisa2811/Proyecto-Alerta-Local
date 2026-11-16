@@ -16,7 +16,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
+import uniquindio.proyectoalertalocal.core.component.titleRes
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.model.Reputation
 import uniquindio.proyectoalertalocal.domain.model.User
 import uniquindio.proyectoalertalocal.domain.model.UserRole
@@ -35,7 +38,8 @@ class ProfileDashboardViewModel @Inject constructor(
     private val getUserReputationUseCase: GetUserReputationUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val deleteAccountUseCase: DeleteAccountUseCase,
-    private val updateProfilePhotoUseCase: UpdateProfilePhotoUseCase
+    private val updateProfilePhotoUseCase: UpdateProfilePhotoUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileDashboardUiState())
@@ -52,7 +56,7 @@ class ProfileDashboardViewModel @Inject constructor(
             }
                 .catch { error ->
                     _uiState.update {
-                        it.copy(result = error.toRequestFailure())
+                        it.copy(result = error.toRequestFailure(resources))
                     }
                 }
                 .collect { newState ->
@@ -70,7 +74,7 @@ class ProfileDashboardViewModel @Inject constructor(
                 .fold(
                     onSuccess = { _uiState.update { it.copy(result = null) } },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -85,19 +89,23 @@ class ProfileDashboardViewModel @Inject constructor(
                         outcome.fold(
                             onSuccess = {
                                 _uiState.update {
-                                    it.copy(result = RequestResult.Success(ACCOUNT_DELETED_MESSAGE))
+                                    it.copy(
+                                        result = RequestResult.Success(
+                                            resources.getString(ACCOUNT_DELETED_MESSAGE)
+                                        )
+                                    )
                                 }
                             },
                             onFailure = { error ->
                                 _uiState.update {
-                                    it.copy(result = error.toRequestFailure())
+                                    it.copy(result = error.toRequestFailure(resources))
                                 }
                             }
                         )
                     },
                     onFailure = { error ->
                         _uiState.update {
-                            it.copy(result = error.toRequestFailure())
+                            it.copy(result = error.toRequestFailure(resources))
                         }
                     }
                 )
@@ -116,18 +124,18 @@ class ProfileDashboardViewModel @Inject constructor(
                                     it.copy(
                                         profilePictureUrl = user.profilePictureUrl,
                                         result = RequestResult.Success(
-                                            "Foto de perfil actualizada."
+                                            resources.getString(R.string.profile_photo_updated)
                                         )
                                     )
                                 }
                             },
                             onFailure = { error ->
-                                _uiState.update { it.copy(result = error.toRequestFailure()) }
+                                _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                             }
                         )
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -151,7 +159,7 @@ class ProfileDashboardViewModel @Inject constructor(
             fullName = user.name,
             profilePictureUrl = user.profilePictureUrl,
             memberSince = user.memberSince?.let(::memberSinceLabel),
-            levelName = visibleReputation?.level?.displayName,
+            levelName = visibleReputation?.level?.let { resources.getString(it.titleRes()) },
             points = visibleReputation?.points ?: 0,
             progress = visibleReputation?.let(::progress) ?: 0f,
             levelMessage = visibleReputation?.let(::levelMessage),
@@ -165,14 +173,19 @@ class ProfileDashboardViewModel @Inject constructor(
     }
 
     private fun memberSinceLabel(memberSince: Instant): String =
-        "Miembro desde " + MEMBER_SINCE_FORMATTER.format(
-            memberSince.atZone(ZoneId.systemDefault())
+        resources.getString(
+            R.string.profile_member_since,
+            MEMBER_SINCE_FORMATTER.format(memberSince.atZone(ZoneId.systemDefault()))
         )
 
     private fun levelMessage(reputation: Reputation): String {
-        val nextLevel = reputation.nextLevel ?: return MAX_LEVEL_MESSAGE
+        val nextLevel = reputation.nextLevel ?: return resources.getString(R.string.profile_max_level)
         val pointsToNextLevel = reputation.pointsToNextLevel ?: 0
-        return "Faltan $pointsToNextLevel para ${nextLevel.displayName}"
+        return resources.getString(
+            R.string.profile_points_to_next_level,
+            pointsToNextLevel,
+            resources.getString(nextLevel.titleRes())
+        )
     }
 
     private fun progress(reputation: Reputation): Float {
@@ -184,11 +197,10 @@ class ProfileDashboardViewModel @Inject constructor(
     }
 
     companion object {
-        const val MAX_LEVEL_MESSAGE = "Nivel máximo alcanzado"
-        const val ACCOUNT_DELETED_MESSAGE = "Tu cuenta se eliminó correctamente."
+        private const val ACCOUNT_DELETED_MESSAGE = R.string.profile_account_deleted
         private val MEMBER_SINCE_FORMATTER = DateTimeFormatter.ofPattern(
             "MMMM yyyy",
-            Locale.forLanguageTag("es-ES")
+            Locale.getDefault()
         )
     }
 }

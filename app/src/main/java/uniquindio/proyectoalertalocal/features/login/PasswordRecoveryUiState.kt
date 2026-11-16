@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.features.login
 
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.isValidEmail
 
@@ -8,9 +9,9 @@ data class PasswordRecoveryUiState(
     val result: RequestResult? = null,
     val emailSent: Boolean = false
 ) {
-    val emailError: String?
+    val emailErrorRes: Int?
         get() = if (email.isNotBlank() && !email.isValidEmail()) {
-            "Correo electrónico inválido."
+            R.string.auth_email_invalid
         } else {
             null
         }

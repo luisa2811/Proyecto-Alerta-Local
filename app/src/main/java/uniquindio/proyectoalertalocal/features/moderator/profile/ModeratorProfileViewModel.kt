@@ -11,7 +11,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.usecase.auth.LogoutUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.GetModeratorStatsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
@@ -22,7 +24,8 @@ class ModeratorProfileViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val getModeratorStatsUseCase: GetModeratorStatsUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val updateProfilePhotoUseCase: UpdateProfilePhotoUseCase
+    private val updateProfilePhotoUseCase: UpdateProfilePhotoUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ModeratorProfileUiState())
@@ -33,7 +36,7 @@ class ModeratorProfileViewModel @Inject constructor(
             getCurrentUserUseCase()
                 .catch { error ->
                     _uiState.update {
-                        it.copy(isLoading = false, result = error.toRequestFailure())
+                        it.copy(isLoading = false, result = error.toRequestFailure(resources))
                     }
                 }
                 .collect { user ->
@@ -44,7 +47,7 @@ class ModeratorProfileViewModel @Inject constructor(
         viewModelScope.launch {
             getModeratorStatsUseCase()
                 .catch { error ->
-                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                 }
                 .collect { stats ->
                     _uiState.update { it.copy(stats = stats) }
@@ -59,7 +62,7 @@ class ModeratorProfileViewModel @Inject constructor(
                 .fold(
                     onSuccess = { _uiState.update { it.copy(result = null) } },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -77,18 +80,18 @@ class ModeratorProfileViewModel @Inject constructor(
                                     it.copy(
                                         user = user,
                                         result = RequestResult.Success(
-                                            "Foto de perfil actualizada."
+                                            resources.getString(R.string.profile_photo_updated)
                                         )
                                     )
                                 }
                             },
                             onFailure = { error ->
-                                _uiState.update { it.copy(result = error.toRequestFailure()) }
+                                _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                             }
                         )
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.comment.ObserveCommentsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveModerationQueueUseCase
@@ -25,7 +26,8 @@ class ModeratorReportDetailViewModel @Inject constructor(
     private val observeModerationQueueUseCase: ObserveModerationQueueUseCase,
     private val observeCommentsUseCase: ObserveCommentsUseCase,
     private val verifyReportUseCase: VerifyReportUseCase,
-    private val rejectReportUseCase: RejectReportUseCase
+    private val rejectReportUseCase: RejectReportUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ModeratorReportDetailUiState())
@@ -47,7 +49,7 @@ class ModeratorReportDetailViewModel @Inject constructor(
             }
                 .catch { error ->
                     _uiState.update {
-                        it.copy(isLoading = false, result = error.toRequestFailure())
+                        it.copy(isLoading = false, result = error.toRequestFailure(resources))
                     }
                 }
                 .collect { (summary, reportsById, comments) ->
@@ -73,7 +75,7 @@ class ModeratorReportDetailViewModel @Inject constructor(
                         _uiState.update { it.copy(result = RequestResult.Success("Reporte verificado.")) }
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -114,7 +116,7 @@ class ModeratorReportDetailViewModel @Inject constructor(
                         }
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }

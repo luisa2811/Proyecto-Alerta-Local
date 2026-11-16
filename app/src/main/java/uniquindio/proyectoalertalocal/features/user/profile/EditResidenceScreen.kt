@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -94,13 +95,13 @@ fun EditResidenceScreen(
             .background(DesignSystem.Colors.Background)
     ) {
         ScreenHeader(
-            title = "Editar dirección de residencia",
+            title = stringResource(R.string.profile_residence_title),
             onBack = onBack,
             titleColor = DesignSystem.Colors.TextPrimary,
             trailingContent = {
                 Image(
                     painter = painterResource(R.drawable.logo_alerta_local),
-                    contentDescription = "Alerta Local",
+                    contentDescription = stringResource(R.string.profile_logo_description),
                     modifier = Modifier
                         .size(28.dp)
                         .clip(RoundedCornerShape(7.dp))
@@ -143,14 +144,14 @@ fun EditResidenceScreen(
                             .align(Alignment.BottomCenter)
                             .padding(bottom = 8.dp)
                     ) {
-                        Text("Elegir en el mapa")
+                        Text(stringResource(R.string.profile_choose_on_map))
                     }
                 }
             }
 
             Spacer(Modifier.height(18.dp))
             Text(
-                text = "Dirección",
+                text = stringResource(R.string.profile_address),
                 color = DesignSystem.Colors.TextPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
@@ -185,7 +186,7 @@ fun EditResidenceScreen(
                         Box {
                             if (uiState.address.isEmpty()) {
                                 Text(
-                                    text = "Dirección",
+                                    text = stringResource(R.string.profile_address),
                                     color = DesignSystem.Colors.ResidenceSecondaryText,
                                     fontSize = 13.sp
                                 )
@@ -198,7 +199,7 @@ fun EditResidenceScreen(
 
             Spacer(Modifier.height(14.dp))
             Text(
-                text = "Barrio o sector",
+                text = stringResource(R.string.profile_neighborhood),
                 color = DesignSystem.Colors.TextPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
@@ -233,7 +234,7 @@ fun EditResidenceScreen(
                         Box {
                             if (uiState.neighborhood.isEmpty()) {
                                 Text(
-                                    text = "Barrio o sector",
+                                    text = stringResource(R.string.profile_neighborhood),
                                     color = DesignSystem.Colors.ResidenceSecondaryText,
                                     fontSize = 13.sp
                                 )
@@ -250,14 +251,14 @@ fun EditResidenceScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Complemento residencial",
+                    text = stringResource(R.string.profile_residential_complement),
                     color = DesignSystem.Colors.TextPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
-                    text = "Opcional",
+                    text = stringResource(R.string.profile_optional),
                     color = DesignSystem.Colors.ResidenceSecondaryText,
                     fontSize = 11.sp
                 )
@@ -292,7 +293,7 @@ fun EditResidenceScreen(
                         Box {
                             if (uiState.complement.isEmpty()) {
                                 Text(
-                                    text = "Ej. Apto 302, Torre B",
+                                    text = stringResource(R.string.profile_complement_example),
                                     color = DesignSystem.Colors.ResidenceSecondaryText,
                                     fontSize = 13.sp
                                 )
@@ -324,7 +325,7 @@ fun EditResidenceScreen(
                     modifier = Modifier.size(18.dp)
                 )
                 Text(
-                    text = "Guardar y confirmar residencia",
+                    text = stringResource(R.string.profile_save_residence),
                     modifier = Modifier.padding(start = 7.dp),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold

@@ -4,6 +4,7 @@ import jakarta.inject.Inject
 import java.time.Instant
 import java.util.UUID
 import uniquindio.proyectoalertalocal.domain.model.Notification
+import uniquindio.proyectoalertalocal.domain.model.NotificationType
 import uniquindio.proyectoalertalocal.domain.repository.NotificationRepository
 
 class NotifyUserUseCase @Inject constructor(
@@ -13,6 +14,8 @@ class NotifyUserUseCase @Inject constructor(
         userId: String,
         title: String,
         message: String,
+        type: NotificationType,
+        args: List<String> = emptyList(),
         reportId: String? = null
     ) {
         notificationRepository.save(
@@ -21,6 +24,8 @@ class NotifyUserUseCase @Inject constructor(
                 userId = userId,
                 title = title,
                 message = message,
+                type = type,
+                args = args,
                 reportId = reportId,
                 createdAt = Instant.now()
             )

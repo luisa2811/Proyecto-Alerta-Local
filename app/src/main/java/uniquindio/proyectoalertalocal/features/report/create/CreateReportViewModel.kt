@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
@@ -39,7 +40,8 @@ class CreateReportViewModel @Inject constructor(
     private val observeReportDetailUseCase: ObserveReportDetailUseCase,
     private val uploadReportImagesUseCase: UploadReportImagesUseCase,
     private val draftReportFromVoiceUseCase: DraftReportFromVoiceUseCase,
-    private val geocodeAddressUseCase: GeocodeAddressUseCase
+    private val geocodeAddressUseCase: GeocodeAddressUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateReportUiState())
@@ -53,7 +55,7 @@ class CreateReportViewModel @Inject constructor(
                 _uiState.update { it.copy(currentUserId = user?.id) }
             }
             .catch { error ->
-                _uiState.update { it.copy(result = error.toRequestFailure()) }
+                _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
             }
             .launchIn(viewModelScope)
     }
@@ -90,7 +92,7 @@ class CreateReportViewModel @Inject constructor(
                         validate()
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
                 )
         }
@@ -141,7 +143,7 @@ class CreateReportViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isGeneratingDraft = false,
-                            draftResult = error.toRequestFailure()
+                            draftResult = error.toRequestFailure(resources)
                         )
                     }
                 }
@@ -172,7 +174,7 @@ class CreateReportViewModel @Inject constructor(
             viewModelScope.launch {
                 val user = getCurrentUserUseCase()
                     .catch { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                         emit(null)
                     }
                     .first()
@@ -266,7 +268,7 @@ class CreateReportViewModel @Inject constructor(
                     },
                     onFailure = { error ->
                         _uiState.update {
-                            it.copy(result = error.toRequestFailure(), isPublishing = false)
+                            it.copy(result = error.toRequestFailure(resources), isPublishing = false)
                         }
                     }
                 )
@@ -322,7 +324,7 @@ class CreateReportViewModel @Inject constructor(
                 },
                 onFailure = { error ->
                     _uiState.update {
-                        it.copy(result = error.toRequestFailure(), isPublishing = false, loadingMessage = "")
+                        it.copy(result = error.toRequestFailure(resources), isPublishing = false, loadingMessage = "")
                     }
                 }
             )
@@ -367,7 +369,7 @@ class CreateReportViewModel @Inject constructor(
                     }
                     },
                     onFailure = { error ->
-                        val message = error.toRequestFailure().errorMessage
+                        val message = error.toRequestFailure(resources).errorMessage
                         if (message == SupportReportUseCase.ERROR_ALREADY_SUPPORTED) {
                             _uiState.update {
                                 it.copy(
@@ -457,7 +459,7 @@ class CreateReportViewModel @Inject constructor(
                 },
                 onFailure = { error ->
                     _uiState.update {
-                        it.copy(result = error.toRequestFailure(), isPublishing = false, loadingMessage = "")
+                        it.copy(result = error.toRequestFailure(resources), isPublishing = false, loadingMessage = "")
                     }
                 }
             )

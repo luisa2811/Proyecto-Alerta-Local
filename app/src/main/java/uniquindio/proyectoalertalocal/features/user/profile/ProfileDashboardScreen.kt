@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -59,6 +60,7 @@ import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 import uniquindio.proyectoalertalocal.core.component.ImagePickerBottomSheet
 import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
+import uniquindio.proyectoalertalocal.core.component.titleRes
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.domain.model.Badge
@@ -76,6 +78,7 @@ fun ProfileDashboardScreen(
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
     var showImagePicker by remember { mutableStateOf(false) }
     var deletePassword by rememberSaveable { mutableStateOf("") }
+    val cameraPermissionMessage = stringResource(R.string.profile_camera_permission)
 
     LaunchedEffect(uiState.result) {
         when (val result = uiState.result) {
@@ -102,7 +105,7 @@ fun ProfileDashboardScreen(
             showImagePicker = false
         },
         onCameraPermissionDenied = {
-            onShowMessage("Se necesita el permiso de la cámara para tomar fotos.")
+            onShowMessage(cameraPermissionMessage)
         }
     )
 
@@ -112,14 +115,14 @@ fun ProfileDashboardScreen(
                 showDeleteAccountDialog = false
                 deletePassword = ""
             },
-            title = { Text("Eliminar mi cuenta") },
+            title = { Text(stringResource(R.string.profile_delete_account_title)) },
             text = {
                 Column {
-                    Text("¿Eliminar tu cuenta? Esta acción no se puede deshacer.")
+                    Text(stringResource(R.string.profile_delete_account_confirm))
                     OutlinedTextField(
                         value = deletePassword,
                         onValueChange = { deletePassword = it },
-                        label = { Text("Contraseña") },
+                        label = { Text(stringResource(R.string.profile_password)) },
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(
@@ -138,7 +141,7 @@ fun ProfileDashboardScreen(
                         uiState.result !is RequestResult.Loading
                 ) {
                     Text(
-                        text = "Eliminar",
+                        text = stringResource(R.string.profile_delete),
                         color = Color(0xFFD92626),
                         fontWeight = FontWeight.SemiBold
                     )
@@ -151,7 +154,7 @@ fun ProfileDashboardScreen(
                         deletePassword = ""
                     }
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.profile_cancel))
                 }
             }
         )
@@ -163,13 +166,13 @@ fun ProfileDashboardScreen(
             .background(DesignSystem.Colors.Background)
     ) {
         ScreenHeader(
-            title = "Mi perfil",
+            title = stringResource(R.string.profile_my_profile),
             onBack = onBack,
             titleColor = DesignSystem.Colors.TextPrimary,
             trailingContent = {
                 Image(
                     painter = painterResource(R.drawable.logo_alerta_local),
-                    contentDescription = "Alerta Local",
+                    contentDescription = stringResource(R.string.profile_logo_description),
                     modifier = Modifier
                         .size(28.dp)
                         .clip(RoundedCornerShape(7.dp))
@@ -209,7 +212,7 @@ fun ProfileDashboardScreen(
                     } else {
                         AsyncImage(
                             model = uiState.profilePictureUrl,
-                            contentDescription = "Foto de perfil",
+                            contentDescription = stringResource(R.string.profile_photo_description),
                             modifier = Modifier.fillMaxSize().clip(CircleShape),
                             contentScale = ContentScale.Crop,
                             placeholder = rememberVectorPainter(Icons.Filled.Person),
@@ -252,19 +255,19 @@ fun ProfileDashboardScreen(
                 ) {
                     StatCard(
                         count = uiState.activeReports,
-                        label = "Activas",
+                        label = stringResource(R.string.profile_active),
                         color = DesignSystem.Colors.TextPrimary,
                         modifier = Modifier.weight(1f)
                     )
                     StatCard(
                         count = uiState.resolvedReports,
-                        label = "Finalizadas",
+                        label = stringResource(R.string.profile_completed),
                         color = Color(0xFF23754F),
                         modifier = Modifier.weight(1f)
                     )
                     StatCard(
                         count = uiState.pendingReports,
-                        label = "Por verificar",
+                        label = stringResource(R.string.profile_pending_verification),
                         color = Color(0xFFD75418),
                         modifier = Modifier.weight(1f)
                     )
@@ -272,7 +275,7 @@ fun ProfileDashboardScreen(
 
                 if (uiState.showBadges) {
                     Text(
-                        text = "Insignias",
+                        text = stringResource(R.string.profile_badges),
                         color = DesignSystem.Colors.TextPrimary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
@@ -281,7 +284,7 @@ fun ProfileDashboardScreen(
                             .padding(top = 22.dp)
                     )
                     Text(
-                        text = "Las insignias son logros: se ganan por acciones concretas, no por puntos.",
+                        text = stringResource(R.string.profile_badges_explanation),
                         color = DesignSystem.Colors.TextSecondary,
                         fontSize = 10.sp,
                         lineHeight = 14.sp,
@@ -327,15 +330,15 @@ fun ProfileDashboardScreen(
                     .background(DesignSystem.Colors.White)
             ) {
                 ProfileMenuRow(
-                    title = "Editar mis datos",
+                    title = stringResource(R.string.profile_edit_data),
                     onClick = onEditProfile
                 )
                 ProfileMenuRow(
-                    title = "Cerrar sesión",
+                    title = stringResource(R.string.profile_logout),
                     onClick = viewModel::logout
                 )
                 ProfileMenuRow(
-                    title = "Eliminar mi cuenta",
+                    title = stringResource(R.string.profile_delete_account),
                     destructive = true,
                     last = true,
                     onClick = {
@@ -366,7 +369,7 @@ private fun LevelCard(
             .padding(12.dp)
     ) {
         Text(
-            text = "Tu nivel",
+            text = stringResource(R.string.profile_your_level),
             color = DesignSystem.Colors.TextPrimary,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold
@@ -392,7 +395,7 @@ private fun LevelCard(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = level.displayName,
+                        text = stringResource(level.titleRes()),
                         color = if (isCurrent) DesignSystem.Colors.Primary else DesignSystem.Colors.TextSecondary,
                         fontSize = 8.sp,
                         lineHeight = 10.sp,
@@ -415,7 +418,7 @@ private fun LevelCard(
             }
         }
         Text(
-            text = "$points puntos · $levelMessage",
+            text = stringResource(R.string.profile_points, points, levelMessage),
             color = DesignSystem.Colors.TextSecondary,
             fontSize = 10.sp,
             modifier = Modifier.padding(top = 10.dp)
@@ -446,7 +449,7 @@ private fun LevelCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "¿Cómo gano puntos?",
+                text = stringResource(R.string.profile_points_how_to_earn),
                 color = DesignSystem.Colors.Primary,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -468,12 +471,12 @@ private fun LevelCard(
                     .padding(top = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                PointValueRow("Crear un reporte", ReputationRules.POINTS_PER_REPORT)
-                PointValueRow("Reporte verificado", ReputationRules.POINTS_PER_VERIFIED_REPORT)
-                PointValueRow("Reporte resuelto", ReputationRules.POINTS_PER_RESOLVED_REPORT)
-                PointValueRow("Comentar", ReputationRules.POINTS_PER_COMMENT)
+                PointValueRow(stringResource(R.string.profile_create_report), ReputationRules.POINTS_PER_REPORT)
+                PointValueRow(stringResource(R.string.profile_verified_report), ReputationRules.POINTS_PER_VERIFIED_REPORT)
+                PointValueRow(stringResource(R.string.profile_resolved_report), ReputationRules.POINTS_PER_RESOLVED_REPORT)
+                PointValueRow(stringResource(R.string.profile_comment), ReputationRules.POINTS_PER_COMMENT)
                 PointValueRow(
-                    "Cada voto \"Es importante\" recibido",
+                    stringResource(R.string.profile_important_vote_received),
                     ReputationRules.POINTS_PER_VOTE
                 )
             }
@@ -586,7 +589,9 @@ private fun BadgeItem(
                 )
             }
             Text(
-                text = if (earned) "Obtenida" else "En progreso",
+                text = stringResource(
+                    if (earned) R.string.profile_badge_earned else R.string.profile_badge_in_progress
+                ),
                 color = if (earned) tint else Color(0xFF8D8A86),
                 fontSize = 9.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -594,7 +599,7 @@ private fun BadgeItem(
             )
         }
         Text(
-            text = badge.displayName,
+            text = stringResource(badge.titleRes()),
             color = if (earned) DesignSystem.Colors.TextPrimary else Color(0xFF777470),
             fontSize = 10.sp,
             lineHeight = 12.sp,
@@ -634,11 +639,12 @@ private fun badgeGoal(badge: Badge): Int = when (badge) {
     Badge.NEIGHBORHOOD_VOICE -> ReputationRules.MIN_VOTES_FOR_NEIGHBORHOOD_VOICE
 }
 
+@Composable
 private fun badgeProgressLabel(badge: Badge, current: Int, goal: Int): String = when (badge) {
-    Badge.FIRST_REPORT -> "$current/$goal reportes creados"
-    Badge.TRUSTED_REPORTER -> "$current/$goal reportes verificados"
-    Badge.ACTIVE_NEIGHBOR -> "$current/$goal comentarios"
-    Badge.NEIGHBORHOOD_VOICE -> "$current/$goal votos en tu reporte del mes"
+    Badge.FIRST_REPORT -> stringResource(R.string.profile_badge_first_report_progress, current, goal)
+    Badge.TRUSTED_REPORTER -> stringResource(R.string.profile_badge_trusted_reporter_progress, current, goal)
+    Badge.ACTIVE_NEIGHBOR -> stringResource(R.string.profile_badge_active_neighbor_progress, current, goal)
+    Badge.NEIGHBORHOOD_VOICE -> stringResource(R.string.profile_badge_neighborhood_voice_progress, current, goal)
 }
 
 private fun badgeIcon(badge: Badge): ImageVector = when (badge) {
