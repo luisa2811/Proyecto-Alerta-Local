@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mapbox.geojson.Point
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.component.MapBox
 import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
 import uniquindio.proyectoalertalocal.core.component.ReportImageCarousel
@@ -90,7 +92,7 @@ fun ModeratorReportDetailScreen(
                 .background(DesignSystem.Colors.Background)
         ) {
             ScreenHeader(
-                title = "Detalle del reporte",
+                title = stringResource(R.string.moderator_detail_title),
                 onBack = onBack
             )
 
@@ -104,7 +106,7 @@ fun ModeratorReportDetailScreen(
             val summary = uiState.summary
             if (summary == null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("El reporte no existe.", color = DesignSystem.Colors.TextSecondary)
+                    Text(stringResource(R.string.reports_not_found), color = DesignSystem.Colors.TextSecondary)
                 }
                 return@Column
             }
@@ -157,14 +159,14 @@ fun ModeratorReportDetailScreen(
                         )
                     }
                     Text(
-                        text = "Publicado por ${summary.authorName}",
+                        text = stringResource(R.string.moderator_published_by, summary.authorName),
                         modifier = Modifier.padding(start = 8.dp),
                         color = DesignSystem.Colors.TextPrimary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = " · ${report.createdAt.toRelativeTime()}",
+                        text = stringResource(R.string.moderator_time_prefix, report.createdAt.toRelativeTime()),
                         color = DesignSystem.Colors.TextSecondary,
                         fontSize = 12.sp
                     )
@@ -198,7 +200,7 @@ fun ModeratorReportDetailScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Place,
-                                contentDescription = "Ubicación",
+                                contentDescription = stringResource(R.string.reports_location),
                                 tint = DesignSystem.Colors.LocationIconTint,
                                 modifier = Modifier.size(23.dp)
                             )
@@ -241,9 +243,9 @@ fun ModeratorReportDetailScreen(
                     val original = uiState.reportsById[report.possibleDuplicateOf]
                     Text(
                         text = if (original != null) {
-                            "Posible duplicado de \"${original.title}\""
+                            stringResource(R.string.moderator_possible_duplicate, original.title)
                         } else {
-                            "El reporte original ya no está disponible."
+                            stringResource(R.string.moderator_original_missing)
                         },
                         modifier = Modifier.padding(top = 8.dp),
                         color = DesignSystem.Colors.TextSecondary,
@@ -253,7 +255,7 @@ fun ModeratorReportDetailScreen(
 
                 if (report.status == ReportStatus.REJECTED && !report.rejectionReason.isNullOrBlank()) {
                     Text(
-                        text = "Motivo de rechazo: ${report.rejectionReason}",
+                        text = stringResource(R.string.reports_rejection_reason, report.rejectionReason.orEmpty()),
                         modifier = Modifier.padding(top = 8.dp),
                         color = DesignSystem.Colors.ModeratorRed,
                         fontSize = 11.sp,
@@ -262,7 +264,7 @@ fun ModeratorReportDetailScreen(
                 }
                 if (report.status == ReportStatus.RESOLVED && !report.resolutionNote.isNullOrBlank()) {
                     Text(
-                        text = "Nota de resolución: ${report.resolutionNote}",
+                        text = stringResource(R.string.reports_resolution_note, report.resolutionNote.orEmpty()),
                         modifier = Modifier.padding(top = 8.dp),
                         color = DesignSystem.Colors.ModeratorGreen,
                         fontSize = 11.sp,
@@ -272,7 +274,7 @@ fun ModeratorReportDetailScreen(
 
                 HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
                 Text(
-                    text = "Comentarios · ${uiState.comments.size}",
+                    text = stringResource(R.string.moderator_comments_count, uiState.comments.size),
                     modifier = Modifier.padding(top = 14.dp),
                     color = DesignSystem.Colors.TextPrimary,
                     fontSize = 12.sp,
@@ -280,7 +282,7 @@ fun ModeratorReportDetailScreen(
                 )
                 if (uiState.comments.isEmpty()) {
                     Text(
-                        text = "Aún no hay comentarios.",
+                        text = stringResource(R.string.moderator_empty_comments),
                         modifier = Modifier.padding(top = 12.dp, bottom = 18.dp),
                         color = DesignSystem.Colors.TextSecondary,
                         fontSize = 11.sp
@@ -316,7 +318,10 @@ fun ModeratorReportDetailScreen(
                                         fontWeight = FontWeight.SemiBold
                                     )
                                     Text(
-                                        text = " · ${commentSummary.comment.createdAt.toRelativeTime()}",
+                                        text = stringResource(
+                                            R.string.moderator_time_prefix,
+                                            commentSummary.comment.createdAt.toRelativeTime()
+                                        ),
                                         color = DesignSystem.Colors.TextSecondary,
                                         fontSize = 10.sp
                                     )
@@ -359,13 +364,13 @@ fun ModeratorReportDetailScreen(
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.ModeratorGreen)
                         ) {
-                            Text("Verificar", color = DesignSystem.Colors.White)
+                            Text(stringResource(R.string.moderator_verify), color = DesignSystem.Colors.White)
                         }
                         OutlinedButton(
                             onClick = { viewModel.startReject() },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Rechazar")
+                            Text(stringResource(R.string.moderator_reject))
                         }
                     }
                 }

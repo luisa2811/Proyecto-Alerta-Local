@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.usecase.comment.ObserveCommentsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveModerationQueueUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveModerationReportDetailUseCase
@@ -72,7 +73,9 @@ class ModeratorReportDetailViewModel @Inject constructor(
             runCatching { verifyReportUseCase(reportId).getOrThrow() }
                 .fold(
                     onSuccess = {
-                        _uiState.update { it.copy(result = RequestResult.Success("Reporte verificado.")) }
+                        _uiState.update {
+                            it.copy(result = RequestResult.Success(resources.getString(R.string.moderator_verify_success)))
+                        }
                     },
                     onFailure = { error ->
                         _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
@@ -82,19 +85,19 @@ class ModeratorReportDetailViewModel @Inject constructor(
     }
 
     fun startReject() {
-        _uiState.update { it.copy(rejecting = true, rejectionReason = "") }
+        _uiState.update { it.copy(rejecting = true, rejectionReason = "", rejectionError = null) }
     }
 
     fun cancelReject() {
-        _uiState.update { it.copy(rejecting = false, rejectionReason = "") }
+        _uiState.update { it.copy(rejecting = false, rejectionReason = "", rejectionError = null) }
     }
 
     fun onRejectionReasonChange(reason: String) {
-        _uiState.update { it.copy(rejectionReason = reason) }
+        _uiState.update { it.copy(rejectionReason = reason, rejectionError = rejectionError(reason)) }
     }
 
     fun useQuickReason(reason: String) {
-        _uiState.update { it.copy(rejectionReason = reason) }
+        _uiState.update { it.copy(rejectionReason = reason, rejectionError = rejectionError(reason)) }
     }
 
     fun confirmReject() {
@@ -111,7 +114,8 @@ class ModeratorReportDetailViewModel @Inject constructor(
                             it.copy(
                                 rejecting = false,
                                 rejectionReason = "",
-                                result = RequestResult.Success("Reporte rechazado.")
+                                rejectionError = null,
+                                result = RequestResult.Success(resources.getString(R.string.moderator_reject_success))
                             )
                         }
                     },
@@ -124,5 +128,11 @@ class ModeratorReportDetailViewModel @Inject constructor(
 
     fun onResultShown() {
         _uiState.update { it.copy(result = null) }
+    }
+
+    private fun rejectionError(reason: String): String? {
+        if (reason.isEmpty()) return null
+        val length = reason.trim().length
+        return if (length in 5..300) null else resources.getString(R.string.moderator_invalid_reason)
     }
 }

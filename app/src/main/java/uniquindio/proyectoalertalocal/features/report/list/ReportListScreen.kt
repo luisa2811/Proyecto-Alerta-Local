@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,6 +32,7 @@ import uniquindio.proyectoalertalocal.core.component.ReportHeader
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.lastKnownGeoPoint
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.features.notifications.UnreadNotificationsViewModel
 
@@ -91,8 +93,8 @@ fun ReportListScreen(
         when {
             uiState.reports.isEmpty() -> {
                 ReportEmptyState(
-                    message = "Aún no hay alertas en tu barrio.",
-                    actionLabel = "Crear un reporte",
+                    message = stringResource(R.string.reports_empty_neighborhood),
+                    actionLabel = stringResource(R.string.reports_create),
                     onAction = onCreateReport,
                     modifier = Modifier
                         .weight(1f)
@@ -102,7 +104,7 @@ fun ReportListScreen(
 
             uiState.filteredReports.isEmpty() -> {
                 ReportEmptyState(
-                    message = "No hay alertas con estos filtros.",
+                    message = stringResource(R.string.reports_empty_filters),
                     actionLabel = null,
                     onAction = null,
                     modifier = Modifier
@@ -153,7 +155,7 @@ private fun ReportControls(
             onProximitySelect = onSelectProximity
         )
         Text(
-            text = "Lista",
+            text = stringResource(R.string.reports_list),
             color = DesignSystem.Colors.PrimaryDark,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold

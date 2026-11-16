@@ -48,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mapbox.geojson.Point
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.component.MapBox
 import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
 import uniquindio.proyectoalertalocal.core.component.ReportImageCarousel
@@ -125,16 +127,16 @@ fun ReportDetailScreen(
     if (uiState.showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissDeleteDialog() },
-            title = { Text("Eliminar reporte") },
-            text = { Text("¿Eliminar este reporte? Esta acción no se puede deshacer.") },
+            title = { Text(stringResource(R.string.reports_delete_title)) },
+            text = { Text(stringResource(R.string.reports_delete_confirmation)) },
             confirmButton = {
                 TextButton(onClick = { viewModel.confirmDelete() }) {
-                    Text("Eliminar", color = DesignSystem.Colors.ModeratorRed, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.reports_delete), color = DesignSystem.Colors.ModeratorRed, fontWeight = FontWeight.SemiBold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.dismissDeleteDialog() }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.reports_cancel))
                 }
             }
         )
@@ -147,7 +149,7 @@ fun ReportDetailScreen(
                 .background(DesignSystem.Colors.White)
         ) {
             ScreenHeader(
-                title = "Detalle del reporte",
+                title = stringResource(R.string.reports_title),
                 onBack = onBack,
                 trailingContent = if (uiState.isOwner) {
                     {
@@ -165,7 +167,7 @@ fun ReportDetailScreen(
 
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Cargando...", color = DesignSystem.Colors.TextSecondary)
+                    Text(text = stringResource(R.string.reports_loading), color = DesignSystem.Colors.TextSecondary)
                 }
                 return@Column
             }
@@ -175,7 +177,7 @@ fun ReportDetailScreen(
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     if (!uiState.isDeleted) {
                         Text(
-                            text = uiState.errorMessage ?: "El reporte no existe.",
+                            text = uiState.errorMessage ?: stringResource(R.string.reports_not_found),
                             color = DesignSystem.Colors.TextSecondary
                         )
                     }
@@ -219,19 +221,13 @@ fun ReportDetailScreen(
                     val initials = getAuthorInitials(summary.authorName)
                     Avatar(initials)
                     Text(
-                        text = "Publicado por ",
+                        text = stringResource(R.string.reports_published_by, summary.authorName),
                         modifier = Modifier.padding(start = 8.dp),
                         color = DesignSystem.Colors.TextSecondary,
                         fontSize = 11.sp
                     )
                     Text(
-                        text = summary.authorName,
-                        color = DesignSystem.Colors.ReportAuthorText,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = " · ${report.createdAt.toRelativeTime()}",
+                        text = stringResource(R.string.time_separator_prefix, report.createdAt.toRelativeTime()),
                         color = Color(0xFF55595C),
                         fontSize = 11.sp
                     )
@@ -247,7 +243,7 @@ fun ReportDetailScreen(
 
                 if (report.status == ReportStatus.REJECTED && !report.rejectionReason.isNullOrBlank()) {
                     Text(
-                        text = "Motivo de rechazo: ${report.rejectionReason}",
+                        text = stringResource(R.string.reports_rejection_reason, report.rejectionReason.orEmpty()),
                         modifier = Modifier.padding(top = 10.dp),
                         color = DesignSystem.Colors.ModeratorRed,
                         fontSize = 11.sp
@@ -255,7 +251,7 @@ fun ReportDetailScreen(
                 }
                 if (report.status == ReportStatus.RESOLVED && !report.resolutionNote.isNullOrBlank()) {
                     Text(
-                        text = "Nota de resolución: ${report.resolutionNote}",
+                        text = stringResource(R.string.reports_resolution_note, report.resolutionNote.orEmpty()),
                         modifier = Modifier.padding(top = 10.dp),
                         color = DesignSystem.Colors.ModeratorGreen,
                         fontSize = 11.sp
@@ -282,7 +278,7 @@ fun ReportDetailScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Place,
-                                contentDescription = "Ubicación",
+                                contentDescription = stringResource(R.string.reports_location),
                                 tint = Color(0xFF2775DC),
                                 modifier = Modifier.size(23.dp)
                             )
@@ -339,11 +335,17 @@ fun ReportDetailScreen(
                     ) {
                         Icon(
                             imageVector = if (summary.supportedByCurrentUser) Icons.Filled.Star else Icons.Filled.StarBorder,
-                            contentDescription = if (summary.supportedByCurrentUser) "Quitar marca de importante" else "Marcar como importante",
+                            contentDescription = stringResource(
+                                if (summary.supportedByCurrentUser) {
+                                    R.string.reports_remove_important
+                                } else {
+                                    R.string.reports_mark_important
+                                }
+                            ),
                             modifier = Modifier.size(17.dp)
                         )
                         Text(
-                            text = "Es importante · ${summary.supportCount}",
+                            text = stringResource(R.string.reports_important_count, summary.supportCount),
                             modifier = Modifier.padding(start = 5.dp),
                             fontSize = 11.sp
                         )
@@ -352,7 +354,7 @@ fun ReportDetailScreen(
 
                 HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
                 Text(
-                    text = "Comentarios · ${uiState.comments.size}",
+                    text = stringResource(R.string.reports_comments_count, uiState.comments.size),
                     modifier = Modifier.padding(top = 14.dp),
                     color = DesignSystem.Colors.TextPrimary,
                     fontSize = 12.sp,
@@ -361,7 +363,7 @@ fun ReportDetailScreen(
 
                 if (uiState.comments.isEmpty()) {
                     Text(
-                        text = "Aún no hay comentarios. Sé el primero en comentar.",
+                        text = stringResource(R.string.reports_no_comments_first),
                         modifier = Modifier.padding(top = 12.dp, bottom = 18.dp),
                         color = DesignSystem.Colors.TextSecondary,
                         fontSize = 11.sp
@@ -414,7 +416,7 @@ fun ReportDetailScreen(
                             Box {
                                 if (uiState.commentText.isEmpty()) {
                                     Text(
-                                        text = "Añade un comentario...",
+                                        text = stringResource(R.string.reports_add_comment),
                                         color = DesignSystem.Colors.Placeholder,
                                         fontSize = 11.sp
                                     )
@@ -434,7 +436,7 @@ fun ReportDetailScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
-                            contentDescription = "Enviar comentario",
+                            contentDescription = stringResource(R.string.reports_send_comment),
                             tint = DesignSystem.Colors.White,
                             modifier = Modifier.size(18.dp)
                         )
@@ -466,7 +468,7 @@ private fun OwnerMenu(
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = Icons.Filled.MoreVert,
-                    contentDescription = "Opciones del reporte",
+                    contentDescription = stringResource(R.string.reports_report_options),
                     tint = DesignSystem.Colors.Primary,
                     modifier = Modifier.size(20.dp)
                 )
@@ -477,7 +479,7 @@ private fun OwnerMenu(
             onDismissRequest = { isMenuOpen = false }
         ) {
             DropdownMenuItem(
-                text = { Text("Editar") },
+                text = { Text(stringResource(R.string.reports_edit)) },
                 enabled = reportStatus != ReportStatus.RESOLVED &&
                     reportStatus != ReportStatus.REJECTED,
                 onClick = {
@@ -487,7 +489,7 @@ private fun OwnerMenu(
             )
             if (reportStatus == ReportStatus.VERIFIED) {
                 DropdownMenuItem(
-                    text = { Text("Marcar como resuelto") },
+                    text = { Text(stringResource(R.string.reports_resolve)) },
                     onClick = {
                         isMenuOpen = false
                         onResolve()
@@ -495,7 +497,7 @@ private fun OwnerMenu(
                 )
             }
             DropdownMenuItem(
-                text = { Text("Eliminar") },
+                text = { Text(stringResource(R.string.reports_delete)) },
                 onClick = {
                     isMenuOpen = false
                     onDelete()
@@ -514,11 +516,11 @@ private fun ResolveReportDialog(
 ) {
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text("Marcar como resuelto") },
+        title = { Text(stringResource(R.string.reports_resolve)) },
         text = {
             Column {
                 Text(
-                    text = "¿Cómo se solucionó? (opcional)",
+                    text = stringResource(R.string.reports_resolve_prompt),
                     color = DesignSystem.Colors.TextSecondary,
                     fontSize = 12.sp
                 )
@@ -537,7 +539,7 @@ private fun ResolveReportDialog(
                         Box {
                             if (note.isEmpty()) {
                                 Text(
-                                    text = "Ej: Se reparó el poste con apoyo de la alcaldía.",
+                                    text = stringResource(R.string.reports_resolution_example),
                                     color = DesignSystem.Colors.Placeholder,
                                     fontSize = 12.sp,
                                     lineHeight = 17.sp
@@ -551,12 +553,12 @@ private fun ResolveReportDialog(
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Marcar como resuelto", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.reports_resolve), fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = {
             TextButton(onClick = onCancel) {
-                Text("Cancelar")
+                Text(stringResource(R.string.reports_cancel))
             }
         }
     )
@@ -612,7 +614,7 @@ private fun DemonstrationComment(
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = " · $time",
+                    text = stringResource(R.string.time_separator_prefix, time),
                     color = DesignSystem.Colors.Placeholder,
                     fontSize = 10.sp
                 )

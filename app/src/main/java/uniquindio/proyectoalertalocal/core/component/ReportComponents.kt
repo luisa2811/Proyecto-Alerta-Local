@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.core.component
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,10 +72,11 @@ fun getAuthorInitials(authorName: String): String {
     }
 }
 
-fun ProximityFilter.label(): String = when (this) {
-    ProximityFilter.NEARBY -> "Cerca de mí"
-    ProximityFilter.ZONE -> "En mi zona"
-    ProximityFilter.CITY -> "Toda la ciudad"
+@StringRes
+fun ProximityFilter.labelRes(): Int = when (this) {
+    ProximityFilter.NEARBY -> R.string.proximity_nearby
+    ProximityFilter.ZONE -> R.string.proximity_zone
+    ProximityFilter.CITY -> R.string.proximity_city
 }
 
 @Composable
@@ -82,8 +85,8 @@ fun ReportHeader(
     hasUnreadNotifications: Boolean,
     modifier: Modifier = Modifier,
     onEditLocation: (() -> Unit)? = null,
-    neighborhoodText: String = "Los Rosales",
-    addressText: String = "Cra 15 #8-42"
+    neighborhoodText: String,
+    addressText: String = ""
 ) {
     Row(
         modifier = modifier
@@ -95,14 +98,14 @@ fun ReportHeader(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painter = painterResource(R.drawable.logo_alerta_local),
-                    contentDescription = "Logo de Alerta Local",
+                    contentDescription = stringResource(R.string.brand_logo_description),
                     modifier = Modifier
                         .size(24.dp)
                         .clip(RoundedCornerShape(6.dp)),
                     contentScale = ContentScale.Crop
                 )
                 Text(
-                    text = "Alerta Local",
+                    text = stringResource(R.string.brand_name),
                     modifier = Modifier.padding(start = 10.dp),
                     color = DesignSystem.Colors.HeaderText,
                     fontSize = 20.sp,
@@ -125,7 +128,7 @@ fun ReportHeader(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Place,
-                    contentDescription = "Ubicación simulada",
+                    contentDescription = stringResource(R.string.header_location_description),
                     tint = DesignSystem.Colors.HomeAccent,
                     modifier = Modifier.size(15.dp)
                 )
@@ -138,7 +141,7 @@ fun ReportHeader(
                 )
                 if (addressText.isNotEmpty()) {
                     Text(
-                        text = " · $addressText",
+                        text = stringResource(R.string.header_address_prefix, addressText),
                         color = DesignSystem.Colors.HomeSecondaryText,
                         fontSize = 12.sp,
                         maxLines = 1
@@ -147,7 +150,7 @@ fun ReportHeader(
                 if (onEditLocation != null) {
                     Icon(
                         imageVector = Icons.Filled.Edit,
-                        contentDescription = "Editar ubicación",
+                        contentDescription = stringResource(R.string.header_edit_location),
                         tint = DesignSystem.Colors.PrimaryDark,
                         modifier = Modifier
                             .padding(start = 7.dp)
@@ -168,7 +171,7 @@ fun ReportHeader(
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Filled.NotificationsNone,
-                        contentDescription = "Abrir notificaciones",
+                        contentDescription = stringResource(R.string.header_notifications),
                         tint = DesignSystem.Colors.PrimaryDark,
                         modifier = Modifier.size(23.dp)
                     )
@@ -203,7 +206,8 @@ fun ReportCategoryFilters(
     ) {
         categories.forEach { category ->
             val isSelected = category == selectedCategory
-            val label = category?.label() ?: "Todos"
+            val label = category?.let { stringResource(it.labelRes()) }
+                ?: stringResource(R.string.reports_all)
             Surface(
                 modifier = Modifier
                     .clip(CircleShape)
@@ -239,12 +243,12 @@ fun ProximitySelector(
         ) {
             Icon(
                 imageVector = Icons.Filled.FilterList,
-                contentDescription = "Filtrar por proximidad",
+                contentDescription = stringResource(R.string.header_filter_proximity),
                 modifier = Modifier.size(16.dp),
                 tint = DesignSystem.Colors.HomeSecondaryText
             )
             Text(
-                text = proximity.label(),
+                text = stringResource(proximity.labelRes()),
                 modifier = Modifier.padding(start = 6.dp),
                 color = Color(0xFF4F5356),
                 fontSize = 12.sp
@@ -256,7 +260,7 @@ fun ProximitySelector(
         ) {
             ProximityFilter.entries.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option.label()) },
+                    text = { Text(stringResource(option.labelRes())) },
                     onClick = {
                         onProximitySelect(option)
                         isMenuOpen = false
@@ -292,7 +296,7 @@ fun ReportCategoryTag(
     modifier: Modifier = Modifier
 ) {
     Tag(
-        text = category.label(),
+        text = stringResource(category.labelRes()),
         background = category.color().copy(alpha = 0.12f),
         textColor = category.color(),
         modifier = modifier
@@ -305,7 +309,7 @@ fun ReportSeverityTag(
     modifier: Modifier = Modifier
 ) {
     Tag(
-        text = severity.label(),
+        text = stringResource(severity.labelRes()),
         background = severity.color().copy(alpha = 0.12f),
         textColor = severity.color(),
         modifier = modifier
@@ -334,7 +338,7 @@ fun ReportStatusTag(
             Spacer(modifier = Modifier.width(3.dp))
         }
         Text(
-            text = status.label(),
+            text = stringResource(status.labelRes()),
             color = status.color(),
             fontSize = 10.sp,
             fontWeight = FontWeight.Medium
@@ -406,7 +410,11 @@ fun ReportCard(
                 ReportStatusTag(status = report.status)
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = "${report.distanceMeters} m · ${report.createdAt.toRelativeTime()}",
+                    text = stringResource(
+                        R.string.reports_distance_time,
+                        report.distanceMeters,
+                        report.createdAt.toRelativeTime()
+                    ),
                     color = DesignSystem.Colors.HomeSecondaryText,
                     fontSize = 10.sp
                 )
@@ -449,12 +457,12 @@ fun ReportCard(
                 ReportCounter(
                     icon = if (summary.supportedByCurrentUser) Icons.Filled.Star else Icons.Filled.StarBorder,
                     count = summary.supportCount,
-                    description = "Es importante"
+                    description = stringResource(R.string.reports_important)
                 )
                 ReportCounter(
                     icon = Icons.Filled.ChatBubbleOutline,
                     count = summary.commentCount,
-                    description = "Comentarios"
+                    description = stringResource(R.string.reports_comments)
                 )
             }
 
@@ -490,7 +498,7 @@ fun ReportCard(
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "Residente",
+                        text = stringResource(R.string.reports_resident),
                         color = DesignSystem.Colors.HomeSecondaryText,
                         fontSize = 10.sp
                     )

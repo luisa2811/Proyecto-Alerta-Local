@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.usecase.comment.AddCommentUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.comment.ObserveCommentsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.DeleteReportUseCase
@@ -71,7 +72,7 @@ class ReportDetailViewModel @Inject constructor(
                             state.copy(
                                 isLoading = false,
                                 reportSummary = null,
-                                errorMessage = "El reporte no existe."
+                                errorMessage = resources.getString(R.string.reports_not_found)
                             )
                         }
                     }
@@ -106,7 +107,9 @@ class ReportDetailViewModel @Inject constructor(
             runCatching { toggleReportSupportUseCase(reportId).getOrThrow() }
                 .fold(
                     onSuccess = {
-                        _uiState.update { it.copy(actionResult = RequestResult.Success("OK")) }
+                        _uiState.update {
+                            it.copy(actionResult = RequestResult.Success(resources.getString(R.string.reports_support_updated)))
+                        }
                     },
                     onFailure = { error ->
                         _uiState.update { it.copy(actionResult = error.toRequestFailure(resources)) }
@@ -118,7 +121,8 @@ class ReportDetailViewModel @Inject constructor(
     fun onCommentTextChange(newText: String) {
         val isValid = newText.isNotBlank() && newText.length <= 300
         val commentError = when {
-            newText.isNotEmpty() && newText.length > 300 -> "El comentario no puede superar 300 caracteres."
+            newText.isNotEmpty() && newText.length > 300 ->
+                resources.getString(R.string.reports_comment_validation)
             else -> null
         }
         _uiState.update { it.copy(commentText = newText, isCommentValid = isValid, commentError = commentError) }
@@ -179,7 +183,7 @@ class ReportDetailViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 resolveNote = "",
-                                actionResult = RequestResult.Success("Reporte marcado como resuelto.")
+                                actionResult = RequestResult.Success(resources.getString(R.string.reports_resolve_success))
                             )
                         }
                     },
@@ -210,7 +214,7 @@ class ReportDetailViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isDeleted = true,
-                                actionResult = RequestResult.Success("Reporte eliminado."),
+                                actionResult = RequestResult.Success(resources.getString(R.string.reports_delete_success)),
                                 navigation = ReportDetailNavigation.ToMyReports
                             )
                         }

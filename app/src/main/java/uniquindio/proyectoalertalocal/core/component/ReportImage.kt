@@ -16,22 +16,24 @@ import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
+import uniquindio.proyectoalertalocal.R
 
 @Composable
 fun ReportImage(
     imageUrl: String,
     modifier: Modifier = Modifier,
-    contentDescription: String = "Foto del reporte"
+    contentDescription: String? = null
 ) {
     AsyncImage(
         model = imageUrl,
-        contentDescription = contentDescription,
+        contentDescription = contentDescription ?: stringResource(R.string.image_report_description),
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .background(DesignSystem.Colors.FilterSurface),

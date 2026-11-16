@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveResolutionsUseCase
@@ -64,7 +65,16 @@ class ModeratorResolutionsViewModel @Inject constructor(
     }
 
     fun onNoteChange(reportId: String, note: String) {
-        _uiState.update { it.copy(notes = it.notes + (reportId to note)) }
+        _uiState.update {
+            it.copy(
+                notes = it.notes + (reportId to note),
+                noteErrors = if (note.length > 300) {
+                    it.noteErrors + (reportId to resources.getString(R.string.moderator_note_too_long))
+                } else {
+                    it.noteErrors - reportId
+                }
+            )
+        }
     }
 
     fun resolveReport(reportId: String) {
@@ -76,7 +86,7 @@ class ModeratorResolutionsViewModel @Inject constructor(
                 .fold(
                     onSuccess = {
                         _uiState.update {
-                            it.copy(result = RequestResult.Success("Reporte marcado como resuelto."))
+                            it.copy(result = RequestResult.Success(resources.getString(R.string.moderator_resolve_success)))
                         }
                     },
                     onFailure = { error ->
@@ -104,7 +114,7 @@ class ModeratorResolutionsViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 reopeningReportId = null,
-                                result = RequestResult.Success("Reporte reabierto.")
+                                result = RequestResult.Success(resources.getString(R.string.moderator_reopen_success))
                             )
                         }
                     },

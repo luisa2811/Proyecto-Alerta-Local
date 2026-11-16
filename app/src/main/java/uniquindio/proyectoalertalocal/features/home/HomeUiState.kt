@@ -15,7 +15,7 @@ data class HomeUiState(
     val selectedCategory: ReportCategory? = null,
     val selectedProximity: ProximityFilter = ProximityFilter.NEARBY,
     val selectedView: HomeView = HomeView.MAP,
-    val neighborhood: String = "Mi barrio",
+    val neighborhood: String = "",
     val origin: GeoPoint? = null,
     val deviceLocation: GeoPoint? = null,
     val residenceLocation: GeoPoint? = null,

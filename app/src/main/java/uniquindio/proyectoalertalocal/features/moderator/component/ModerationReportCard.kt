@@ -35,15 +35,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
 import uniquindio.proyectoalertalocal.core.component.ReportImage
 import uniquindio.proyectoalertalocal.core.component.ReportSeverityTag
 import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
-import uniquindio.proyectoalertalocal.core.component.label
+import uniquindio.proyectoalertalocal.core.component.labelRes
 
 @Composable
 fun ModerationReportCard(
@@ -94,7 +96,10 @@ fun ModerationReportCard(
                     color = DesignSystem.Colors.ModeratorNavy.copy(alpha = 0.08f)
                 ) {
                     Text(
-                        text = "Prioridad ${summary.severity.label()}",
+                        text = stringResource(
+                            R.string.moderator_priority,
+                            stringResource(summary.severity.labelRes())
+                        ),
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         color = DesignSystem.Colors.ModeratorNavy,
                         fontSize = 10.sp,
@@ -141,7 +146,10 @@ fun ModerationReportCard(
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = " · ${report.createdAt.toRelativeTime()}",
+                    text = stringResource(
+                        R.string.moderator_time_prefix,
+                        report.createdAt.toRelativeTime()
+                    ),
                     color = DesignSystem.Colors.TextSecondary,
                     fontSize = 11.sp
                 )
@@ -184,7 +192,9 @@ fun ModerationReportCard(
             if (hasDescriptionOverflow) {
                 TextButton(onClick = { expanded = !expanded }) {
                     Text(
-                        text = if (expanded) "Ver menos" else "Ver más",
+                        text = stringResource(
+                            if (expanded) R.string.moderator_show_less else R.string.moderator_show_more
+                        ),
                         fontSize = 11.sp
                     )
                 }
@@ -192,7 +202,7 @@ fun ModerationReportCard(
 
             if (selectedTab == uniquindio.proyectoalertalocal.features.moderator.pending.ModerationTab.REJECTED && !report.rejectionReason.isNullOrBlank()) {
                 Text(
-                    text = "Motivo: ${report.rejectionReason}",
+                    text = stringResource(R.string.moderator_reason_prefix, report.rejectionReason.orEmpty()),
                     modifier = Modifier.padding(top = 4.dp),
                     color = DesignSystem.Colors.ModeratorRed,
                     fontSize = 11.sp,
@@ -205,13 +215,13 @@ fun ModerationReportCard(
                 if (original != null) {
                     TextButton(onClick = { onOpenDetail(original.id) }) {
                         Text(
-                            text = "Posible duplicado de \"${original.title}\"",
+                            text = stringResource(R.string.moderator_possible_duplicate, original.title),
                             fontSize = 11.sp
                         )
                     }
                 } else {
                     Text(
-                        text = "El reporte original ya no está disponible.",
+                        text = stringResource(R.string.moderator_original_missing),
                         modifier = Modifier.padding(top = 4.dp),
                         color = DesignSystem.Colors.TextSecondary,
                         fontSize = 11.sp
@@ -243,13 +253,13 @@ fun ModerationReportCard(
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.ModeratorGreen)
                         ) {
-                            Text("Verificar", color = DesignSystem.Colors.White)
+                            Text(stringResource(R.string.moderator_verify), color = DesignSystem.Colors.White)
                         }
                         OutlinedButton(
                             onClick = { onStartReject(report.id) },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Rechazar")
+                            Text(stringResource(R.string.moderator_reject))
                         }
                     }
                 }

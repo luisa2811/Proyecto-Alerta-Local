@@ -1,3 +1,46 @@
 <resources>
-    <string name="app_name">ProyectoAlertaLocal</string>
+    <string name="app_name">Local Alert</string>
+    <string name="brand_name">Local Alert</string>
+    <string name="brand_logo_description">Local Alert logo</string>
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="neighborhood_fallback">My neighborhood</string>
+    <string name="onboarding_title">A safer community starts here</string>
+    <string name="onboarding_description">Share neighborhood alerts, learn what is happening nearby, and help your neighbors with timely information.</string>
+    <string name="onboarding_continue">Get to know the app</string>
+    <string name="prelogin_title">Your neighborhood, more connected</string>
+    <string name="prelogin_description">Stay informed and take part in caring for your community.</string>
+    <string name="prelogin_map_caption">La Esperanza · map preview</string>
+    <string name="prelogin_nearby_alerts">Nearby alerts</string>
+    <string name="prelogin_nearby_description">Reports, services, and neighborhood news</string>
+    <string name="login_sign_in">Sign in</string>
+    <string name="login_create_account">Create an account</string>
+    <string name="header_location_description">Location</string>
+    <string name="header_address_prefix"> · %1$s</string>
+    <string name="header_edit_location">Edit location</string>
+    <string name="header_notifications">Open notifications</string>
+    <string name="header_filter_proximity">Filter by proximity</string>
+    <string name="navigation_create_report">Create report</string>
+    <string name="navigation_home">Home</string>
+    <string name="navigation_alerts">Alerts</string>
+    <string name="navigation_create">Create</string>
+    <string name="navigation_my_reports">My reports</string>
+    <string name="image_picker_camera">Take a photo</string>
+    <string name="image_picker_gallery">Choose from gallery</string>
+    <string name="image_report_description">Report image</string>
+    <string name="time_just_now">Just now</string>
+    <string name="time_separator_prefix"> · %1$s</string>
+    <plurals name="time_minutes_ago">
+        <item quantity="one">%d min ago</item>
+        <item quantity="other">%d min ago</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d hr ago</item>
+        <item quantity="other">%d hr ago</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
 </resources>

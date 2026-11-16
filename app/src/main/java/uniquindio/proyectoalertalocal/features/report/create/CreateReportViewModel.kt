@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportDraft
@@ -70,7 +71,7 @@ class CreateReportViewModel @Inject constructor(
                     onSuccess = { summary ->
                         if (summary == null) {
                             _uiState.update {
-                                it.copy(result = RequestResult.Failure("El reporte no existe."))
+                                it.copy(result = RequestResult.Failure(resources.getString(R.string.reports_missing)))
                             }
                             return@fold
                         }
@@ -164,7 +165,7 @@ class CreateReportViewModel @Inject constructor(
                 location = draft.addressHint?.takeIf(String::isNotBlank) ?: state.location,
                 isGeneratingDraft = false,
                 draftResult = null,
-                draftNotice = DRAFT_REVIEW_NOTICE
+                draftNotice = resources.getString(R.string.reports_draft_review)
             )
         }
         validate()
@@ -197,7 +198,7 @@ class CreateReportViewModel @Inject constructor(
                         currentState.copy(
                             latitude = point.latitude,
                             longitude = point.longitude,
-                            draftNotice = GEOCODED_LOCATION_NOTICE
+                            draftNotice = resources.getString(R.string.reports_draft_location)
                         )
                     }
                 }
@@ -286,13 +287,13 @@ class CreateReportViewModel @Inject constructor(
             it.copy(
                 result = RequestResult.Loading,
                 isPublishing = true,
-                loadingMessage = "Guardando cambios..."
+                loadingMessage = resources.getString(R.string.reports_loading_save)
             )
         }
         viewModelScope.launch {
             runCatching {
                 val uploadedImageUrls = if (state.localImageUris.isNotEmpty()) {
-                    _uiState.update { it.copy(loadingMessage = "Subiendo fotos...") }
+                    _uiState.update { it.copy(loadingMessage = resources.getString(R.string.reports_loading_upload)) }
                     uploadReportImagesUseCase(state.localImageUris).getOrThrow()
                 } else {
                     emptyList()
@@ -310,9 +311,9 @@ class CreateReportViewModel @Inject constructor(
             }.fold(
                 onSuccess = {
                     val message = if (state.originalStatus == ReportStatus.VERIFIED) {
-                        "Cambios guardados. El reporte volverá a revisión."
+                        resources.getString(R.string.reports_update_pending)
                     } else {
-                        "Cambios guardados correctamente."
+                        resources.getString(R.string.reports_update_success)
                     }
                     _uiState.update {
                         it.copy(
@@ -351,7 +352,7 @@ class CreateReportViewModel @Inject constructor(
                     onSuccess = {
                     _uiState.update {
                         it.copy(
-                            result = RequestResult.Success("Te uniste a este reporte. No se creó uno nuevo."),
+                            result = RequestResult.Success(resources.getString(R.string.reports_support_success)),
                             similarReports = emptyList(),
                             category = null,
                             title = "",
@@ -414,18 +415,18 @@ class CreateReportViewModel @Inject constructor(
             it.copy(
                 result = RequestResult.Loading,
                 isPublishing = true,
-                loadingMessage = "Publicando reporte..."
+                loadingMessage = resources.getString(R.string.reports_loading_publish)
             )
         }
         viewModelScope.launch {
             runCatching {
                 val uploadedImageUrls = if (state.localImageUris.isNotEmpty()) {
-                    _uiState.update { it.copy(loadingMessage = "Subiendo fotos...") }
+                    _uiState.update { it.copy(loadingMessage = resources.getString(R.string.reports_loading_upload)) }
                     uploadReportImagesUseCase(state.localImageUris).getOrThrow()
                 } else {
                     emptyList()
                 }
-                _uiState.update { it.copy(loadingMessage = "Publicando reporte...") }
+                _uiState.update { it.copy(loadingMessage = resources.getString(R.string.reports_loading_publish)) }
                 createReportUseCase(
                     title = state.title,
                     description = state.description,
@@ -440,7 +441,7 @@ class CreateReportViewModel @Inject constructor(
                 onSuccess = {
                     _uiState.update {
                         it.copy(
-                            result = RequestResult.Success("Reporte publicado. Un moderador lo revisará pronto."),
+                            result = RequestResult.Success(resources.getString(R.string.reports_publish_success)),
                             category = null,
                             title = "",
                             description = "",
@@ -477,26 +478,23 @@ class CreateReportViewModel @Inject constructor(
     fun titleError(): String? {
         val state = _uiState.value
         if (state.title.isEmpty()) return null
-        return if (state.title.trim().length in 5..80) null else "El título debe tener entre 5 y 80 caracteres."
+        return if (state.title.trim().length in 5..80) null else resources.getString(R.string.reports_title_validation)
     }
 
     fun descriptionError(): String? {
         val state = _uiState.value
         if (state.description.isEmpty()) return null
-        return if (state.description.trim().length in 10..500) null else "La descripción debe tener entre 10 y 500 caracteres."
+        return if (state.description.trim().length in 10..500) null else resources.getString(R.string.reports_description_validation)
     }
 
     fun locationError(): String? {
         val state = _uiState.value
         if (state.location.isEmpty()) return null
-        return if (state.location.trim().length in 5..120) null else "La dirección debe tener entre 5 y 120 caracteres."
+        return if (state.location.trim().length in 5..120) null else resources.getString(R.string.reports_address_validation)
     }
 
     companion object {
         const val MAX_IMAGES = 3
-        const val DRAFT_REVIEW_NOTICE = "Revisa el borrador antes de publicar."
-        private const val GEOCODED_LOCATION_NOTICE =
-            "Ubicación aproximada según el dictado. Confírmala en el mapa."
         private val DEFAULT_GEOCODING_PROXIMITY = GeoPoint(
             latitude = 4.5339,
             longitude = -75.6811

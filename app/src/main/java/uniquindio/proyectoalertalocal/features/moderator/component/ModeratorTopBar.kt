@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,9 +46,9 @@ fun ModeratorTopBar(
     verifiedCount: Int = 0,
     rejectedCount: Int = 0,
     onBack: (() -> Unit)? = null,
-    title: String = "Moderation Queue",
+    title: String,
     subtitle: String? = null,
-    tabLabels: List<String> = listOf("Pendientes", "Verificadas", "Rechazadas"),
+    tabLabels: List<String>,
     tabCounts: List<Int> = listOf(pendingCount, verifiedCount, rejectedCount)
 ) {
     Column(
@@ -73,7 +74,7 @@ fun ModeratorTopBar(
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
+                            contentDescription = stringResource(R.string.action_back),
                             tint = DesignSystem.Colors.White,
                             modifier = Modifier.size(20.dp)
                         )
@@ -88,7 +89,7 @@ fun ModeratorTopBar(
             ) {
                 Image(
                     painter = painterResource(R.drawable.logo_alerta_local),
-                    contentDescription = "Logo de Alerta Local",
+                    contentDescription = stringResource(R.string.brand_logo_description),
                     modifier = Modifier
                         .size(28.dp)
                         .clip(RoundedCornerShape(6.dp)),
@@ -118,7 +119,7 @@ fun ModeratorTopBar(
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Filled.AccountCircle,
-                        contentDescription = "Perfil",
+                        contentDescription = stringResource(R.string.moderator_profile),
                         tint = DesignSystem.Colors.White,
                         modifier = Modifier.size(22.dp)
                     )
@@ -145,13 +146,14 @@ fun ModeratorTopBar(
     }
 }
 
+@Composable
 private fun Long?.formatTime(): String {
-    if (this == null) return "Tiempo prom: —"
-    if (this >= 60) {
-        val hours = this / 60
-        return "Tiempo prom: $hours h"
+    val duration = when {
+        this == null -> "—"
+        this >= 60 -> stringResource(R.string.moderator_time_hours, this / 60)
+        else -> stringResource(R.string.moderator_time_minutes, this)
     }
-    return "Tiempo prom: ${this} min"
+    return stringResource(R.string.moderator_time_average, duration)
 }
 
 @Composable
