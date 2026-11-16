@@ -28,7 +28,6 @@ class HomeViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
-    private var origin: GeoPoint? = null
 
     init {
         viewModelScope.launch {
@@ -41,16 +40,20 @@ class HomeViewModel @Inject constructor(
                 .collect { user ->
                     val latitude = user?.residenceLatitude
                     val longitude = user?.residenceLongitude
-                    origin = if (latitude != null && longitude != null) {
+                    val residenceLocation = if (latitude != null && longitude != null) {
                         GeoPoint(latitude, longitude)
                     } else {
                         null
                     }
                     _uiState.update { currentState ->
-                        currentState.copy(
-                            filteredReports = applyFilters(currentState),
+                        val updatedState = currentState.copy(
+                            neighborhood = user?.neighborhood?.takeIf { it.isNotBlank() }
+                                ?: "Mi barrio",
+                            residenceLocation = residenceLocation,
+                            origin = currentState.deviceLocation ?: residenceLocation,
                             result = null
                         )
+                        updatedState.copy(filteredReports = applyFilters(updatedState))
                     }
                 }
         }
@@ -88,6 +91,16 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun updateDeviceLocation(location: GeoPoint?) {
+        _uiState.update { currentState ->
+            val updatedState = currentState.copy(
+                deviceLocation = location,
+                origin = location ?: currentState.residenceLocation
+            )
+            updatedState.copy(filteredReports = applyFilters(updatedState))
+        }
+    }
+
     fun selectView(view: HomeView) {
         _uiState.update { it.copy(selectedView = view) }
     }
@@ -113,7 +126,7 @@ class HomeViewModel @Inject constructor(
             reports = state.reports,
             category = state.selectedCategory,
             proximity = state.selectedProximity,
-            origin = origin
+            origin = state.origin
         )
     }
 }
