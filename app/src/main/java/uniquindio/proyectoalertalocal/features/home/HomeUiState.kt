@@ -1,6 +1,7 @@
 package uniquindio.proyectoalertalocal.features.home
 
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
@@ -14,6 +15,10 @@ data class HomeUiState(
     val selectedCategory: ReportCategory? = null,
     val selectedProximity: ProximityFilter = ProximityFilter.NEARBY,
     val selectedView: HomeView = HomeView.MAP,
+    val neighborhood: String = "Mi barrio",
+    val origin: GeoPoint? = null,
+    val deviceLocation: GeoPoint? = null,
+    val residenceLocation: GeoPoint? = null,
     val reports: List<ReportSummary> = emptyList(),
     val filteredReports: List<ReportSummary> = emptyList(),
     val selectedAlertId: String? = null,

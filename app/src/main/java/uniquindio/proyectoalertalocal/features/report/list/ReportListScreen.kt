@@ -16,10 +16,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniquindio.proyectoalertalocal.core.component.ProximitySelector
 import uniquindio.proyectoalertalocal.core.component.ReportCard
@@ -28,6 +30,7 @@ import uniquindio.proyectoalertalocal.core.component.ReportEmptyState
 import uniquindio.proyectoalertalocal.core.component.ReportHeader
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.lastKnownGeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.features.notifications.UnreadNotificationsViewModel
 
@@ -41,9 +44,15 @@ fun ReportListScreen(
     viewModel: ReportListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val unreadNotificationsViewModel: UnreadNotificationsViewModel = hiltViewModel()
     val hasUnread by unreadNotificationsViewModel.hasUnread.collectAsStateWithLifecycle()
     val unreadResult by unreadNotificationsViewModel.result.collectAsStateWithLifecycle()
+
+    LifecycleResumeEffect(viewModel) {
+        viewModel.updateDeviceLocation(context.lastKnownGeoPoint())
+        onPauseOrDispose {}
+    }
 
     LaunchedEffect(uiState.result) {
         val result = uiState.result
@@ -67,7 +76,7 @@ fun ReportListScreen(
         ReportHeader(
             onOpenNotifications = onOpenNotifications,
             hasUnreadNotifications = hasUnread,
-            neighborhoodText = "Los Rosales",
+            neighborhoodText = uiState.neighborhood,
             addressText = ""
         )
         ReportCategoryFilters(

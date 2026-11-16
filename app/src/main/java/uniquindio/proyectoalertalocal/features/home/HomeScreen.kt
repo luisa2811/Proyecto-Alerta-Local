@@ -38,11 +38,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mapbox.geojson.Point
 import uniquindio.proyectoalertalocal.core.component.MapBox
@@ -57,7 +59,9 @@ import uniquindio.proyectoalertalocal.core.component.ReportStatusTag
 import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.lastKnownGeoPoint
 import uniquindio.proyectoalertalocal.core.util.toRelativeTime
+import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 import uniquindio.proyectoalertalocal.features.notifications.UnreadNotificationsViewModel
@@ -72,9 +76,15 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val unreadNotificationsViewModel: UnreadNotificationsViewModel = hiltViewModel()
     val hasUnread by unreadNotificationsViewModel.hasUnread.collectAsStateWithLifecycle()
     val unreadResult by unreadNotificationsViewModel.result.collectAsStateWithLifecycle()
+
+    LifecycleResumeEffect(viewModel) {
+        viewModel.updateDeviceLocation(context.lastKnownGeoPoint())
+        onPauseOrDispose {}
+    }
 
     LaunchedEffect(uiState.result) {
         val result = uiState.result
@@ -99,7 +109,7 @@ fun HomeScreen(
             onOpenNotifications = onOpenNotifications,
             hasUnreadNotifications = hasUnread,
             onEditLocation = onEditAddress,
-            neighborhoodText = "Los Rosales",
+            neighborhoodText = uiState.neighborhood,
             addressText = "Cra 15 #8-42"
         )
         ReportCategoryFilters(
@@ -113,34 +123,14 @@ fun HomeScreen(
             onViewSelect = viewModel::selectView
         )
 
-        when {
-            uiState.reports.isEmpty() -> {
-                ReportEmptyState(
-                    message = "Aún no hay alertas en tu barrio.",
-                    actionLabel = "Crear un reporte",
-                    onAction = onCreateReport,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                )
-            }
-
-            uiState.filteredReports.isEmpty() -> {
-                ReportEmptyState(
-                    message = "No hay alertas con estos filtros.",
-                    actionLabel = null,
-                    onAction = null,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                )
-            }
-
-            uiState.selectedView == HomeView.MAP -> {
+        when (uiState.selectedView) {
+            HomeView.MAP -> {
                 ReportMap(
                     reports = uiState.filteredReports,
                     selectedAlert = uiState.selectedAlert,
+                    showEmptyMessage = uiState.filteredReports.isEmpty(),
                     onAlertSelect = viewModel::selectAlert,
+                    onUserLocation = viewModel::updateDeviceLocation,
                     onCreateReport = onCreateReport,
                     onGetDirections = {
                         onShowMessage("La función Cómo llegar estará disponible próximamente.")
@@ -154,15 +144,41 @@ fun HomeScreen(
                 )
             }
 
-            uiState.selectedView == HomeView.LIST -> {
-                AlertList(
-                    reports = uiState.filteredReports,
-                    featuredReport = uiState.featuredReport,
-                    onOpenDetail = onOpenReportDetail,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                )
+            HomeView.LIST -> {
+                when {
+                    uiState.reports.isEmpty() -> {
+                        ReportEmptyState(
+                            message = "Aún no hay alertas en tu barrio.",
+                            actionLabel = "Crear un reporte",
+                            onAction = onCreateReport,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        )
+                    }
+
+                    uiState.filteredReports.isEmpty() -> {
+                        ReportEmptyState(
+                            message = "No hay alertas con estos filtros.",
+                            actionLabel = null,
+                            onAction = null,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        )
+                    }
+
+                    else -> {
+                        AlertList(
+                            reports = uiState.filteredReports,
+                            featuredReport = uiState.featuredReport,
+                            onOpenDetail = onOpenReportDetail,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        )
+                    }
+                }
             }
         }
     }
@@ -229,7 +245,9 @@ private fun ViewOption(
 private fun ReportMap(
     reports: List<ReportSummary>,
     selectedAlert: ReportSummary?,
+    showEmptyMessage: Boolean,
     onAlertSelect: (String?) -> Unit,
+    onUserLocation: (GeoPoint) -> Unit,
     onCreateReport: () -> Unit,
     onGetDirections: () -> Unit,
     onOpenDetail: (String) -> Unit,
@@ -245,8 +263,29 @@ private fun ReportMap(
             center = Point.fromLngLat(-75.6811, 4.5339),
             reports = reports.map { it.report },
             onMarkerClick = { report -> onAlertSelect(report.id) },
-            onMapClick = { onAlertSelect(null) }
+            onMapClick = { onAlertSelect(null) },
+            onUserLocation = { point ->
+                onUserLocation(GeoPoint(point.latitude(), point.longitude()))
+            }
         )
+
+        if (showEmptyMessage) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(14.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = DesignSystem.Colors.White,
+                shadowElevation = 3.dp
+            ) {
+                Text(
+                    text = "No hay alertas con estos filtros.",
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    color = DesignSystem.Colors.TextSecondary,
+                    fontSize = 13.sp
+                )
+            }
+        }
 
         Button(
             onClick = onCreateReport,
