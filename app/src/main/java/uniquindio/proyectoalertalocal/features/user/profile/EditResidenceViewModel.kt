@@ -11,14 +11,17 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.UpdateResidenceUseCase
+import uniquindio.proyectoalertalocal.R
 
 @HiltViewModel
 class EditResidenceViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val updateResidenceUseCase: UpdateResidenceUseCase
+    private val updateResidenceUseCase: UpdateResidenceUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditResidenceUiState())
@@ -28,7 +31,7 @@ class EditResidenceViewModel @Inject constructor(
         viewModelScope.launch {
             getCurrentUserUseCase()
                 .catch { error ->
-                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                 }
                 .collect { user ->
                     if (user == null) return@collect
@@ -90,11 +93,11 @@ class EditResidenceViewModel @Inject constructor(
             }.fold(
                 onSuccess = {
                     _uiState.update {
-                        it.copy(result = RequestResult.Success(SUCCESS_MESSAGE))
+                        it.copy(result = RequestResult.Success(resources.getString(SUCCESS_MESSAGE)))
                     }
                 },
                 onFailure = { error ->
-                    _uiState.update { it.copy(result = error.toRequestFailure()) }
+                    _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                 }
             )
         }
@@ -105,7 +108,6 @@ class EditResidenceViewModel @Inject constructor(
     }
 
     companion object {
-        const val SUCCESS_MESSAGE = "Residencia actualizada correctamente."
-        const val UNEXPECTED_ERROR = "Ocurrió un error inesperado."
+        private const val SUCCESS_MESSAGE = R.string.profile_residence_updated
     }
 }

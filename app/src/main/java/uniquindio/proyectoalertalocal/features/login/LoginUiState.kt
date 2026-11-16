@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.features.login
 
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.core.util.isValidEmail
@@ -17,9 +18,9 @@ data class LoginUiState(
     val isEmailValid: Boolean
         get() = email.isValidEmail()
 
-    val emailError: String?
+    val emailErrorRes: Int?
         get() = if (showEmailError && email.isNotBlank() && !isEmailValid) {
-            "Correo electrónico inválido."
+            R.string.auth_email_invalid
         } else {
             null
         }

@@ -1,0 +1,23 @@
+<resources>
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_empty">You have no notifications.</string>
+    <string name="notifications_mark_read">Mark as read</string>
+    <string name="notifications_mark_unread">Mark as unread</string>
+    <string name="notifications_accept">OK</string>
+    <string name="notifications_cancel">Cancel</string>
+    <string name="notifications_confirmation_title">Notification</string>
+    <string name="notifications_report_unavailable">The related report is no longer available.</string>
+    <string name="notification_comment_title">New comment</string>
+    <string name="notification_comment_message">%2$s commented on your report “%1$s”.</string>
+    <string name="notification_verified_title">Report verified</string>
+    <string name="notification_verified_message">A moderator verified your report “%1$s”.</string>
+    <string name="notification_rejected_title">Report rejected</string>
+    <string name="notification_rejected_message">Your report “%1$s” was rejected: %2$s</string>
+    <string name="notification_resolved_title">Report resolved</string>
+    <string name="notification_resolved_message">Your report “%1$s” was marked as resolved.</string>
+    <string name="notification_reopened_title">Report reopened</string>
+    <string name="notification_reopened_message">A moderator reopened your report “%1$s”.</string>
+    <string name="notification_achievement_title">New achievement</string>
+    <string name="notification_badge_message">You earned the badge %1$s.</string>
+    <string name="notification_level_message">You reached the %1$s level.</string>
+</resources>

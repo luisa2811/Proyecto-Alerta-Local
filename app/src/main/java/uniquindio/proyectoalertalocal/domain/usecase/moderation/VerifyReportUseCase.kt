@@ -6,6 +6,7 @@ import uniquindio.proyectoalertalocal.domain.model.AppError
 import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
+import uniquindio.proyectoalertalocal.domain.model.NotificationType
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
 import uniquindio.proyectoalertalocal.domain.repository.SessionRepository
@@ -50,6 +51,8 @@ class VerifyReportUseCase @Inject constructor(
             userId = report.authorId,
             title = "Reporte verificado",
             message = "Un moderador verificó tu reporte \"${report.title}\".",
+            type = NotificationType.VERIFIED,
+            args = listOf(report.title),
             reportId = report.id
         )
         checkNewAchievementsUseCase(report.authorId)

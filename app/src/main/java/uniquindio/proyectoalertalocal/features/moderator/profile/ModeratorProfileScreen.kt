@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -52,6 +53,7 @@ import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.component.ImagePickerBottomSheet
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.R
 
 @Composable
 fun ModeratorProfileScreen(
@@ -65,6 +67,7 @@ fun ModeratorProfileScreen(
     val user = uiState.user
     val stats = uiState.stats
     var showImagePicker by remember { mutableStateOf(false) }
+    val cameraPermissionMessage = stringResource(R.string.profile_camera_permission)
 
     LaunchedEffect(uiState.result) {
         when (val result = uiState.result) {
@@ -88,7 +91,7 @@ fun ModeratorProfileScreen(
             showImagePicker = false
         },
         onCameraPermissionDenied = {
-            onShowMessage("Se necesita el permiso de la cámara para tomar fotos.")
+            onShowMessage(cameraPermissionMessage)
         }
     )
 
@@ -116,14 +119,14 @@ fun ModeratorProfileScreen(
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver",
+                        contentDescription = stringResource(R.string.profile_back),
                         tint = DesignSystem.Colors.White,
                         modifier = Modifier.size(20.dp)
                     )
                 }
             }
             Text(
-                text = "Mi perfil",
+                text = stringResource(R.string.profile_my_profile),
                 modifier = Modifier.padding(start = 12.dp),
                 color = DesignSystem.Colors.White,
                 fontSize = 18.sp,
@@ -141,6 +144,10 @@ fun ModeratorProfileScreen(
             val name = user?.name ?: ""
             val initials = getAuthorInitials(name)
             val commune = user?.assignedCommune ?: ""
+            val communeNumber = commune
+                .removePrefix("Comuna")
+                .removePrefix("Commune")
+                .trim()
 
             // Círculo con iniciales
             Surface(
@@ -161,7 +168,7 @@ fun ModeratorProfileScreen(
                     } else {
                         AsyncImage(
                             model = user.profilePictureUrl,
-                            contentDescription = "Foto de perfil",
+                            contentDescription = stringResource(R.string.profile_photo_description),
                             modifier = Modifier.fillMaxSize().clip(CircleShape),
                             contentScale = ContentScale.Crop,
                             placeholder = rememberVectorPainter(Icons.Filled.Person),
@@ -198,7 +205,7 @@ fun ModeratorProfileScreen(
                     color = DesignSystem.Colors.ModeratorNavy.copy(alpha = 0.12f)
                 ) {
                     Text(
-                        text = "Moderador",
+                        text = stringResource(R.string.moderator_role),
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         color = DesignSystem.Colors.ModeratorNavy,
                         fontSize = 11.sp,
@@ -212,7 +219,7 @@ fun ModeratorProfileScreen(
                         color = DesignSystem.Colors.FilterSurface
                     ) {
                         Text(
-                            text = if (commune.startsWith("Comuna", ignoreCase = true)) commune else "Comuna $commune",
+                            text = stringResource(R.string.moderator_commune, communeNumber),
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                             color = DesignSystem.Colors.TextSecondary,
                             fontSize = 11.sp,
@@ -226,7 +233,7 @@ fun ModeratorProfileScreen(
 
             // Cuatro tarjetas de estadísticas
             Text(
-                text = "Estadísticas de gestión",
+                text = stringResource(R.string.moderator_stats_title),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp),
@@ -241,22 +248,22 @@ fun ModeratorProfileScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 StatCard(
-                    title = "Verificados",
+                    title = stringResource(R.string.moderator_verified),
                     value = stats.verified.toString(),
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
-                    title = "Rechazados",
+                    title = stringResource(R.string.moderator_rejected),
                     value = stats.rejected.toString(),
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
-                    title = "Resueltos",
+                    title = stringResource(R.string.moderator_resolved),
                     value = stats.resolved.toString(),
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
-                    title = "Tiempo prom.",
+                    title = stringResource(R.string.moderator_average_time),
                     value = formatReviewTime(stats.averageReviewMinutes),
                     modifier = Modifier.weight(1f)
                 )
@@ -264,7 +271,7 @@ fun ModeratorProfileScreen(
 
             if (stats.verified == 0 && stats.rejected == 0 && stats.resolved == 0) {
                 Text(
-                    text = "Aún no has revisado reportes.",
+                    text = stringResource(R.string.moderator_no_reports_reviewed),
                     modifier = Modifier.padding(top = 12.dp),
                     color = DesignSystem.Colors.TextSecondary,
                     fontSize = 12.sp
@@ -283,13 +290,13 @@ fun ModeratorProfileScreen(
                 Column {
                     OptionRow(
                         icon = Icons.Filled.Edit,
-                        title = "Editar mis datos",
+                        title = stringResource(R.string.profile_edit_data),
                         onClick = onEditProfile
                     )
                     HorizontalDivider(color = DesignSystem.Colors.FilterSurface)
                     OptionRow(
                         icon = Icons.AutoMirrored.Filled.ExitToApp,
-                        title = "Cerrar sesión",
+                        title = stringResource(R.string.profile_logout),
                         onClick = viewModel::logout,
                         textColor = DesignSystem.Colors.ModeratorRed
                     )
@@ -371,11 +378,12 @@ private fun OptionRow(
     }
 }
 
+@Composable
 private fun formatReviewTime(minutes: Long?): String {
     if (minutes == null) return "—"
     if (minutes >= 60) {
         val hours = minutes / 60
-        return "$hours h"
+        return stringResource(R.string.moderator_hours, hours)
     }
-    return "$minutes min"
+    return stringResource(R.string.moderator_minutes, minutes)
 }

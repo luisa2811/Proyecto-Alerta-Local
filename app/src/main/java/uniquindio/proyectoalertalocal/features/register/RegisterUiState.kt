@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.features.register
 
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.isValidEmail
 import uniquindio.proyectoalertalocal.core.util.hasMinimumPasswordLength
@@ -15,9 +16,9 @@ data class RegisterUiState(
     val confirmPassword: String = "",
     val result: RequestResult? = null
 ) {
-    val emailError: String?
+    val emailErrorRes: Int?
         get() = if (email.isNotBlank() && !email.isValidEmail()) {
-            "Correo electrónico inválido."
+            R.string.auth_email_invalid
         } else {
             null
         }
@@ -31,16 +32,16 @@ data class RegisterUiState(
     val hasPasswordNumber: Boolean
         get() = password.hasNumber()
 
-    val addressError: String?
+    val addressErrorRes: Int?
         get() = if (address.isNotBlank() && address.trim().length !in 5..120) {
-            "La dirección debe tener entre 5 y 120 caracteres."
+            R.string.auth_address_length
         } else {
             null
         }
 
-    val confirmPasswordError: String?
+    val confirmPasswordErrorRes: Int?
         get() = if (confirmPassword.isNotBlank() && confirmPassword != password) {
-            "Las contraseñas no coinciden."
+            R.string.auth_passwords_mismatch
         } else {
             null
         }
@@ -48,15 +49,15 @@ data class RegisterUiState(
     val isFormValid: Boolean
         get() = fullName.isNotBlank() &&
             email.isNotBlank() &&
-            emailError == null &&
+            emailErrorRes == null &&
             neighborhood.isNotBlank() &&
             address.trim().length in 5..120 &&
-            addressError == null &&
+            addressErrorRes == null &&
             password.isNotBlank() &&
             meetsMinimumPasswordLength &&
             hasPasswordUppercase &&
             hasPasswordNumber &&
             confirmPassword.isNotBlank() &&
-            confirmPasswordError == null &&
+            confirmPasswordErrorRes == null &&
             result == null
 }

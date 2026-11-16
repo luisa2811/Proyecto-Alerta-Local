@@ -1,10 +1,10 @@
 package uniquindio.proyectoalertalocal.domain.model
 
-enum class UserLevel(val displayName: String, val minPoints: Int) {
-    NOVICE("Novato", 0),
-    COLLABORATOR("Colaborador", 50),
-    GUARDIAN("Guardián", 150),
-    COMMUNITY_HERO("Héroe Comunitario", 300);
+enum class UserLevel(val minPoints: Int) {
+    NOVICE(0),
+    COLLABORATOR(50),
+    GUARDIAN(150),
+    COMMUNITY_HERO(300);
 
     val next: UserLevel?
         get() = entries.getOrNull(ordinal + 1)

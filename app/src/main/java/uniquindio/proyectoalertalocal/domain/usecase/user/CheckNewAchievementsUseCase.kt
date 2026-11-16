@@ -3,6 +3,7 @@ package uniquindio.proyectoalertalocal.domain.usecase.user
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.first
 import uniquindio.proyectoalertalocal.domain.model.ReputationRules
+import uniquindio.proyectoalertalocal.domain.model.NotificationType
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.domain.repository.CommentRepository
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository
@@ -42,7 +43,9 @@ class CheckNewAchievementsUseCase @Inject constructor(
             notifyUserUseCase(
                 userId = userId,
                 title = "¡Nuevo logro!",
-                message = "Obtuviste la insignia ${badge.displayName}."
+                message = "Obtuviste la insignia ${badge.name}.",
+                type = NotificationType.NEW_BADGE,
+                args = listOf(badge.name)
             )
         }
 
@@ -50,7 +53,9 @@ class CheckNewAchievementsUseCase @Inject constructor(
             notifyUserUseCase(
                 userId = userId,
                 title = "¡Nuevo logro!",
-                message = "Subiste a nivel ${reputation.level.displayName}."
+                message = "Subiste a nivel ${reputation.level.name}.",
+                type = NotificationType.NEW_LEVEL,
+                args = listOf(reputation.level.name)
             )
         }
     }

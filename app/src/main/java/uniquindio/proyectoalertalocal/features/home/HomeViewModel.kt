@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.domain.model.ProximityFilter
 import uniquindio.proyectoalertalocal.domain.model.GeoPoint
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
@@ -23,7 +24,8 @@ import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 class HomeViewModel @Inject constructor(
     private val observeReportsUseCase: ObserveReportsUseCase,
     private val filterReportsUseCase: FilterReportsUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -34,7 +36,7 @@ class HomeViewModel @Inject constructor(
             getCurrentUserUseCase()
                 .catch { error ->
                     _uiState.update {
-                        it.copy(result = error.toRequestFailure())
+                        it.copy(result = error.toRequestFailure(resources))
                     }
                 }
                 .collect { user ->
@@ -61,7 +63,7 @@ class HomeViewModel @Inject constructor(
             observeReportsUseCase()
                 .catch { error ->
                     _uiState.update {
-                        it.copy(isLoading = false, result = error.toRequestFailure())
+                        it.copy(isLoading = false, result = error.toRequestFailure(resources))
                     }
                 }
                 .collect { newReports ->

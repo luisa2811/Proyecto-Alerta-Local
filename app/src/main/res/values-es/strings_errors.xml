@@ -1,0 +1,29 @@
+<resources>
+    <string name="error_no_active_session">No existe una sesión activa.</string>
+    <string name="error_image_upload_failed">No fue posible cargar la imagen.</string>
+    <string name="error_email_already_exists">Este correo ya está en uso.</string>
+    <string name="error_network">No fue posible conectar. Revisa tu conexión e intenta de nuevo.</string>
+    <string name="error_report_not_found">No se encontró el reporte.</string>
+    <string name="error_invalid_credentials">El correo o la contraseña son incorrectos.</string>
+    <string name="error_moderator_account_requires_moderator_role">Esta cuenta debe iniciar sesión como moderador.</string>
+    <string name="error_moderator_access_denied">No tienes permiso para acceder como moderador.</string>
+    <string name="error_invalid_moderator_code">El código de moderador es incorrecto.</string>
+    <string name="error_notification_not_found">No se encontró la notificación.</string>
+    <string name="error_account_not_found">No se encontró la cuenta.</string>
+    <string name="error_password_recovery_account_not_found">No hay una cuenta registrada con este correo.</string>
+    <string name="error_password_reset_code_not_verified">Primero verifica el código para restablecer la contraseña.</string>
+    <string name="error_password_reset_code_expired">El código para restablecer la contraseña venció.</string>
+    <string name="error_invalid_recovery_code">El código de recuperación es incorrecto.</string>
+    <string name="error_report_already_reviewed">Este reporte ya fue revisado.</string>
+    <string name="error_invalid_rejection_reason">El motivo debe tener entre 5 y 300 caracteres.</string>
+    <string name="error_moderator_required">Solo un moderador puede realizar esta acción.</string>
+    <string name="error_report_not_resolved">Solo se pueden reabrir reportes resueltos.</string>
+    <string name="error_report_not_owner">Solo el autor del reporte puede realizar esta acción.</string>
+    <string name="error_report_invalid_status">Esta acción no está permitida para el estado del reporte.</string>
+    <string name="error_report_not_active">Este reporte ya no está activo.</string>
+    <string name="error_report_own_support">No puedes apoyar tu propio reporte.</string>
+    <string name="error_report_already_supported">Ya apoyaste este reporte.</string>
+    <string name="error_report_already_resolved">Este reporte ya fue resuelto.</string>
+    <string name="error_email_already_registered">Este correo ya está registrado.</string>
+    <string name="error_unrecognized_speech">No se entendió el dictado. Intenta de nuevo.</string>
+</resources>

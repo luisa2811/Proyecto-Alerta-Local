@@ -5,6 +5,7 @@ import java.time.Instant
 import uniquindio.proyectoalertalocal.domain.model.Badge
 import uniquindio.proyectoalertalocal.domain.model.Comment
 import uniquindio.proyectoalertalocal.domain.model.Notification
+import uniquindio.proyectoalertalocal.domain.model.NotificationType
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
@@ -378,6 +379,8 @@ internal object InMemoryDemoData {
             userId = "resident-maria",
             title = "Nuevo comentario",
             message = "Carlos R. comentó en tu reporte \"Intento de robo en la Cra 15 con Calle 8\"",
+            type = NotificationType.COMMENT,
+            args = listOf("Intento de robo en la Cra 15 con Calle 8", "Carlos R."),
             reportId = "report-theft-001",
             createdAt = now.minus(Duration.ofHours(1)),
             isRead = false
@@ -387,6 +390,8 @@ internal object InMemoryDemoData {
             userId = "resident-maria",
             title = "Reporte verificado",
             message = "Un moderador verificó tu reporte \"Intento de robo en la Cra 15 con Calle 8\"",
+            type = NotificationType.VERIFIED,
+            args = listOf("Intento de robo en la Cra 15 con Calle 8"),
             reportId = "report-theft-001",
             createdAt = now.minus(Duration.ofHours(1)),
             isRead = true
@@ -396,6 +401,8 @@ internal object InMemoryDemoData {
             userId = "resident-maria",
             title = "Reporte rechazado",
             message = "Tu reporte \"Ruido excesivo en el parque\" fue rechazado: no incluía ubicación exacta",
+            type = NotificationType.REJECTED,
+            args = listOf("Ruido excesivo en el parque", "no incluía ubicación exacta"),
             reportId = "report-noise-001",
             createdAt = now.minus(Duration.ofDays(1)),
             isRead = true
@@ -404,7 +411,9 @@ internal object InMemoryDemoData {
             id = "notification-4",
             userId = "resident-maria",
             title = "¡Nuevo logro!",
-            message = "Obtuviste la insignia ${Badge.FIRST_REPORT.displayName}.",
+            message = "Obtuviste la insignia ${Badge.FIRST_REPORT.name}.",
+            type = NotificationType.NEW_BADGE,
+            args = listOf(Badge.FIRST_REPORT.name),
             reportId = null,
             createdAt = now.minus(Duration.ofDays(1)),
             isRead = true
@@ -414,6 +423,8 @@ internal object InMemoryDemoData {
             userId = "resident-carlos",
             title = "Reporte verificado",
             message = "Un moderador verificó tu reporte \"Persona requiere asistencia médica\"",
+            type = NotificationType.VERIFIED,
+            args = listOf("Persona requiere asistencia médica"),
             reportId = "report-medical-001",
             createdAt = now.minus(Duration.ofMinutes(10)),
             isRead = false
@@ -423,6 +434,8 @@ internal object InMemoryDemoData {
             userId = "resident-ana",
             title = "Reporte resuelto",
             message = "Tu reporte \"Perro perdido, raza mestiza, collar azul\" fue marcado como resuelto.",
+            type = NotificationType.RESOLVED,
+            args = listOf("Perro perdido, raza mestiza, collar azul"),
             reportId = "report-dog-lost-001",
             createdAt = now.minus(Duration.ofMinutes(40)),
             isRead = true
@@ -432,6 +445,8 @@ internal object InMemoryDemoData {
             userId = "resident-julian",
             title = "Reporte rechazado",
             message = "Tu reporte \"Vehículo sospechoso en la cuadra\" fue rechazado: Reporte duplicado.",
+            type = NotificationType.REJECTED,
+            args = listOf("Vehículo sospechoso en la cuadra", "Reporte duplicado."),
             reportId = "report-vehicle-001",
             createdAt = now.minus(Duration.ofMinutes(90)),
             isRead = false
@@ -441,6 +456,8 @@ internal object InMemoryDemoData {
             userId = "resident-julian",
             title = "Reporte resuelto",
             message = "Tu reporte \"Acumulación de basuras en el parque infantil\" fue marcado como resuelto.",
+            type = NotificationType.RESOLVED,
+            args = listOf("Acumulación de basuras en el parque infantil"),
             reportId = "report-trash-001",
             createdAt = now.minus(Duration.ofHours(24)),
             isRead = true
@@ -450,6 +467,8 @@ internal object InMemoryDemoData {
             userId = "resident-sofia",
             title = "Reporte resuelto",
             message = "Tu reporte \"Gato encontrado cerca al parque\" fue marcado como resuelto.",
+            type = NotificationType.RESOLVED,
+            args = listOf("Gato encontrado cerca al parque"),
             reportId = "report-cat-found-001",
             createdAt = now.minus(Duration.ofMinutes(45)),
             isRead = false
@@ -459,6 +478,8 @@ internal object InMemoryDemoData {
             userId = "resident-laura",
             title = "Reporte verificado",
             message = "Un moderador verificó tu reporte \"Luminaria reparada en el parque\"",
+            type = NotificationType.VERIFIED,
+            args = listOf("Luminaria reparada en el parque"),
             reportId = "report-lighting-repaired-001",
             createdAt = now.minus(Duration.ofHours(20)),
             isRead = true

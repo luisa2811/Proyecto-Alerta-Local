@@ -7,9 +7,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.R
 
 @Composable
 fun RegisterScreen(
@@ -22,23 +24,23 @@ fun RegisterScreen(
     when (val result = uiState.result) {
         is RequestResult.Success -> AlertDialog(
             onDismissRequest = onRegisterSuccess,
-            title = { Text("¡Cuenta creada!") },
+            title = { Text(stringResource(R.string.auth_account_created_title)) },
             text = {
-                Text("Tu cuenta se creó correctamente. Ya puedes iniciar sesión.")
+                Text(stringResource(R.string.auth_account_created_message))
             },
             confirmButton = {
                 TextButton(onClick = onRegisterSuccess) {
-                    Text("Iniciar sesión")
+                    Text(stringResource(R.string.auth_sign_in))
                 }
             }
         )
         is RequestResult.Failure -> AlertDialog(
             onDismissRequest = viewModel::clearResult,
-            title = { Text("No se pudo crear la cuenta") },
+            title = { Text(stringResource(R.string.auth_create_failed_title)) },
             text = { Text(result.errorMessage) },
             confirmButton = {
                 TextButton(onClick = viewModel::clearResult) {
-                    Text("Entendido")
+                    Text(stringResource(R.string.auth_understood))
                 }
             }
         )
@@ -54,6 +56,9 @@ fun RegisterScreen(
         onPasswordChange = viewModel::onPasswordChange,
         onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
         onRegisterClick = viewModel::onRegisterClick,
+        emailErrorMessage = viewModel.emailErrorMessage(),
+        addressErrorMessage = viewModel.addressErrorMessage(),
+        confirmPasswordErrorMessage = viewModel.confirmPasswordErrorMessage(),
         onLoginClick = onLoginClick,
         modifier = Modifier.fillMaxSize()
     )

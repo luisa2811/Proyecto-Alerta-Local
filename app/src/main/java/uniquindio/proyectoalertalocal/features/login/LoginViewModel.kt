@@ -10,17 +10,24 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.model.UserRole
+import uniquindio.proyectoalertalocal.domain.model.AppException
+import uniquindio.proyectoalertalocal.domain.model.AppError
 import uniquindio.proyectoalertalocal.domain.usecase.auth.LoginUserUseCase
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUserUseCase: LoginUserUseCase
+    private val loginUserUseCase: LoginUserUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+
+    fun emailErrorMessage(): String? =
+        _uiState.value.emailErrorRes?.let { resources.getString(it) }
 
     fun changeEmail(email: String) {
         _uiState.update {
@@ -87,17 +94,17 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun publishLoginFailure(error: Throwable) {
-        val failure = error.toRequestFailure()
+        val failure = error.toRequestFailure(resources)
         val message = failure.errorMessage
         _uiState.update { state ->
             state.copy(
                 isLoading = false,
-                password = if (message == LoginUserUseCase.INVALID_CREDENTIALS_MESSAGE) {
+                password = if ((error as? AppException)?.error == AppError.INVALID_CREDENTIALS) {
                     ""
                 } else {
                     state.password
                 },
-                moderatorCode = if (message == LoginUserUseCase.INVALID_MODERATOR_CODE_MESSAGE) {
+                moderatorCode = if ((error as? AppException)?.error == AppError.INVALID_MODERATOR_CODE) {
                     ""
                 } else {
                     state.moderatorCode

@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.features.user.profile
 
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.isValidEmail
 
@@ -17,32 +18,32 @@ data class EditProfileUiState(
     val result: RequestResult? = null,
     val photoResult: RequestResult? = null
 ) {
-    val nameError: String?
+    val nameErrorRes: Int?
         get() = if (isLoaded && fullName.isBlank()) {
-            "El nombre es obligatorio."
+            R.string.profile_name_required
         } else {
             null
         }
 
-    val emailError: String?
+    val emailErrorRes: Int?
         get() = if (isLoaded && !email.isValidEmail()) {
-            "Correo electrónico inválido."
+            R.string.profile_email_invalid
         } else {
             null
         }
 
-    val phoneError: String?
+    val phoneErrorRes: Int?
         get() = if (isLoaded && !phone.matches(PHONE_PATTERN)) {
-            "Número de teléfono inválido."
+            R.string.profile_phone_invalid
         } else {
             null
         }
 
     val isFormValid: Boolean
         get() = isLoaded &&
-            nameError == null &&
-            emailError == null &&
-            phoneError == null &&
+            nameErrorRes == null &&
+            emailErrorRes == null &&
+            phoneErrorRes == null &&
             result == null
 
     companion object {

@@ -10,16 +10,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
+import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.usecase.auth.SendPasswordResetEmailUseCase
 
 @HiltViewModel
 class PasswordRecoveryViewModel @Inject constructor(
-    private val sendPasswordResetEmailUseCase: SendPasswordResetEmailUseCase
+    private val sendPasswordResetEmailUseCase: SendPasswordResetEmailUseCase,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PasswordRecoveryUiState())
     val uiState: StateFlow<PasswordRecoveryUiState> = _uiState.asStateFlow()
+
+    fun emailErrorMessage(): String? =
+        _uiState.value.emailErrorRes?.let { resources.getString(it) }
 
     fun initEmail(initialEmail: String) {
         if (initialEmail.isNotBlank() && _uiState.value.email.isBlank()) {
@@ -45,17 +51,17 @@ class PasswordRecoveryViewModel @Inject constructor(
                                 _uiState.update {
                                     it.copy(
                                         emailSent = true,
-                                        result = RequestResult.Success(SUCCESS_MESSAGE)
+                                        result = RequestResult.Success(resources.getString(SUCCESS_MESSAGE))
                                     )
                                 }
                             },
                             onFailure = { error ->
-                                _uiState.update { it.copy(result = error.toRequestFailure()) }
+                                _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                             }
                         )
                     },
                     onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure()) }
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
                     }
             )
         }
@@ -65,9 +71,7 @@ class PasswordRecoveryViewModel @Inject constructor(
         _uiState.update { it.copy(result = null) }
     }
 
-    companion object {
-        const val SUCCESS_MESSAGE =
-            "Si el correo está registrado, te enviaremos un enlace para restablecer la contraseña."
-        private const val UNEXPECTED_ERROR = "Ocurrió un error inesperado."
+    private companion object {
+        const val SUCCESS_MESSAGE = R.string.auth_success_reset_email
     }
 }
