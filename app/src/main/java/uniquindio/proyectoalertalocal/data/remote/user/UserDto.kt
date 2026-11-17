@@ -1,11 +1,13 @@
 package uniquindio.proyectoalertalocal.data.remote.user
 
+import androidx.annotation.Keep
 import uniquindio.proyectoalertalocal.domain.model.Badge
 import uniquindio.proyectoalertalocal.domain.model.User
 import uniquindio.proyectoalertalocal.domain.model.UserLevel
 import uniquindio.proyectoalertalocal.domain.model.UserRole
 import java.time.Instant
 
+@Keep
 data class UserDto(
     val id: String = "",
     val name: String = "",

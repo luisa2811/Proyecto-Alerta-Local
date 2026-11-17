@@ -1,10 +1,12 @@
 package uniquindio.proyectoalertalocal.data.remote.notification
 
+import androidx.annotation.Keep
 import com.google.firebase.firestore.PropertyName
 import uniquindio.proyectoalertalocal.domain.model.Notification
 import uniquindio.proyectoalertalocal.domain.model.NotificationType
 import java.time.Instant
 
+@Keep
 data class NotificationDto(
     val id: String = "",
     val userId: String = "",

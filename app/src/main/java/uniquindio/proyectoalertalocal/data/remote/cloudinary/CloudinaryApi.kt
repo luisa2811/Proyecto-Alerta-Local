@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.data.remote.cloudinary
 
+import androidx.annotation.Keep
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Multipart
@@ -17,6 +18,7 @@ interface CloudinaryApi {
     ): CloudinaryUploadResponse
 }
 
+@Keep
 data class CloudinaryUploadResponse(
     val secure_url: String = ""
 )
