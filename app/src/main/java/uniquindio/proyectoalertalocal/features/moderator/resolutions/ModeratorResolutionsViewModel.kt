@@ -15,7 +15,6 @@ import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
-import uniquindio.proyectoalertalocal.domain.model.UserRole
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ObserveResolutionsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.moderation.ReopenReportUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase

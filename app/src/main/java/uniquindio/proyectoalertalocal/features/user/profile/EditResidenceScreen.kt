@@ -2,7 +2,6 @@ package uniquindio.proyectoalertalocal.features.user.profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
@@ -161,7 +159,7 @@ fun EditResidenceScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(13.dp))
-                    .background(Color(0xFFF0F0F2))
+                    .background(DesignSystem.Colors.HexFFF0F0F2)
                     .padding(horizontal = 12.dp, vertical = 11.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -209,7 +207,7 @@ fun EditResidenceScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(13.dp))
-                    .background(Color(0xFFF0F0F2))
+                    .background(DesignSystem.Colors.HexFFF0F0F2)
                     .padding(horizontal = 12.dp, vertical = 11.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -268,7 +266,7 @@ fun EditResidenceScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(13.dp))
-                    .background(Color(0xFFF0F0F2))
+                    .background(DesignSystem.Colors.HexFFF0F0F2)
                     .padding(horizontal = 12.dp, vertical = 11.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

@@ -1,7 +1,6 @@
 package uniquindio.proyectoalertalocal.domain.usecase.moderation
 
 import jakarta.inject.Inject
-import java.time.Instant
 import uniquindio.proyectoalertalocal.domain.model.AppError
 import uniquindio.proyectoalertalocal.domain.model.AppException
 import uniquindio.proyectoalertalocal.domain.model.Report

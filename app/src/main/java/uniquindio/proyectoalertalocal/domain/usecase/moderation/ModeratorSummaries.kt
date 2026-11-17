@@ -1,7 +1,6 @@
 package uniquindio.proyectoalertalocal.domain.usecase.moderation
 
 import uniquindio.proyectoalertalocal.domain.model.AuthorNames
-import uniquindio.proyectoalertalocal.domain.model.Comment
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 import uniquindio.proyectoalertalocal.domain.model.User

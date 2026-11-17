@@ -373,9 +373,9 @@ private fun FormField(
                     text = stringResource(R.string.auth_required),
                     modifier = Modifier
                         .clip(RoundedCornerShape(50))
-                        .background(Color(0xFFFFF0EB))
+                        .background(DesignSystem.Colors.HexFFFFF0EB)
                         .border(
-                            BorderStroke(1.dp, Color(0xFFFFD9CC)),
+                            BorderStroke(1.dp, DesignSystem.Colors.HexFFFFD9CC),
                             RoundedCornerShape(50)
                         )
                         .padding(horizontal = 9.dp, vertical = 3.dp),
@@ -459,7 +459,7 @@ private fun DecorativeSeparator(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .size(6.dp)
-                .background(Color(0xFFC9C6C0), CircleShape)
+                .background(DesignSystem.Colors.HexFFC9C6C0, CircleShape)
         )
         Spacer(
             modifier = Modifier

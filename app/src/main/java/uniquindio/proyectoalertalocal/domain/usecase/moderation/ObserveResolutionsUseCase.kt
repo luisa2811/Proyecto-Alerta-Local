@@ -5,9 +5,7 @@ import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
-import uniquindio.proyectoalertalocal.domain.model.ReportSummary
 import uniquindio.proyectoalertalocal.domain.model.ResolutionBoard
 import uniquindio.proyectoalertalocal.domain.repository.CommentRepository
 import uniquindio.proyectoalertalocal.domain.repository.ReportRepository

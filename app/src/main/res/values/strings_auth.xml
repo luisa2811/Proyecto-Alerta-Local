@@ -12,6 +12,7 @@
     <string name="auth_address">Address</string>
     <string name="auth_address_example">e.g. 10th Street # 15-20</string>
     <string name="auth_password">Password</string>
+    <string name="auth_password_placeholder">••••••••••••</string>
     <string name="auth_confirm_password">Confirm password</string>
     <string name="auth_minimum_password">At least 8 characters</string>
     <string name="auth_uppercase_password">At least one uppercase letter</string>
