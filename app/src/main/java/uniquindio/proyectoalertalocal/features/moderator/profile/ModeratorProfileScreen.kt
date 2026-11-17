@@ -262,11 +262,6 @@ fun ModeratorProfileScreen(
                     value = stats.resolved.toString(),
                     modifier = Modifier.weight(1f)
                 )
-                StatCard(
-                    title = stringResource(R.string.moderator_average_time),
-                    value = formatReviewTime(stats.averageReviewMinutes),
-                    modifier = Modifier.weight(1f)
-                )
             }
 
             if (stats.verified == 0 && stats.rejected == 0 && stats.resolved == 0) {
@@ -376,14 +371,4 @@ private fun OptionRow(
             modifier = Modifier.size(20.dp)
         )
     }
-}
-
-@Composable
-private fun formatReviewTime(minutes: Long?): String {
-    if (minutes == null) return "—"
-    if (minutes >= 60) {
-        val hours = minutes / 60
-        return stringResource(R.string.moderator_hours, hours)
-    }
-    return stringResource(R.string.moderator_minutes, minutes)
 }

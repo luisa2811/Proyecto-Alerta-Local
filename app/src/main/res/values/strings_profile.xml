@@ -70,10 +70,7 @@
     <string name="moderator_verified">Verified</string>
     <string name="moderator_rejected">Rejected</string>
     <string name="moderator_resolved">Resolved</string>
-    <string name="moderator_average_time">Avg. time</string>
     <string name="moderator_no_reports_reviewed">You have not reviewed any reports yet.</string>
-    <string name="moderator_hours">%1$d hr</string>
-    <string name="moderator_minutes">%1$d min</string>
     <string name="badge_first_report_title">First report</string>
     <string name="badge_first_report_requirement">Create your first report.</string>
     <string name="badge_trusted_reporter_title">Trusted reporter</string>
