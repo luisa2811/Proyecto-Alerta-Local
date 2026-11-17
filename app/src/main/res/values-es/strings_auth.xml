@@ -12,6 +12,7 @@
     <string name="auth_address">Dirección</string>
     <string name="auth_address_example">Ej: Calle 10 # 15-20</string>
     <string name="auth_password">Contraseña</string>
+    <string name="auth_password_placeholder">••••••••••••</string>
     <string name="auth_confirm_password">Confirmar contraseña</string>
     <string name="auth_minimum_password">Mínimo 8 caracteres</string>
     <string name="auth_uppercase_password">Al menos una letra mayúscula</string>

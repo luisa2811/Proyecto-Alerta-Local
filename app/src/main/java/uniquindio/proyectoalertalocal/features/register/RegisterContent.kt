@@ -147,7 +147,7 @@ fun RegisterContent(
         RegisterTextField(
             label = stringResource(R.string.auth_password),
             value = uiState.password,
-            placeholder = "••••••••••••",
+            placeholder = stringResource(R.string.auth_password_placeholder),
             onValueChange = onPasswordChange,
             keyboardType = KeyboardType.Password,
             isPassword = true
@@ -162,7 +162,7 @@ fun RegisterContent(
         RegisterTextField(
             label = stringResource(R.string.auth_confirm_password),
             value = uiState.confirmPassword,
-            placeholder = "••••••••••••",
+            placeholder = stringResource(R.string.auth_password_placeholder),
             onValueChange = onConfirmPasswordChange,
             keyboardType = KeyboardType.Password,
             isPassword = true,

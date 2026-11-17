@@ -194,7 +194,7 @@ private fun NotificationCard(
     val isAchievement = notification.type == NotificationType.NEW_BADGE ||
         notification.type == NotificationType.NEW_LEVEL
     val icon = if (isAchievement) Icons.Filled.Star else notificationIcon(notification.type)
-    val iconColor = if (isAchievement) Color(0xFFB28724) else notificationIconColor(notification.type)
+    val iconColor = if (isAchievement) DesignSystem.Colors.HexFFB28724 else notificationIconColor(notification.type)
     val title = notificationTitle(notification)
     val message = notificationMessage(notification)
 
@@ -203,7 +203,7 @@ private fun NotificationCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(
-                if (!notification.isRead) Color(0xFFE7E5DF)
+                if (!notification.isRead) DesignSystem.Colors.HexFFE7E5DF
                 else DesignSystem.Colors.NotificationCardBackground
             )
             .pointerInput(notification.id) {
@@ -265,7 +265,7 @@ private fun NotificationCard(
                     .padding(start = 8.dp)
                     .size(9.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE85B48))
+                    .background(DesignSystem.Colors.HexFFE85B48)
             )
         }
     }
@@ -327,8 +327,8 @@ private fun notificationIcon(type: NotificationType): ImageVector = when (type) 
 }
 
 private fun notificationIconColor(type: NotificationType): Color = when (type) {
-    NotificationType.COMMENT -> Color(0xFF50859B)
-    NotificationType.VERIFIED -> Color(0xFF278A59)
-    NotificationType.REJECTED -> Color(0xFFC94C45)
-    else -> Color(0xFFC95A43)
+    NotificationType.COMMENT -> DesignSystem.Colors.HexFF50859B
+    NotificationType.VERIFIED -> DesignSystem.Colors.HexFF278A59
+    NotificationType.REJECTED -> DesignSystem.Colors.HexFFC94C45
+    else -> DesignSystem.Colors.HexFFC95A43
 }

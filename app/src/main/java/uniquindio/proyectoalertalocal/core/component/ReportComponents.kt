@@ -134,7 +134,7 @@ fun ReportHeader(
                 )
                 Text(
                     text = neighborhoodText,
-                    color = Color(0xFF393B3D),
+                    color = DesignSystem.Colors.HexFF393B3D,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1
@@ -218,7 +218,7 @@ fun ReportCategoryFilters(
                 Text(
                     text = label,
                     modifier = Modifier.padding(horizontal = 15.dp, vertical = 7.dp),
-                    color = if (isSelected) DesignSystem.Colors.White else Color(0xFF55585B),
+                    color = if (isSelected) DesignSystem.Colors.White else DesignSystem.Colors.HexFF55585B,
                     fontSize = 12.sp,
                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                 )
@@ -250,7 +250,7 @@ fun ProximitySelector(
             Text(
                 text = stringResource(proximity.labelRes()),
                 modifier = Modifier.padding(start = 6.dp),
-                color = Color(0xFF4F5356),
+                color = DesignSystem.Colors.HexFF4F5356,
                 fontSize = 12.sp
             )
         }

@@ -17,13 +17,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,7 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -66,7 +63,6 @@ import com.mapbox.geojson.Point
 import uniquindio.proyectoalertalocal.R
 import uniquindio.proyectoalertalocal.core.component.MapBox
 import uniquindio.proyectoalertalocal.core.component.ImagePickerBottomSheet
-import uniquindio.proyectoalertalocal.core.component.ReportCategoryTag
 import uniquindio.proyectoalertalocal.core.component.ReportImage
 import uniquindio.proyectoalertalocal.core.component.ScreenHeader
 import uniquindio.proyectoalertalocal.core.component.color
@@ -244,7 +240,7 @@ fun CreateReportScreen(
         ScreenHeader(
             title = stringResource(if (isEditing) R.string.reports_edit_title else R.string.reports_new_title),
             onBack = onBack,
-            titleColor = Color(0xFF282A2C),
+            titleColor = DesignSystem.Colors.HexFF282A2C,
             trailingContent = {
                 androidx.compose.foundation.Image(
                     painter = painterResource(R.drawable.logo_alerta_local),
@@ -324,7 +320,7 @@ fun CreateReportScreen(
 
                 Text(
                     text = stringResource(R.string.reports_category),
-                    color = Color(0xFF444648),
+                    color = DesignSystem.Colors.HexFF444648,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -347,7 +343,7 @@ fun CreateReportScreen(
                             Text(
                                 text = stringResource(category.labelRes()),
                                 modifier = Modifier.padding(horizontal = 15.dp, vertical = 8.dp),
-                                color = if (isSelected) DesignSystem.Colors.White else Color(0xFF4F5254),
+                                color = if (isSelected) DesignSystem.Colors.White else DesignSystem.Colors.HexFF4F5254,
                                 fontSize = 11.sp,
                                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                             )
@@ -374,7 +370,7 @@ fun CreateReportScreen(
                 )
                 Text(
                     text = stringResource(R.string.reports_location),
-                    color = Color(0xFF444648),
+                    color = DesignSystem.Colors.HexFF444648,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(top = 17.dp)
@@ -435,7 +431,7 @@ fun CreateReportScreen(
 
                 Text(
                     text = stringResource(R.string.reports_photos),
-                    color = Color(0xFF444648),
+                    color = DesignSystem.Colors.HexFF444648,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(top = 17.dp)
@@ -551,7 +547,7 @@ private fun ReportField(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
-            color = Color(0xFF444648),
+            color = DesignSystem.Colors.HexFF444648,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium
         )
@@ -571,7 +567,7 @@ private fun ReportField(
                 onValueChange = onValueChange,
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = !multiline,
-                textStyle = TextStyle(color = Color(0xFF343638), fontSize = 13.sp, lineHeight = 19.sp),
+                textStyle = TextStyle(color = DesignSystem.Colors.HexFF343638, fontSize = 13.sp, lineHeight = 19.sp),
                 decorationBox = { innerTextField ->
                     Box {
                         if (value.isEmpty()) {

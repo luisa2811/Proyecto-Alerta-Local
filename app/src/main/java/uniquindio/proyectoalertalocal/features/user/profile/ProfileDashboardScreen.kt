@@ -142,7 +142,7 @@ fun ProfileDashboardScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.profile_delete),
-                        color = Color(0xFFD92626),
+                        color = DesignSystem.Colors.HexFFD92626,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -262,13 +262,13 @@ fun ProfileDashboardScreen(
                     StatCard(
                         count = uiState.resolvedReports,
                         label = stringResource(R.string.profile_completed),
-                        color = Color(0xFF23754F),
+                        color = DesignSystem.Colors.HexFF23754F,
                         modifier = Modifier.weight(1f)
                     )
                     StatCard(
                         count = uiState.pendingReports,
                         label = stringResource(R.string.profile_pending_verification),
-                        color = Color(0xFFD75418),
+                        color = DesignSystem.Colors.HexFFD75418,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -389,7 +389,7 @@ private fun LevelCard(
                         .weight(1f)
                         .clip(RoundedCornerShape(9.dp))
                         .background(
-                            if (isCurrent) Color(0xFFEAF3F9) else DesignSystem.Colors.Background
+                            if (isCurrent) DesignSystem.Colors.HexFFEAF3F9 else DesignSystem.Colors.Background
                         )
                         .padding(horizontal = 3.dp, vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -429,7 +429,7 @@ private fun LevelCard(
                 .padding(top = 6.dp)
                 .height(7.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFDDE2E9))
+                .background(DesignSystem.Colors.HexFFDDE2E9)
         ) {
             Box(
                 modifier = Modifier
@@ -546,23 +546,23 @@ private fun BadgeItem(
     val icon = badgeIcon(badge)
     val background = if (earned) {
         when (badge) {
-            Badge.FIRST_REPORT -> Color(0xFFE8F2FA)
-            Badge.TRUSTED_REPORTER -> Color(0xFFE7F4ED)
-            Badge.NEIGHBORHOOD_VOICE -> Color(0xFFFBF2DA)
-            Badge.ACTIVE_NEIGHBOR -> Color(0xFFEAF1FB)
+            Badge.FIRST_REPORT -> DesignSystem.Colors.HexFFE8F2FA
+            Badge.TRUSTED_REPORTER -> DesignSystem.Colors.HexFFE7F4ED
+            Badge.NEIGHBORHOOD_VOICE -> DesignSystem.Colors.HexFFFBF2DA
+            Badge.ACTIVE_NEIGHBOR -> DesignSystem.Colors.HexFFEAF1FB
         }
     } else {
-        Color(0xFFF0EFED)
+        DesignSystem.Colors.HexFFF0EFED
     }
     val tint = if (earned) {
         when (badge) {
-            Badge.FIRST_REPORT -> Color(0xFF246392)
-            Badge.TRUSTED_REPORTER -> Color(0xFF26764F)
-            Badge.NEIGHBORHOOD_VOICE -> Color(0xFFB98200)
-            Badge.ACTIVE_NEIGHBOR -> Color(0xFF246392)
+            Badge.FIRST_REPORT -> DesignSystem.Colors.HexFF246392
+            Badge.TRUSTED_REPORTER -> DesignSystem.Colors.HexFF26764F
+            Badge.NEIGHBORHOOD_VOICE -> DesignSystem.Colors.HexFFB98200
+            Badge.ACTIVE_NEIGHBOR -> DesignSystem.Colors.HexFF246392
         }
     } else {
-        Color(0xFFCAC8C5)
+        DesignSystem.Colors.HexFFCAC8C5
     }
 
     val current = progress.first.coerceAtMost(progress.second)
@@ -570,7 +570,7 @@ private fun BadgeItem(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(13.dp))
-            .background(if (earned) DesignSystem.Colors.White else Color(0xFFF0EFED))
+            .background(if (earned) DesignSystem.Colors.White else DesignSystem.Colors.HexFFF0EFED)
             .padding(10.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -592,7 +592,7 @@ private fun BadgeItem(
                 text = stringResource(
                     if (earned) R.string.profile_badge_earned else R.string.profile_badge_in_progress
                 ),
-                color = if (earned) tint else Color(0xFF8D8A86),
+                color = if (earned) tint else DesignSystem.Colors.HexFF8D8A86,
                 fontSize = 9.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(start = 7.dp)
@@ -600,7 +600,7 @@ private fun BadgeItem(
         }
         Text(
             text = stringResource(badge.titleRes()),
-            color = if (earned) DesignSystem.Colors.TextPrimary else Color(0xFF777470),
+            color = if (earned) DesignSystem.Colors.TextPrimary else DesignSystem.Colors.HexFF777470,
             fontSize = 10.sp,
             lineHeight = 12.sp,
             fontWeight = FontWeight.SemiBold,
@@ -608,7 +608,7 @@ private fun BadgeItem(
         )
         Text(
             text = badgeProgressLabel(badge, current, goal),
-            color = if (earned) DesignSystem.Colors.TextSecondary else Color(0xFF8D8A86),
+            color = if (earned) DesignSystem.Colors.TextSecondary else DesignSystem.Colors.HexFF8D8A86,
             fontSize = 9.sp,
             lineHeight = 11.sp,
             modifier = Modifier.padding(top = 3.dp)
@@ -619,7 +619,7 @@ private fun BadgeItem(
                 .padding(top = 6.dp)
                 .height(5.dp)
                 .clip(CircleShape)
-                .background(if (earned) Color(0xFFDDE2E9) else Color(0xFFD9D7D4))
+                .background(if (earned) DesignSystem.Colors.HexFFDDE2E9 else DesignSystem.Colors.HexFFD9D7D4)
         ) {
             Box(
                 modifier = Modifier
@@ -672,7 +672,7 @@ private fun ProfileMenuRow(
         ) {
             Text(
                 text = title,
-                color = if (destructive) Color(0xFFD92626) else DesignSystem.Colors.TextPrimary,
+                color = if (destructive) DesignSystem.Colors.HexFFD92626 else DesignSystem.Colors.TextPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f)
@@ -680,7 +680,7 @@ private fun ProfileMenuRow(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = if (destructive) Color(0xFFD92626) else Color(0xFFAAA7A3),
+                tint = if (destructive) DesignSystem.Colors.HexFFD92626 else DesignSystem.Colors.HexFFAAA7A3,
                 modifier = Modifier.size(20.dp)
             )
         }

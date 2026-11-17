@@ -20,7 +20,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Star
@@ -47,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -228,7 +226,7 @@ fun ReportDetailScreen(
                     )
                     Text(
                         text = stringResource(R.string.time_separator_prefix, report.createdAt.toRelativeTime()),
-                        color = Color(0xFF55595C),
+                        color = DesignSystem.Colors.HexFF55595C,
                         fontSize = 11.sp
                     )
                 }
@@ -273,20 +271,20 @@ fun ReportDetailScreen(
                             modifier = Modifier
                                 .size(42.dp)
                                 .clip(RoundedCornerShape(9.dp))
-                                .background(Color(0xFFDDEBFF)),
+                                .background(DesignSystem.Colors.LocationIconBackground),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Place,
                                 contentDescription = stringResource(R.string.reports_location),
-                                tint = Color(0xFF2775DC),
+                                tint = DesignSystem.Colors.LocationIconTint,
                                 modifier = Modifier.size(23.dp)
                             )
                         }
                         Column(modifier = Modifier.padding(start = 11.dp)) {
                             Text(
                                 text = report.location,
-                                color = Color(0xFF363A3D),
+                                color = DesignSystem.Colors.LocationText,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
@@ -596,12 +594,12 @@ private fun DemonstrationComment(
         Surface(
             modifier = Modifier.size(28.dp),
             shape = CircleShape,
-            color = Color(0xFFFFE9C2)
+            color = DesignSystem.Colors.HexFFFFE9C2
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text(
                     text = initials,
-                    color = Color(0xFF9C6814),
+                    color = DesignSystem.Colors.HexFF9C6814,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -624,7 +622,7 @@ private fun DemonstrationComment(
             Text(
                 text = text,
                 modifier = Modifier.padding(top = 4.dp),
-                color = Color(0xFF626669),
+                color = DesignSystem.Colors.HexFF626669,
                 fontSize = 11.sp,
                 lineHeight = 16.sp
             )

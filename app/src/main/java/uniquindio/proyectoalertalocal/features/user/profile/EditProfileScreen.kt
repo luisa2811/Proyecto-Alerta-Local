@@ -43,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
@@ -238,7 +237,7 @@ fun EditProfileScreen(
             }
             Text(
                 text = stringResource(R.string.profile_cancel),
-                color = Color(0xFF30323A),
+                color = DesignSystem.Colors.HexFF30323A,
                 fontSize = 14.sp,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -273,7 +272,7 @@ private fun ProfilePhoto(
                 if (photoUrl == null) {
                     Text(
                         text = initials,
-                        color = Color(0xFF0C2850),
+                        color = DesignSystem.Colors.HexFF0C2850,
                         fontSize = 27.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -306,7 +305,7 @@ private fun ProfilePhoto(
         }
         Text(
             text = stringResource(R.string.profile_update_photo),
-            color = Color(0xFF52545C),
+            color = DesignSystem.Colors.HexFF52545C,
             fontSize = 12.sp,
             modifier = Modifier.padding(top = 5.dp)
         )
@@ -360,7 +359,7 @@ private fun PersonalField(
         ) {
             Text(
                 text = label,
-                color = Color(0xFF42444C),
+                color = DesignSystem.Colors.HexFF42444C,
                 fontSize = 10.sp,
                 letterSpacing = 0.35.sp,
                 modifier = Modifier.weight(1f)
@@ -376,12 +375,12 @@ private fun PersonalField(
                     Icon(
                         imageVector = Icons.Filled.CheckCircle,
                         contentDescription = null,
-                        tint = Color(0xFF536981),
+                        tint = DesignSystem.Colors.HexFF536981,
                         modifier = Modifier.size(12.dp)
                     )
                     Text(
                         text = stringResource(R.string.profile_verified),
-                        color = Color(0xFF536981),
+                        color = DesignSystem.Colors.HexFF536981,
                         fontSize = 10.sp,
                         modifier = Modifier.padding(start = 3.dp)
                     )
@@ -397,7 +396,7 @@ private fun PersonalField(
             prefix?.let {
                 Text(
                     text = it,
-                    color = Color(0xFF777D87),
+                    color = DesignSystem.Colors.HexFF777D87,
                     fontSize = 14.sp,
                     modifier = Modifier.padding(end = 6.dp)
                 )
@@ -410,7 +409,7 @@ private fun PersonalField(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
                 textStyle = TextStyle(
-                    color = Color(0xFF22232A),
+                    color = DesignSystem.Colors.HexFF22232A,
                     fontSize = 15.sp
                 ),
                 decorationBox = { innerTextField ->
@@ -418,7 +417,7 @@ private fun PersonalField(
                         if (value.isEmpty()) {
                             Text(
                                 text = label.lowercase().replaceFirstChar { it.uppercase() },
-                                color = Color(0xFF8A8D94),
+                                color = DesignSystem.Colors.HexFF8A8D94,
                                 fontSize = 15.sp
                             )
                         }
@@ -429,7 +428,7 @@ private fun PersonalField(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Color(0xFF777D87),
+                tint = DesignSystem.Colors.HexFF777D87,
                 modifier = Modifier
                     .padding(start = 8.dp)
                     .size(17.dp)
@@ -438,7 +437,7 @@ private fun PersonalField(
         error?.let {
             Text(
                 text = it,
-                color = Color(0xFFD92626),
+                color = DesignSystem.Colors.HexFFD92626,
                 fontSize = 10.sp,
                 modifier = Modifier.padding(top = 3.dp)
             )
@@ -456,7 +455,7 @@ private fun LocationCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFFF2F2F6))
+            .background(DesignSystem.Colors.HexFFF2F2F6)
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -481,14 +480,14 @@ private fun LocationCard(
             ) {
                 Text(
                     text = address.ifBlank { stringResource(R.string.profile_address) },
-                    color = if (address.isBlank()) Color(0xFF8A8D94) else Color(0xFF292A31),
+                    color = if (address.isBlank()) DesignSystem.Colors.HexFF8A8D94 else DesignSystem.Colors.HexFF292A31,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Text(
                     text = neighborhood.ifBlank { stringResource(R.string.profile_neighborhood) },
-                    color = if (neighborhood.isBlank()) Color(0xFF8A8D94) else Color(0xFF555963),
+                    color = if (neighborhood.isBlank()) DesignSystem.Colors.HexFF8A8D94 else DesignSystem.Colors.HexFF555963,
                     fontSize = 12.sp,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -510,12 +509,12 @@ private fun LocationCard(
             Icon(
                 imageVector = Icons.Filled.Map,
                 contentDescription = null,
-                tint = Color(0xFF596D83),
+                tint = DesignSystem.Colors.HexFF596D83,
                 modifier = Modifier.size(18.dp)
             )
             Text(
                 text = stringResource(R.string.profile_edit_residence),
-                color = Color(0xFF4F5D6E),
+                color = DesignSystem.Colors.HexFF4F5D6E,
                 fontSize = 13.sp,
                 modifier = Modifier
                     .weight(1f)
@@ -524,7 +523,7 @@ private fun LocationCard(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = Color(0xFF596D83),
+                tint = DesignSystem.Colors.HexFF596D83,
                 modifier = Modifier.size(22.dp)
             )
         }
@@ -533,7 +532,7 @@ private fun LocationCard(
                 .fillMaxWidth()
                 .padding(top = 14.dp)
                 .clip(RoundedCornerShape(13.dp))
-                .background(Color(0xFFEBEBF0))
+                .background(DesignSystem.Colors.HexFFEBEBF0)
                 .padding(horizontal = 10.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -545,7 +544,7 @@ private fun LocationCard(
             )
             Text(
                 text = stringResource(R.string.profile_exact_address_privacy),
-                color = Color(0xFF42444C),
+                color = DesignSystem.Colors.HexFF42444C,
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
                 modifier = Modifier.padding(start = 7.dp)
@@ -564,20 +563,20 @@ private fun PrivacyCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFFF2F2F6))
+            .background(DesignSystem.Colors.HexFFF2F2F6)
             .padding(horizontal = 16.dp, vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = stringResource(R.string.profile_show_name_in_reports),
-                color = Color(0xFF24252C),
+                color = DesignSystem.Colors.HexFF24252C,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = stringResource(R.string.profile_anonymous_name_preview, namePreview),
-                color = Color(0xFF4E5058),
+                color = DesignSystem.Colors.HexFF4E5058,
                 fontSize = 11.sp,
                 lineHeight = 15.sp,
                 modifier = Modifier.padding(top = 3.dp)

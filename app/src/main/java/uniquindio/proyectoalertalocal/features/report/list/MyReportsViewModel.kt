@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
 import uniquindio.proyectoalertalocal.domain.usecase.report.ObserveMyReportsUseCase

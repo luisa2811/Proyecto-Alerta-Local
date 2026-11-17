@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -93,7 +92,7 @@ fun PreLoginHomeScreen(
                 .padding(top = 30.dp)
                 .height(210.dp),
             shape = RoundedCornerShape(22.dp),
-            color = Color(0xFFE6EDF0)
+            color = DesignSystem.Colors.HexFFE6EDF0
         ) {
             Column(
                 modifier = Modifier.padding(18.dp),

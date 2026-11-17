@@ -31,7 +31,7 @@ internal fun ModeratorAction(
         modifier = modifier.height(42.dp),
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (color == DesignSystem.Colors.ModeratorRed) Color(0xFFF0EFEC) else color,
+            containerColor = if (color == DesignSystem.Colors.ModeratorRed) DesignSystem.Colors.HexFFF0EFEC else color,
             contentColor = if (color == DesignSystem.Colors.ModeratorRed) DesignSystem.Colors.ModeratorRed else Color.White
         ),
         contentPadding = PaddingValues(horizontal = 8.dp)
