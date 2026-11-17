@@ -1,8 +1,10 @@
 package uniquindio.proyectoalertalocal.data.remote.comment
 
+import androidx.annotation.Keep
 import uniquindio.proyectoalertalocal.domain.model.Comment
 import java.time.Instant
 
+@Keep
 data class CommentDto(
     val id: String = "",
     val reportId: String = "",

@@ -1,10 +1,12 @@
 package uniquindio.proyectoalertalocal.data.remote.report
 
+import androidx.annotation.Keep
 import uniquindio.proyectoalertalocal.domain.model.Report
 import uniquindio.proyectoalertalocal.domain.model.ReportCategory
 import uniquindio.proyectoalertalocal.domain.model.ReportStatus
 import java.time.Instant
 
+@Keep
 data class ReportDto(
     val id: String = "",
     val title: String = "",
