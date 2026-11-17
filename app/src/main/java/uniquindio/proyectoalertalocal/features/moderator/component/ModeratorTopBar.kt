@@ -41,7 +41,6 @@ fun ModeratorTopBar(
     onOpenProfile: () -> Unit,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    averageReviewMinutes: Long? = null,
     pendingCount: Int = 0,
     verifiedCount: Int = 0,
     rejectedCount: Int = 0,
@@ -103,11 +102,6 @@ fun ModeratorTopBar(
                     fontWeight = FontWeight.SemiBold
                 )
             }
-            Text(
-                text = averageReviewMinutes.formatTime(),
-                color = Color.White.copy(alpha = 0.9f),
-                fontSize = 11.sp
-            )
             Surface(
                 modifier = Modifier
                     .padding(start = 10.dp)
@@ -144,16 +138,6 @@ fun ModeratorTopBar(
             }
         }
     }
-}
-
-@Composable
-private fun Long?.formatTime(): String {
-    val duration = when {
-        this == null -> "—"
-        this >= 60 -> stringResource(R.string.moderator_time_hours, this / 60)
-        else -> stringResource(R.string.moderator_time_minutes, this)
-    }
-    return stringResource(R.string.moderator_time_average, duration)
 }
 
 @Composable

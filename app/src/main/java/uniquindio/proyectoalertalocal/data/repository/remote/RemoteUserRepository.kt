@@ -2,6 +2,7 @@ package uniquindio.proyectoalertalocal.data.repository.remote
 
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -9,6 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -134,8 +136,31 @@ class RemoteUserRepository @Inject constructor(
         auth.signOut()
     }
 
-    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> =
-        runCatching { auth.sendPasswordResetEmail(email).await() }
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        auth.setLanguageCode("es")
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (_: FirebaseAuthInvalidUserException) {
+            Result.failure(
+                AppException(
+                    AppError.PASSWORD_RECOVERY_ACCOUNT_NOT_FOUND,
+                    "No hay una cuenta registrada con este correo."
+                )
+            )
+        } catch (_: FirebaseAuthException) {
+            Result.failure(
+                AppException(
+                    AppError.NETWORK,
+                    "No fue posible enviar el enlace para restablecer la contraseña."
+                )
+            )
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Result.failure(error)
+        }
+    }
 
     override suspend fun save(user: User) {
         users.document(user.id).set(UserDto.fromDomain(user)).await()

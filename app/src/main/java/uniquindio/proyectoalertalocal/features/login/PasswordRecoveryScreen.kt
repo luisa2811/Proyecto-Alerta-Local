@@ -75,11 +75,13 @@ fun PasswordRecoveryScreen(
     }
 
     LaunchedEffect(uiState.result) {
-        if (uiState.result is RequestResult.Failure) {
-            snackbarHostState.showSnackbar(
-                (uiState.result as RequestResult.Failure).errorMessage
-            )
-            viewModel.clearResult()
+        when (val result = uiState.result) {
+            is RequestResult.Failure -> {
+                snackbarHostState.showSnackbar(result.errorMessage)
+                viewModel.clearResult()
+            }
+            is RequestResult.Success -> Unit
+            RequestResult.Loading, null -> Unit
         }
     }
 

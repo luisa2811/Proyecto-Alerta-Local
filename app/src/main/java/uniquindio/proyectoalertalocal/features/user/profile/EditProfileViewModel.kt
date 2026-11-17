@@ -28,15 +28,13 @@ class EditProfileViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
     val uiState: StateFlow<EditProfileUiState> = _uiState.asStateFlow()
+    private var currentPhone: String? = null
 
     fun nameErrorMessage(): String? =
         _uiState.value.nameErrorRes?.let { resources.getString(it) }
 
     fun emailErrorMessage(): String? =
         _uiState.value.emailErrorRes?.let { resources.getString(it) }
-
-    fun phoneErrorMessage(): String? =
-        _uiState.value.phoneErrorRes?.let { resources.getString(it) }
 
     init {
         viewModelScope.launch {
@@ -46,13 +44,17 @@ class EditProfileViewModel @Inject constructor(
                 }
                 .collect { user ->
                     if (user == null) return@collect
+                    if (!_uiState.value.isLoaded) {
+                        currentPhone = user.phone
+                    }
 
                     _uiState.update { state ->
                         if (state.isLoaded) {
                             state.copy(
                                 address = user.address.orEmpty(),
                                 neighborhood = user.neighborhood.orEmpty(),
-                                profilePictureUrl = user.profilePictureUrl
+                                profilePictureUrl = user.profilePictureUrl,
+                                role = user.role
                             )
                         } else {
                             state.copy(
@@ -60,11 +62,10 @@ class EditProfileViewModel @Inject constructor(
                                 profilePictureUrl = user.profilePictureUrl,
                                 email = user.email,
                                 emailVerified = user.emailVerified,
-                                phone = normalizePhone(user.phone),
-                                phoneVerified = user.phoneVerified,
                                 address = user.address.orEmpty(),
                                 neighborhood = user.neighborhood.orEmpty(),
                                 displayNameInReports = user.displayNameInReports,
+                                role = user.role,
                                 isLoaded = true
                             )
                         }
@@ -77,13 +78,6 @@ class EditProfileViewModel @Inject constructor(
         _uiState.update { it.copy(fullName = fullName, result = null) }
     }
 
-    fun changePhone(phone: String) {
-        val digits = phone.filter(Char::isDigit).take(PHONE_DIGITS)
-        _uiState.update {
-            it.copy(phone = digits, phoneVerified = false, result = null)
-        }
-    }
-
     fun toggleDisplayNameInReports() {
         _uiState.update {
             it.copy(displayNameInReports = !it.displayNameInReports, result = null)
@@ -92,14 +86,15 @@ class EditProfileViewModel @Inject constructor(
 
     fun saveChanges() {
         val currentState = _uiState.value
-        if (!currentState.isFormValid) return
+        val name = currentState.fullName.trim()
+        if (!currentState.isFormValid || name.isBlank()) return
 
         _uiState.update { it.copy(result = RequestResult.Loading) }
         viewModelScope.launch {
             runCatching {
                 updateProfileUseCase(
-                    name = currentState.fullName,
-                    phone = currentState.phone,
+                    name = name,
+                    phone = currentPhone,
                     displayNameInReports = currentState.displayNameInReports
                 )
             }.fold(
@@ -107,7 +102,11 @@ class EditProfileViewModel @Inject constructor(
                     outcome.fold(
                         onSuccess = {
                             _uiState.update {
-                                it.copy(result = RequestResult.Success(resources.getString(SUCCESS_MESSAGE)))
+                                it.copy(
+                                    result = RequestResult.Success(
+                                        resources.getString(R.string.profile_changes_saved)
+                                    )
+                                )
                             }
                         },
                         onFailure = { error ->
@@ -123,6 +122,16 @@ class EditProfileViewModel @Inject constructor(
     }
 
     fun updateProfilePhoto(localUri: String) {
+        if (localUri.isBlank()) {
+            _uiState.update {
+                it.copy(
+                    photoResult = RequestResult.Failure(
+                        resources.getString(R.string.profile_photo_selection_failed)
+                    )
+                )
+            }
+            return
+        }
         _uiState.update { it.copy(photoResult = RequestResult.Loading) }
         viewModelScope.launch {
             runCatching { updateProfilePhotoUseCase(localUri) }
@@ -161,11 +170,4 @@ class EditProfileViewModel @Inject constructor(
         _uiState.update { it.copy(photoResult = null) }
     }
 
-    private fun normalizePhone(phone: String?): String =
-        phone.orEmpty().filter(Char::isDigit).takeLast(PHONE_DIGITS)
-
-    companion object {
-        private const val SUCCESS_MESSAGE = R.string.profile_changes_saved
-        private const val PHONE_DIGITS = 10
-    }
 }

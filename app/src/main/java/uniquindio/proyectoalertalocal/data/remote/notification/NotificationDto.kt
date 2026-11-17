@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.data.remote.notification
 
+import com.google.firebase.firestore.PropertyName
 import uniquindio.proyectoalertalocal.domain.model.Notification
 import uniquindio.proyectoalertalocal.domain.model.NotificationType
 import java.time.Instant
@@ -13,7 +14,9 @@ data class NotificationDto(
     val args: List<String> = emptyList(),
     val reportId: String? = null,
     val createdAt: Long = 0L,
-    val isRead: Boolean = false
+    @get:PropertyName("isRead")
+    @set:PropertyName("isRead")
+    var isRead: Boolean = false
 ) {
     fun toDomain(): Notification = Notification(
         id = id,

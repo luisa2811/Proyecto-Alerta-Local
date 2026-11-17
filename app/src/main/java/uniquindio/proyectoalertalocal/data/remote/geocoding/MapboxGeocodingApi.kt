@@ -1,5 +1,6 @@
 package uniquindio.proyectoalertalocal.data.remote.geocoding
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -14,6 +15,16 @@ interface MapboxGeocodingApi {
         @Query("proximity") proximity: String? = null
     ): MapboxGeocodingResponse
 
+    @GET("search/geocode/v6/reverse")
+    suspend fun reverseGeocode(
+        @Query("longitude") longitude: Double,
+        @Query("latitude") latitude: Double,
+        @Query("access_token") accessToken: String,
+        @Query("country") country: String = COUNTRY,
+        @Query("language") language: String = LANGUAGE,
+        @Query("limit") limit: Int = RESULT_LIMIT
+    ): MapboxGeocodingResponse
+
     private companion object {
         const val COUNTRY = "co"
         const val LANGUAGE = "es"
@@ -26,7 +37,14 @@ data class MapboxGeocodingResponse(
 )
 
 data class MapboxGeocodingFeature(
-    val geometry: MapboxGeocodingGeometry? = null
+    val geometry: MapboxGeocodingGeometry? = null,
+    val properties: MapboxGeocodingProperties? = null
+)
+
+data class MapboxGeocodingProperties(
+    @SerializedName("full_address")
+    val fullAddress: String? = null,
+    val name: String? = null
 )
 
 data class MapboxGeocodingGeometry(

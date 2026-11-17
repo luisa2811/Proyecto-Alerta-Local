@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,6 +15,9 @@ import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.ResourceProvider
 import uniquindio.proyectoalertalocal.core.util.toRequestFailure
+import uniquindio.proyectoalertalocal.domain.model.GeoPoint
+import uniquindio.proyectoalertalocal.domain.usecase.report.GeocodeAddressUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.report.ReverseGeocodeAddressUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.GetCurrentUserUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.user.UpdateResidenceUseCase
 import uniquindio.proyectoalertalocal.R
@@ -21,11 +26,14 @@ import uniquindio.proyectoalertalocal.R
 class EditResidenceViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val updateResidenceUseCase: UpdateResidenceUseCase,
+    private val geocodeAddressUseCase: GeocodeAddressUseCase,
+    private val reverseGeocodeAddressUseCase: ReverseGeocodeAddressUseCase,
     private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditResidenceUiState())
     val uiState: StateFlow<EditResidenceUiState> = _uiState.asStateFlow()
+    private var geocodingJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -55,7 +63,48 @@ class EditResidenceViewModel @Inject constructor(
     }
 
     fun onAddressChange(value: String) {
-        _uiState.update { it.copy(address = value, result = null) }
+        geocodingJob?.cancel()
+        val currentState = _uiState.value
+        val proximity = if (
+            currentState.residenceLatitude != null && currentState.residenceLongitude != null
+        ) {
+            GeoPoint(currentState.residenceLatitude, currentState.residenceLongitude)
+        } else {
+            null
+        }
+        _uiState.update {
+            it.copy(
+                address = value,
+                residenceLatitude = null,
+                residenceLongitude = null,
+                result = null
+            )
+        }
+        val query = value.trim()
+        if (query.length < MIN_GEOCODING_QUERY_LENGTH) return
+
+        geocodingJob = viewModelScope.launch {
+            delay(GEOCODING_DEBOUNCE_MS)
+            geocodeAddressUseCase(query, proximity).fold(
+                onSuccess = { point ->
+                    _uiState.update { state ->
+                        if (state.address.trim() == query) {
+                            state.copy(
+                                residenceLatitude = point?.latitude,
+                                residenceLongitude = point?.longitude
+                            )
+                        } else {
+                            state
+                        }
+                    }
+                },
+                onFailure = { error ->
+                    if (_uiState.value.address.trim() == query) {
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
+                    }
+                }
+            )
+        }
     }
 
     fun onNeighborhoodChange(value: String) {
@@ -67,11 +116,32 @@ class EditResidenceViewModel @Inject constructor(
     }
 
     fun onLocationPicked(latitude: Double, longitude: Double) {
+        geocodingJob?.cancel()
+        val point = GeoPoint(latitude, longitude)
         _uiState.update {
             it.copy(
                 residenceLatitude = latitude,
                 residenceLongitude = longitude,
                 result = null
+            )
+        }
+        geocodingJob = viewModelScope.launch {
+            reverseGeocodeAddressUseCase(point).fold(
+                onSuccess = { address ->
+                    _uiState.update { state ->
+                        if (
+                            state.residenceLatitude == latitude &&
+                            state.residenceLongitude == longitude
+                        ) {
+                            state.copy(address = address?.takeIf(String::isNotBlank) ?: state.address)
+                        } else {
+                            state
+                        }
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
+                }
             )
         }
     }
@@ -93,7 +163,11 @@ class EditResidenceViewModel @Inject constructor(
             }.fold(
                 onSuccess = {
                     _uiState.update {
-                        it.copy(result = RequestResult.Success(resources.getString(SUCCESS_MESSAGE)))
+                        it.copy(
+                            result = RequestResult.Success(
+                                resources.getString(R.string.profile_residence_updated)
+                            )
+                        )
                     }
                 },
                 onFailure = { error ->
@@ -108,6 +182,7 @@ class EditResidenceViewModel @Inject constructor(
     }
 
     companion object {
-        private const val SUCCESS_MESSAGE = R.string.profile_residence_updated
+        private const val MIN_GEOCODING_QUERY_LENGTH = 5
+        private const val GEOCODING_DEBOUNCE_MS = 600L
     }
 }

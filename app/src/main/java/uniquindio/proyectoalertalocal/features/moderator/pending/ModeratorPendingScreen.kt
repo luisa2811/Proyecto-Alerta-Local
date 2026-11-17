@@ -69,7 +69,6 @@ fun ModeratorPendingScreen(
                     stringResource(R.string.moderator_tab_verified),
                     stringResource(R.string.moderator_tab_rejected)
                 ),
-                averageReviewMinutes = uiState.queue?.averageReviewMinutes,
                 selectedIndex = uiState.selectedTab.ordinal,
                 pendingCount = uiState.queue?.pending?.size ?: 0,
                 verifiedCount = uiState.queue?.verified?.size ?: 0,

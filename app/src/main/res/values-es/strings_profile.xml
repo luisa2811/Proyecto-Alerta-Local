@@ -32,6 +32,7 @@
     <string name="profile_max_level">Nivel máximo alcanzado</string>
     <string name="profile_account_deleted">Tu cuenta se eliminó correctamente.</string>
     <string name="profile_photo_updated">Foto de perfil actualizada.</string>
+    <string name="profile_photo_selection_failed">No se pudo leer la imagen seleccionada.</string>
     <string name="profile_edit_title">Editar mis datos</string>
     <string name="profile_personal_information">Información personal</string>
     <string name="profile_full_name">NOMBRE COMPLETO</string>
@@ -47,7 +48,7 @@
     <string name="profile_edit_residence">Editar residencia</string>
     <string name="profile_exact_address_privacy">Tu dirección exacta se mantiene privada ante otros residentes y solo es visible por personal de respuesta municipal.</string>
     <string name="profile_show_name_in_reports">Mostrar mi nombre en reportes</string>
-    <string name="profile_anonymous_name_preview">Vecinos autorizados verán «María J.» en vez de Anónimo</string>
+    <string name="profile_anonymous_name_preview">Vecinos autorizados verán «%1$s» en vez de Anónimo</string>
     <string name="profile_residence_title">Editar dirección de residencia</string>
     <string name="profile_choose_on_map">Elegir en el mapa</string>
     <string name="profile_residential_complement">Complemento residencial</string>
