@@ -73,12 +73,34 @@ class NotificationsViewModel @Inject constructor(
     }
 
     fun onNotificationClicked(notification: Notification) {
-        _uiState.update { it.copy(result = RequestResult.Loading) }
+        if (!notification.isRead) {
+            _uiState.update { state ->
+                state.copy(
+                    notifications = state.notifications.map {
+                        if (it.id == notification.id) it.copy(isRead = true) else it
+                    },
+                    result = null
+                )
+            }
+        }
         viewModelScope.launch {
-            runCatching {
-                if (!notification.isRead) {
-                    setNotificationReadUseCase(notification.id, true).getOrThrow()
+            if (!notification.isRead) {
+                launch {
+                    runCatching {
+                        setNotificationReadUseCase(notification.id, true).getOrThrow()
+                    }.onFailure { error ->
+                        _uiState.update { state ->
+                            state.copy(
+                                notifications = state.notifications.map {
+                                    if (it.id == notification.id) it.copy(isRead = false) else it
+                                },
+                                result = error.toRequestFailure(resources)
+                            )
+                        }
+                    }
                 }
+            }
+            runCatching {
                 when {
                     notification.type == NotificationType.NEW_BADGE ||
                         notification.type == NotificationType.NEW_LEVEL ->
@@ -93,7 +115,7 @@ class NotificationsViewModel @Inject constructor(
                 }
             }.fold(
                 onSuccess = { navigation ->
-                    _uiState.update { it.copy(result = null, navigation = navigation) }
+                    _uiState.update { it.copy(navigation = navigation) }
                 },
                 onFailure = { error ->
                     _uiState.update { it.copy(result = error.toRequestFailure(resources)) }

@@ -101,12 +101,11 @@ fun ModeratorResolutionsScreen(
                 },
                 tabLabels = listOf(
                     stringResource(R.string.moderator_resolution_tab_active),
-                    stringResource(R.string.moderator_resolution_tab_finish),
                     stringResource(R.string.moderator_resolution_tab_resolved)
                 ),
                 tabCounts = listOf(
-                    uiState.board?.active?.size ?: 0,
-                    uiState.board?.toFinish?.size ?: 0,
+                    (uiState.board?.active?.size ?: 0) +
+                        (uiState.board?.toFinish?.size ?: 0),
                     uiState.board?.resolved?.size ?: 0
                 )
             )
@@ -134,8 +133,7 @@ fun ModeratorResolutionsScreen(
             }
 
             val allItems = when (uiState.selectedTab) {
-                ResolutionTab.ACTIVE -> board.active
-                ResolutionTab.TO_FINISH -> board.toFinish
+                ResolutionTab.ACTIVE -> board.active + board.toFinish
                 ResolutionTab.RESOLVED -> board.resolved
             }
 

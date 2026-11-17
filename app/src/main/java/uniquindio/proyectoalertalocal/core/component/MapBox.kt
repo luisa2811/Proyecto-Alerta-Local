@@ -81,13 +81,16 @@ fun MapBox(
     myLocationButtonLabel: String? = null,
     onMarkerClick: (Report) -> Unit = {},
     onMapClick: (Point) -> Unit = {},
-    onUserLocation: (Point) -> Unit = {}
+    onUserLocation: (Point) -> Unit = {},
+    selectedPointDraggable: Boolean = false,
+    onSelectedPointChange: (Point) -> Unit = {}
 ) {
     var followUserRequest by remember { mutableIntStateOf(0) }
     val permissionState = rememberLocationPermissionState { granted ->
         if (granted) followUserRequest++
     }
     val currentOnUserLocation = rememberUpdatedState(onUserLocation)
+    val currentOnSelectedPointChange = rememberUpdatedState(onSelectedPointChange)
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
             center(center)
@@ -172,6 +175,10 @@ fun MapBox(
             if (selectedPoint != null) {
                 PointAnnotation(point = selectedPoint) {
                     iconImage = selectedMarker
+                    interactionsState.isDraggable = selectedPointDraggable
+                    interactionsState.onDragFinished { annotation ->
+                        currentOnSelectedPointChange.value(annotation.point)
+                    }
                 }
             }
 

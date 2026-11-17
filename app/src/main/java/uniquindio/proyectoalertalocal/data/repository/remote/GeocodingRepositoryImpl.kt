@@ -35,4 +35,15 @@ class GeocodingRepositoryImpl @Inject constructor(
             longitude = coordinates[0]
         )
     }
+
+    override suspend fun reverseGeocode(point: GeoPoint): Result<String?> = runCatching {
+        val response = api.reverseGeocode(
+            longitude = point.longitude,
+            latitude = point.latitude,
+            accessToken = BuildConfig.MAPBOX_ACCESS_TOKEN
+        )
+        response.features.firstOrNull()?.properties?.let { properties ->
+            properties.fullAddress ?: properties.name
+        }
+    }
 }

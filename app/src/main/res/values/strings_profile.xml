@@ -32,6 +32,7 @@
     <string name="profile_max_level">Maximum level reached</string>
     <string name="profile_account_deleted">Your account was deleted successfully.</string>
     <string name="profile_photo_updated">Profile photo updated.</string>
+    <string name="profile_photo_selection_failed">The selected image could not be read.</string>
     <string name="profile_edit_title">Edit my details</string>
     <string name="profile_personal_information">Personal information</string>
     <string name="profile_full_name">FULL NAME</string>
@@ -47,7 +48,7 @@
     <string name="profile_edit_residence">Edit residence</string>
     <string name="profile_exact_address_privacy">Your exact address is kept private from other residents and is only visible to municipal response staff.</string>
     <string name="profile_show_name_in_reports">Show my name on reports</string>
-    <string name="profile_anonymous_name_preview">Authorized neighbors will see “Maria J.” instead of Anonymous</string>
+    <string name="profile_anonymous_name_preview">Authorized neighbors will see “%1$s” instead of Anonymous</string>
     <string name="profile_residence_title">Edit residential address</string>
     <string name="profile_choose_on_map">Choose on map</string>
     <string name="profile_residential_complement">Residential details</string>

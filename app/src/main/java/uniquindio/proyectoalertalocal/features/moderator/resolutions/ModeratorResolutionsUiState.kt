@@ -6,7 +6,6 @@ import uniquindio.proyectoalertalocal.domain.model.ResolutionBoard
 
 enum class ResolutionTab {
     ACTIVE,
-    TO_FINISH,
     RESOLVED
 }
 

@@ -51,27 +51,26 @@ class PasswordRecoveryViewModel @Inject constructor(
                                 _uiState.update {
                                     it.copy(
                                         emailSent = true,
-                                        result = RequestResult.Success(resources.getString(SUCCESS_MESSAGE))
+                                        result = RequestResult.Success(
+                                            resources.getString(R.string.auth_success_reset_email)
+                                        )
                                     )
                                 }
                             },
-                            onFailure = { error ->
-                                _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
-                            }
+                            onFailure = ::publishFailure
                         )
                     },
-                    onFailure = { error ->
-                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
-                    }
-            )
+                    onFailure = ::publishFailure
+                )
         }
+    }
+
+    private fun publishFailure(error: Throwable) {
+        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
     }
 
     fun clearResult() {
         _uiState.update { it.copy(result = null) }
     }
 
-    private companion object {
-        const val SUCCESS_MESSAGE = R.string.auth_success_reset_email
-    }
 }

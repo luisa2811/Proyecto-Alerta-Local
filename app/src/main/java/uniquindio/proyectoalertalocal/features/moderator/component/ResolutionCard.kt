@@ -152,7 +152,7 @@ fun ResolutionCard(
             )
 
             when (selectedTab) {
-                ResolutionTab.ACTIVE, ResolutionTab.TO_FINISH -> {
+                ResolutionTab.ACTIVE -> {
                     Text(
                         stringResource(R.string.moderator_resolution_note),
                         modifier = Modifier.padding(top = 10.dp),

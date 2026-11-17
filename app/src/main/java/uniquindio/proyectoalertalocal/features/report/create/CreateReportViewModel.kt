@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import uniquindio.proyectoalertalocal.core.util.RequestResult
 import uniquindio.proyectoalertalocal.core.util.ResourceProvider
@@ -25,6 +27,7 @@ import uniquindio.proyectoalertalocal.domain.usecase.report.CreateReportUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.DraftReportFromVoiceUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.FindSimilarReportsUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.GeocodeAddressUseCase
+import uniquindio.proyectoalertalocal.domain.usecase.report.ReverseGeocodeAddressUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.ObserveReportDetailUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.SupportReportUseCase
 import uniquindio.proyectoalertalocal.domain.usecase.report.UploadReportImagesUseCase
@@ -42,6 +45,7 @@ class CreateReportViewModel @Inject constructor(
     private val uploadReportImagesUseCase: UploadReportImagesUseCase,
     private val draftReportFromVoiceUseCase: DraftReportFromVoiceUseCase,
     private val geocodeAddressUseCase: GeocodeAddressUseCase,
+    private val reverseGeocodeAddressUseCase: ReverseGeocodeAddressUseCase,
     private val resources: ResourceProvider
 ) : ViewModel() {
 
@@ -49,6 +53,7 @@ class CreateReportViewModel @Inject constructor(
     val uiState: StateFlow<CreateReportUiState> = _uiState.asStateFlow()
 
     private var loadedEditReportId: String? = null
+    private var geocodingJob: Job? = null
 
     init {
         getCurrentUserUseCase()
@@ -115,13 +120,66 @@ class CreateReportViewModel @Inject constructor(
     }
 
     fun onLocationChange(location: String) {
-        _uiState.update { it.copy(location = location) }
+        geocodingJob?.cancel()
+        val currentState = _uiState.value
+        val proximity = if (currentState.latitude != null && currentState.longitude != null) {
+            GeoPoint(currentState.latitude, currentState.longitude)
+        } else {
+            DEFAULT_GEOCODING_PROXIMITY
+        }
+        _uiState.update {
+            it.copy(location = location, latitude = null, longitude = null, result = null)
+        }
         validate()
+        val query = location.trim()
+        if (query.length < MIN_GEOCODING_QUERY_LENGTH) return
+
+        geocodingJob = viewModelScope.launch {
+            delay(GEOCODING_DEBOUNCE_MS)
+            geocodeAddressUseCase(query, proximity).fold(
+                onSuccess = { point ->
+                    _uiState.update { state ->
+                        if (state.location.trim() == query) {
+                            state.copy(latitude = point?.latitude, longitude = point?.longitude)
+                        } else {
+                            state
+                        }
+                    }
+                    validate()
+                },
+                onFailure = { error ->
+                    if (_uiState.value.location.trim() == query) {
+                        _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
+                    }
+                }
+            )
+        }
     }
 
     fun onLocationPicked(latitude: Double, longitude: Double) {
-        _uiState.update { it.copy(latitude = latitude, longitude = longitude) }
+        geocodingJob?.cancel()
+        val point = GeoPoint(latitude, longitude)
+        _uiState.update {
+            it.copy(latitude = latitude, longitude = longitude, result = null)
+        }
         validate()
+        geocodingJob = viewModelScope.launch {
+            reverseGeocodeAddressUseCase(point).fold(
+                onSuccess = { address ->
+                    _uiState.update { state ->
+                        if (state.latitude == latitude && state.longitude == longitude) {
+                            state.copy(location = address?.takeIf(String::isNotBlank) ?: state.location)
+                        } else {
+                            state
+                        }
+                    }
+                    validate()
+                },
+                onFailure = { error ->
+                    _uiState.update { it.copy(result = error.toRequestFailure(resources)) }
+                }
+            )
+        }
     }
 
     fun generateDraftFromVoice(transcript: String, languageTag: String) {
@@ -495,6 +553,8 @@ class CreateReportViewModel @Inject constructor(
 
     companion object {
         const val MAX_IMAGES = 3
+        private const val MIN_GEOCODING_QUERY_LENGTH = 5
+        private const val GEOCODING_DEBOUNCE_MS = 600L
         private val DEFAULT_GEOCODING_PROXIMITY = GeoPoint(
             latitude = 4.5339,
             longitude = -75.6811

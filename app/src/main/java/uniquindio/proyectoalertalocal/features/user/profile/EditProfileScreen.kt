@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -64,6 +63,7 @@ import uniquindio.proyectoalertalocal.core.component.ImagePickerBottomSheet
 import uniquindio.proyectoalertalocal.core.component.getAuthorInitials
 import uniquindio.proyectoalertalocal.core.theme.DesignSystem
 import uniquindio.proyectoalertalocal.core.util.RequestResult
+import uniquindio.proyectoalertalocal.domain.model.UserRole
 
 @Composable
 fun EditProfileScreen(
@@ -174,40 +174,33 @@ fun EditProfileScreen(
                     readOnly = true,
                     onValueChange = {}
                 )
-                PersonalField(
-                    label = stringResource(R.string.profile_mobile_phone),
-                    value = uiState.phone,
-                    icon = Icons.Filled.Phone,
-                    verified = uiState.phoneVerified,
-                    keyboardType = KeyboardType.Phone,
-                    prefix = "+57",
-                    error = viewModel.phoneErrorMessage(),
-                    onValueChange = viewModel::changePhone
-                )
             }
 
-            Spacer(Modifier.height(30.dp))
-            SectionTitle(
-                title = stringResource(R.string.profile_location_residence),
-                icon = Icons.Filled.LocationOn
-            )
-            Spacer(Modifier.height(14.dp))
-            LocationCard(
-                address = uiState.address,
-                neighborhood = uiState.neighborhood,
-                onEditResidence = onEditResidence
-            )
+            if (uiState.role == UserRole.RESIDENT) {
+                Spacer(Modifier.height(30.dp))
+                SectionTitle(
+                    title = stringResource(R.string.profile_location_residence),
+                    icon = Icons.Filled.LocationOn
+                )
+                Spacer(Modifier.height(14.dp))
+                LocationCard(
+                    address = uiState.address,
+                    neighborhood = uiState.neighborhood,
+                    onEditResidence = onEditResidence
+                )
 
-            Spacer(Modifier.height(24.dp))
-            SectionTitle(
-                title = stringResource(R.string.profile_preferences_privacy),
-                icon = Icons.Filled.Shield
-            )
-            Spacer(Modifier.height(14.dp))
-            PrivacyCard(
-                showName = uiState.displayNameInReports,
-                onToggle = viewModel::toggleDisplayNameInReports
-            )
+                Spacer(Modifier.height(24.dp))
+                SectionTitle(
+                    title = stringResource(R.string.profile_preferences_privacy),
+                    icon = Icons.Filled.Shield
+                )
+                Spacer(Modifier.height(14.dp))
+                PrivacyCard(
+                    showName = uiState.displayNameInReports,
+                    namePreview = abbreviateName(uiState.fullName),
+                    onToggle = viewModel::toggleDisplayNameInReports
+                )
+            }
 
             Spacer(Modifier.height(28.dp))
             Surface(
@@ -562,7 +555,11 @@ private fun LocationCard(
 }
 
 @Composable
-private fun PrivacyCard(showName: Boolean, onToggle: () -> Unit) {
+private fun PrivacyCard(
+    showName: Boolean,
+    namePreview: String,
+    onToggle: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -579,7 +576,7 @@ private fun PrivacyCard(showName: Boolean, onToggle: () -> Unit) {
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = stringResource(R.string.profile_anonymous_name_preview),
+                text = stringResource(R.string.profile_anonymous_name_preview, namePreview),
                 color = Color(0xFF4E5058),
                 fontSize = 11.sp,
                 lineHeight = 15.sp,
@@ -592,4 +589,11 @@ private fun PrivacyCard(showName: Boolean, onToggle: () -> Unit) {
             modifier = Modifier.padding(start = 8.dp)
         )
     }
+}
+
+private fun abbreviateName(fullName: String): String {
+    val parts = fullName.trim().split(Regex("\\s+")).filter(String::isNotBlank)
+    if (parts.isEmpty()) return ""
+    val firstInitial = parts.getOrNull(1)?.firstOrNull()?.let { " ${it.uppercase()}." }.orEmpty()
+    return parts.first() + firstInitial
 }

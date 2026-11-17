@@ -382,64 +382,66 @@ fun ReportDetailScreen(
                 }
             }
 
-            Column {
-                if (uiState.commentError != null) {
-                    Text(
-                        text = uiState.commentError ?: "",
-                        modifier = Modifier.padding(horizontal = 14.dp),
-                        color = DesignSystem.Colors.ModeratorRed,
-                        fontSize = 10.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(DesignSystem.Colors.White)
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    BasicTextField(
-                        value = uiState.commentText,
-                        onValueChange = viewModel::onCommentTextChange,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp)
-                            .clip(CircleShape)
-                            .background(DesignSystem.Colors.FilterSurface)
-                            .padding(horizontal = 14.dp, vertical = 11.dp),
-                        singleLine = true,
-                        textStyle = TextStyle(
-                            color = DesignSystem.Colors.TextPrimary,
-                            fontSize = 12.sp
-                        ),
-                        decorationBox = { field ->
-                            Box {
-                                if (uiState.commentText.isEmpty()) {
-                                    Text(
-                                        text = stringResource(R.string.reports_add_comment),
-                                        color = DesignSystem.Colors.Placeholder,
-                                        fontSize = 11.sp
-                                    )
-                                }
-                                field()
-                            }
-                        }
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Button(
-                        onClick = { viewModel.sendComment() },
-                        enabled = uiState.isCommentValid,
-                        shape = CircleShape,
-                        colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.PrimaryDark),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Send,
-                            contentDescription = stringResource(R.string.reports_send_comment),
-                            tint = DesignSystem.Colors.White,
-                            modifier = Modifier.size(18.dp)
+            if (report.status == ReportStatus.VERIFIED || report.status == ReportStatus.RESOLVED) {
+                Column {
+                    if (uiState.commentError != null) {
+                        Text(
+                            text = uiState.commentError.orEmpty(),
+                            modifier = Modifier.padding(horizontal = 14.dp),
+                            color = DesignSystem.Colors.ModeratorRed,
+                            fontSize = 10.sp
                         )
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(DesignSystem.Colors.White)
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        BasicTextField(
+                            value = uiState.commentText,
+                            onValueChange = viewModel::onCommentTextChange,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(40.dp)
+                                .clip(CircleShape)
+                                .background(DesignSystem.Colors.FilterSurface)
+                                .padding(horizontal = 14.dp, vertical = 11.dp),
+                            singleLine = true,
+                            textStyle = TextStyle(
+                                color = DesignSystem.Colors.TextPrimary,
+                                fontSize = 12.sp
+                            ),
+                            decorationBox = { field ->
+                                Box {
+                                    if (uiState.commentText.isEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.reports_add_comment),
+                                            color = DesignSystem.Colors.Placeholder,
+                                            fontSize = 11.sp
+                                        )
+                                    }
+                                    field()
+                                }
+                            }
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Button(
+                            onClick = { viewModel.sendComment() },
+                            enabled = uiState.isCommentValid,
+                            shape = CircleShape,
+                            colors = ButtonDefaults.buttonColors(containerColor = DesignSystem.Colors.PrimaryDark),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Send,
+                                contentDescription = stringResource(R.string.reports_send_comment),
+                                tint = DesignSystem.Colors.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                 }
             }
